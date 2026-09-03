@@ -1,0 +1,2658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>决策树可视化工具</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* 响应式布局 */
+        @media (max-width: 1200px) {
+            .container {
+                max-width: 95%;
+                padding: 15px;
+            }
+            
+            .controls {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 15px;
+                padding: 20px;
+            }
+            
+            .visualization {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .tree-panel {
+                order: -1; /* 移动端时树面板在上方 */
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                padding: 15px;
+            }
+            
+            .control-buttons {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .control-buttons button {
+                flex: 1;
+                min-width: 120px;
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+            
+            .zoom-controls {
+                flex-wrap: wrap;
+                gap: 6px;
+                padding: 6px 8px;
+            }
+            
+            .zoom-btn {
+                min-width: 50px;
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+            
+            #canvasWrapper {
+                height: 400px !important;
+            }
+            
+            .fullscreen-header {
+                padding: 10px 15px;
+            }
+            
+            .fullscreen-controls {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            
+            .fullscreen-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .status-banner {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .status-banner.connected {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-banner.disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .control-group {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: visible;
+        }
+        
+        .control-group:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .control-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 15px;
+            display: block;
+            position: relative;
+        }
+        
+        .control-group input, 
+        .control-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            background: #fff;
+            box-sizing: border-box;
+        }
+        
+        .control-group input:focus, 
+        .control-group select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
+            background: #fafffe;
+        }
+        
+        .control-group input:hover:not(:focus),
+        .control-group select:hover:not(:focus) {
+            border-color: #b8bcc8;
+            background: #fcfcfc;
+        }
+        
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        input, select, button {
+            font-size: 14px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d !important;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #545b62 !important;
+        }
+        
+        .instructions {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .instructions h4 {
+            margin: 0 0 10px 0;
+            color: #1976D2;
+        }
+        
+        .visualization {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .data-panel {
+            flex: 1;
+            min-width: 300px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #fafafa, #f0f0f0);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .tree-panel {
+            flex: 2.5;
+            min-width: 400px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow: auto;
+        }
+        
+        .data-point {
+            padding: 5px;
+            margin: 2px 0;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .class-0 { background-color: #ffebee; }
+        .class-1 { background-color: #e3f2fd; }
+        .misclassified { 
+            border: 2px solid #ff5722;
+            box-shadow: 0 0 8px rgba(255, 87, 34, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 8px rgba(255, 87, 34, 0.3); }
+            50% { box-shadow: 0 0 12px rgba(255, 87, 34, 0.6); }
+            100% { box-shadow: 0 0 8px rgba(255, 87, 34, 0.3); }
+        }
+        
+        .tree-container {
+            position: relative;
+            width: 100%;
+            background-color: #fafafa;
+            border-radius: 5px;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        
+        #treeCanvas {
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 4px;
+        }
+        
+        #treeCanvas:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        #nodeInfo {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .node-detail {
+            margin: 5px 0;
+        }
+        
+        .node-detail strong {
+            color: #333;
+        }
+        
+        .feature-importance {
+            background: linear-gradient(90deg, #4CAF50, #81C784);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .class-distribution {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
+        .class-bar {
+            height: 20px;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .tree-node {
+            position: absolute;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 8px;
+            background: white;
+            min-width: 120px;
+            max-width: 200px;
+            text-align: center;
+            font-size: 11px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            word-wrap: break-word;
+        }
+        
+        .tree-node:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        /* 全屏样式 */
+        .fullscreen-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+        }
+        
+        .fullscreen-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+        
+        .fullscreen-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .fullscreen-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .fullscreen-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .fullscreen-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .fullscreen-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 20px;
+        }
+        
+        .fullscreen-canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: auto;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .fullscreen-info-panel {
+            height: 200px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            margin-top: 15px;
+            padding: 15px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        /* 响应式Canvas */
+        .responsive-canvas {
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+        }
+        
+        /* 缩放控制增强 */
+        .zoom-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .zoom-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            min-width: 60px;
+            transition: all 0.2s ease;
+        }
+        
+        .zoom-btn:hover {
+            background: #45a049;
+            transform: translateY(-1px);
+        }
+        
+        .zoom-level {
+            font-size: 12px;
+            color: #666;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .internal-node {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            border-color: #ff9800;
+        }
+        
+        .leaf-node {
+            background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+            border-color: #4CAF50;
+        }
+        
+        .feature-controls {
+            background-color: #f0f8ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .performance-panel {
+            background: linear-gradient(135deg, #ffffff, #f8f9ff);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border: 1px solid #e3f2fd;
+            box-shadow: 0 3px 12px rgba(33, 150, 243, 0.08);
+        }
+        
+        .performance-panel h3 {
+            margin: 0 0 15px 0;
+            color: #1976d2;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #fff, #f7faff);
+            border-radius: 8px;
+            border: 1px solid #e8f0fe;
+            box-shadow: 0 2px 6px rgba(33, 150, 243, 0.06);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.12);
+            border-color: #bbdefb;
+        }
+        
+        .metric-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(to bottom, #2196f3, #64b5f6);
+        }
+        
+        .metric-label {
+            font-weight: 500;
+            color: #546e7a;
+            font-size: 12px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .metric-value {
+            font-weight: 700;
+            font-size: 20px;
+            color: #1976d2;
+            text-shadow: 0 1px 2px rgba(25, 118, 210, 0.1);
+        }
+        
+        /* 性能对比组件 */
+        .performance-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .performance-section {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #e0e7ff;
+        }
+        
+        .performance-section h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .performance-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 13px;
+        }
+        
+        .performance-metric:last-child {
+            border-bottom: none;
+        }
+        
+        .performance-metric .label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .performance-metric .value {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .param-tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip-text {
+            visibility: hidden;
+            width: 320px;
+            background-color: #333;
+            color: #fff;
+            text-align: left;
+            border-radius: 8px;
+            padding: 12px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -160px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 13px;
+            line-height: 1.5;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        .param-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .decision-path {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 2px solid #ffeaa7;
+            box-shadow: 0 2px 8px rgba(255, 234, 167, 0.3);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .decision-path h4 {
+            margin: 0 0 12px 0;
+            color: #856404;
+            font-weight: 600;
+        }
+        
+        /* 美化滚动条 */
+        .decision-path::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .decision-path::-webkit-scrollbar-track {
+            background: rgba(255, 234, 167, 0.3);
+            border-radius: 4px;
+        }
+        
+        .decision-path::-webkit-scrollbar-thumb {
+            background: rgba(133, 100, 4, 0.5);
+            border-radius: 4px;
+        }
+        
+        .decision-path::-webkit-scrollbar-thumb:hover {
+            background: rgba(133, 100, 4, 0.7);
+        }
+        
+        /* 现代化开关样式 */
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 32px;
+            margin: 10px 0;
+        }
+        
+        .toggle-switch input[type="checkbox"] {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #e0e0e0, #bdbdbd);
+            border-radius: 32px;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 3px;
+            bottom: 3px;
+            background: linear-gradient(135deg, #ffffff, #f5f5f5);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .toggle-switch input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+        
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(28px);
+        }
+        
+        .toggle-switch input:focus + .toggle-slider {
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3);
+        }
+        
+        .feature-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #6c757d;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .feature-count {
+            font-weight: bold;
+            color: #495057;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        
+        /* 响应式改进 */
+        @media (max-width: 768px) {
+            
+            .toggle-switch {
+                width: 50px;
+                height: 28px;
+            }
+            
+            .toggle-slider:before {
+                height: 22px;
+                width: 22px;
+            }
+            
+            .toggle-switch input:checked + .toggle-slider:before {
+                transform: translateX(22px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 64 64" fill="none">
+            <defs>
+                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#F0F4FA"/>
+                    <stop offset="100%" stop-color="#D6E4F0"/>
+                </linearGradient>
+                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                </filter>
+                <linearGradient id="leafGradientSmall" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#2E86C1"/>
+                    <stop offset="100%" stop-color="#5DADE2"/>
+                </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+            <path d="M32 8 C32 14, 32 16, 32 20" stroke="#555" stroke-width="1.3" fill="none"/>
+            <path d="M32 20 C28 24, 20 28, 20 32" stroke="#555" stroke-width="1.1" fill="none"/>
+            <path d="M32 20 C36 24, 44 28, 44 32" stroke="#555" stroke-width="1.1" fill="none"/>
+            <path d="M20 32 C16 36, 14 40, 14 44" stroke="#555" stroke-width="1" fill="none"/>
+            <path d="M20 32 C24 36, 26 40, 26 44" stroke="#555" stroke-width="1" fill="none"/>
+            <path d="M44 32 C40 36, 38 40, 38 44" stroke="#555" stroke-width="1" fill="none"/>
+            <path d="M44 32 C48 36, 50 40, 50 44" stroke="#555" stroke-width="1" fill="none"/>
+            <circle cx="32" cy="8" r="2" fill="#2E86C1"/>
+            <circle cx="20" cy="32" r="1.5" fill="#2E86C1"/>
+            <circle cx="44" cy="32" r="1.5" fill="#2E86C1"/>
+            <circle cx="14" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+            <circle cx="26" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+            <circle cx="38" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+            <circle cx="50" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+        </svg> 决策树可视化工具</h1>
+        
+        <!-- 连接状态 -->
+        <div id="statusBanner" class="status-banner disconnected">
+            正在检查后端服务连接...
+        </div>
+        
+        <!-- 使用说明 -->
+        <div class="instructions">
+            <h4>📚 使用说明</h4>
+            <p><strong>1. 数据生成：</strong>选择数据场景和参数，点击"生成数据"创建训练数据</p>
+            <p><strong>2. 树构建：</strong>设置决策树参数，点击"构建决策树"训练模型</p>
+            <p><strong>3. 结果分析：</strong>查看决策树结构、性能指标和分类路径</p>
+            <p><strong>4. 样本测试：</strong>点击"测试新样本"查看模型预测过程</p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="dataType">数据场景:</label>
+                <select id="dataType">
+                    <option value="iris">鸢尾花分类</option>
+                    <option value="wine">红酒品质</option>
+                    <option value="breast_cancer">乳腺癌诊断</option>
+                    <option value="digits">手写数字</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="useFullFeatures">特征维度:</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="useFullFeatures">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span id="dimensionStatus" style="font-size: 14px; color: #666;">2D 可视化模式</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label for="sampleCount">训练样本数:</label>
+                <input type="number" id="sampleCount" value="100" min="50" max="500" step="10">
+            </div>
+            
+            <div class="control-group">
+                <label for="maxDepth">最大深度:</label>
+                <input type="number" id="maxDepth" value="5" min="2" max="15">
+            </div>
+            
+            <div class="control-group">
+                <label for="minSamplesSplit">最小分裂样本数:</label>
+                <input type="number" id="minSamplesSplit" value="2" min="2" max="50">
+            </div>
+            
+            <div class="control-group">
+                <label for="minSamplesLeaf">叶节点最小样本数:</label>
+                <input type="number" id="minSamplesLeaf" value="1" min="1" max="20">
+            </div>
+            
+            <div class="control-group">
+                <label for="maxFeatures">最大特征数:</label>
+                <select id="maxFeatures">
+                    <option value="None">所有特征</option>
+                    <option value="sqrt" selected>平方根</option>
+                    <option value="log2">对数</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="criterion">分割准则:</label>
+                <select id="criterion">
+                    <option value="gini">Gini不纯度</option>
+                    <option value="entropy">信息熵</option>
+                </select>
+            </div>
+            
+        </div>
+        
+        <div class="control-buttons">
+            <button id="generateDataBtn" style="background: linear-gradient(135deg, #2196F3, #21CBF3); padding: 12px 24px; border-radius: 8px; font-weight: 600;">📊 生成数据</button>
+            <button id="buildTreeBtn" disabled style="background: linear-gradient(135deg, #4CAF50, #8BC34A); padding: 12px 24px; border-radius: 8px; font-weight: 600;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 64 64" fill="none">
+                <defs>
+                    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#F0F4FA"/>
+                        <stop offset="100%" stop-color="#D6E4F0"/>
+                    </linearGradient>
+                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                    </filter>
+                    <linearGradient id="leafGradientSmall" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#2E86C1"/>
+                        <stop offset="100%" stop-color="#5DADE2"/>
+                    </linearGradient>
+                </defs>
+                <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                <path d="M32 8 C32 14, 32 16, 32 20" stroke="#555" stroke-width="1.3" fill="none"/>
+                <path d="M32 20 C28 24, 20 28, 20 32" stroke="#555" stroke-width="1.1" fill="none"/>
+                <path d="M32 20 C36 24, 44 28, 44 32" stroke="#555" stroke-width="1.1" fill="none"/>
+                <path d="M20 32 C16 36, 14 40, 14 44" stroke="#555" stroke-width="1" fill="none"/>
+                <path d="M20 32 C24 36, 26 40, 26 44" stroke="#555" stroke-width="1" fill="none"/>
+                <path d="M44 32 C40 36, 38 40, 38 44" stroke="#555" stroke-width="1" fill="none"/>
+                <path d="M44 32 C48 36, 50 40, 50 44" stroke="#555" stroke-width="1" fill="none"/>
+                <circle cx="32" cy="8" r="2" fill="#2E86C1"/>
+                <circle cx="20" cy="32" r="1.5" fill="#2E86C1"/>
+                <circle cx="44" cy="32" r="1.5" fill="#2E86C1"/>
+                <circle cx="14" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                <circle cx="26" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                <circle cx="38" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                <circle cx="50" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+            </svg> 构建决策树</button>
+            <button id="testSampleBtn" disabled style="background: linear-gradient(135deg, #FF9800, #FFC107); padding: 12px 24px; border-radius: 8px; font-weight: 600;">🧪 测试样本</button>
+            <button id="clearBtn" class="btn-secondary" style="background: linear-gradient(135deg, #9E9E9E, #BDBDBD); padding: 12px 24px; border-radius: 8px; font-weight: 600;">🗑️ 清空</button>
+        </div>
+        
+        <div class="feature-controls" id="featureControls">
+            <strong>特征说明:</strong> <span id="featureList">请先选择数据场景</span>
+        </div>
+        
+        <div class="performance-panel">
+            <h3>📊 模型性能</h3>
+            <div id="performanceMetrics" class="metrics-grid">
+                <div class="metric-item">
+                    <span class="metric-label">等待训练...</span>
+                </div>
+            </div>
+            
+            <!-- 新增性能对比区域 -->
+            <div id="performanceComparison" class="performance-comparison" style="display: none;">
+                <div class="performance-section">
+                    <h4>📚 训练集性能</h4>
+                    <div id="trainMetrics"></div>
+                </div>
+                <div class="performance-section">
+                    <h4>🧪 测试集性能</h4>
+                    <div id="testMetrics"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="visualization">
+            <div class="data-panel">
+                <h3>📊 训练数据</h3>
+                <div id="dataDisplay">暂无数据，请先生成训练数据</div>
+                
+                <div class="decision-path" id="testResult" style="display:none;">
+                    <h4>🧪 测试结果</h4>
+                    <div id="testPath"></div>
+                </div>
+            </div>
+            
+            <div class="tree-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0;"><svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 64 64" fill="none">
+                        <defs>
+                            <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#F0F4FA"/>
+                                <stop offset="100%" stop-color="#D6E4F0"/>
+                            </linearGradient>
+                            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                            </filter>
+                            <linearGradient id="leafGradientSmall" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#2E86C1"/>
+                                <stop offset="100%" stop-color="#5DADE2"/>
+                            </linearGradient>
+                        </defs>
+                        <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                        <path d="M32 8 C32 14, 32 16, 32 20" stroke="#555" stroke-width="1.3" fill="none"/>
+                        <path d="M32 20 C28 24, 20 28, 20 32" stroke="#555" stroke-width="1.1" fill="none"/>
+                        <path d="M32 20 C36 24, 44 28, 44 32" stroke="#555" stroke-width="1.1" fill="none"/>
+                        <path d="M20 32 C16 36, 14 40, 14 44" stroke="#555" stroke-width="1" fill="none"/>
+                        <path d="M20 32 C24 36, 26 40, 26 44" stroke="#555" stroke-width="1" fill="none"/>
+                        <path d="M44 32 C40 36, 38 40, 38 44" stroke="#555" stroke-width="1" fill="none"/>
+                        <path d="M44 32 C48 36, 50 40, 50 44" stroke="#555" stroke-width="1" fill="none"/>
+                        <circle cx="32" cy="8" r="2" fill="#2E86C1"/>
+                        <circle cx="20" cy="32" r="1.5" fill="#2E86C1"/>
+                        <circle cx="44" cy="32" r="1.5" fill="#2E86C1"/>
+                        <circle cx="14" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                        <circle cx="26" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                        <circle cx="38" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                        <circle cx="50" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                    </svg> 决策树结构</h3>
+                    <div class="zoom-controls">
+                        <button id="zoomInBtn" class="zoom-btn">放大</button>
+                        <button id="zoomOutBtn" class="zoom-btn">缩小</button>
+                        <span id="zoomLevel" class="zoom-level">100%</span>
+                        <button id="resetZoomBtn" class="zoom-btn">重置</button>
+                        <button id="fullscreenBtn" class="zoom-btn" style="background: #2196F3;">全屏</button>
+                    </div>
+                </div>
+                <div class="tree-container" id="treeContainer">
+                    <div id="canvasWrapper" style="overflow: auto; height: 500px; border: 1px solid #ddd; background: #fafafa; border-radius: 4px; position: relative;">
+                        <canvas id="treeCanvas" width="800" height="600" style="display: block;"></canvas>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                        <div id="treeStats" style="padding: 10px; background: #e8f5e8; border-radius: 4px; font-size: 12px;">
+                            <strong>树结构统计:</strong>
+                            <div id="treeStatsContent">等待构建决策树...</div>
+                        </div>
+                        <div id="nodeInfo" style="padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                            <div style="text-align: center; color: #666; font-size: 12px;">
+                                悬停在节点上查看详细信息
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全屏决策树可视化 -->
+    <div id="fullscreenContainer" class="fullscreen-container">
+        <div class="fullscreen-header">
+            <div class="fullscreen-title"><img src="images/decision_tree_icon.png" style="vertical-align: middle; height: 1em;"> 决策树结构 - 全屏视图</div>
+            <div class="fullscreen-controls">
+                <button id="fullscreenZoomIn" class="fullscreen-btn">放大 (+)</button>
+                <button id="fullscreenZoomOut" class="fullscreen-btn">缩小 (-)</button>
+                <span id="fullscreenZoomLevel" class="fullscreen-btn" style="background: transparent; cursor: default;">100%</span>
+                <button id="fullscreenReset" class="fullscreen-btn">重置视图</button>
+                <button id="fullscreenClose" class="fullscreen-btn">退出全屏 (ESC)</button>
+            </div>
+        </div>
+        <div class="fullscreen-content">
+            <div class="fullscreen-canvas-container">
+                <canvas id="fullscreenCanvas" class="responsive-canvas"></canvas>
+            </div>
+            <div class="fullscreen-info-panel">
+                <div id="fullscreenTreeStats" style="background: #e8f5e8; border-radius: 6px; padding: 12px;">
+                    <strong>树结构统计:</strong>
+                    <div id="fullscreenTreeStatsContent">等待构建决策树...</div>
+                </div>
+                <div id="fullscreenNodeInfo" style="background: #f8f9fa; border-radius: 6px; padding: 12px;">
+                    <div style="text-align: center; color: #666;">
+                        悬停在节点上查看详细信息
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API客户端 -->
+    <script src="/static/js/api-client.js"></script>
+    
+    <script>
+        // 全局变量
+        let apiClient;
+        let currentSessionKey = null;
+        let currentModelKey = null;
+        let currentData = null;
+        let trainingData = [];
+        let decisionTree = null;
+        
+        // 数据集配置
+        const datasetConfig = {
+            'iris': {
+                name: '鸢尾花分类',
+                features: ['萼片长度', '萼片宽度', '花瓣长度', '花瓣宽度'],
+                target_names: ['山鸢尾', '变色鸢尾', '维吉尼亚鸢尾']
+            },
+            'wine': {
+                name: '红酒品质',
+                features: ['酒精度', '酸度', '残糖', '氯化物', '游离SO2', '总SO2', '密度', 'pH', '硫酸盐', '酒精', '品质'],
+                target_names: ['低品质', '高品质']
+            },
+            'breast_cancer': {
+                name: '乳腺癌诊断',
+                features: ['半径', '纹理', '周长', '面积', '光滑度', '紧密度', '凹陷度', '凹点数', '对称性', '分形维数'],
+                target_names: ['恶性', '良性']
+            },
+            'digits': {
+                name: '手写数字',
+                features: ['像素1', '像素2', '像素3', '像素4', '像素5', '像素6', '像素7', '像素8'],
+                target_names: ['数字0', '数字1', '数字2', '数字3', '数字4', '数字5', '数字6', '数字7', '数字8', '数字9']
+            }
+        };
+        
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 初始化API客户端
+            apiClient = new MLApiClient();
+            
+            // 检查后端连接
+            await checkBackendConnection();
+            
+            // 设置事件监听器
+            setupEventListeners();
+            
+            // 更新特征说明和维度显示
+            updateFeatureControls();
+            updateDimensionDisplay();
+            
+            // 初始化树可视化器
+            treeVisualizer = new DecisionTreeVisualizer('treeCanvas', 'nodeInfo');
+            
+            console.log('决策树可视化工具已初始化');
+        });
+        
+        // 检查后端连接
+        async function checkBackendConnection() {
+            const statusBanner = document.getElementById('statusBanner');
+            
+            try {
+                const isConnected = await apiClient.checkConnection();
+                
+                if (isConnected) {
+                    statusBanner.textContent = '✅ 后端服务已连接 - 基于sklearn的决策树实现';
+                    statusBanner.className = 'status-banner connected';
+                } else {
+                    throw new Error('连接失败');
+                }
+            } catch (error) {
+                statusBanner.textContent = '❌ 后端服务未连接 - 请启动Flask服务器 (python start.py)';
+                statusBanner.className = 'status-banner disconnected';
+                console.warn('后端服务连接失败:', error);
+            }
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            document.getElementById('dataType').addEventListener('change', updateFeatureControls);
+            document.getElementById('useFullFeatures').addEventListener('change', updateDimensionDisplay);
+            document.getElementById('generateDataBtn').addEventListener('click', generateData);
+            document.getElementById('buildTreeBtn').addEventListener('click', buildTree);
+            document.getElementById('testSampleBtn').addEventListener('click', testSample);
+            document.getElementById('clearBtn').addEventListener('click', clearAll);
+            
+            // 全屏相关事件
+            document.getElementById('fullscreenBtn').addEventListener('click', openFullscreen);
+            document.getElementById('fullscreenClose').addEventListener('click', closeFullscreen);
+            
+            // ESC键退出全屏
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    closeFullscreen();
+                }
+            });
+        }
+        
+        // 打开全屏视图
+        function openFullscreen() {
+            const fullscreenContainer = document.getElementById('fullscreenContainer');
+            fullscreenContainer.style.display = 'flex';
+            
+            // 初始化全屏可视化器
+            if (!fullscreenTreeVisualizer) {
+                fullscreenTreeVisualizer = new DecisionTreeVisualizer('fullscreenCanvas', 'fullscreenNodeInfo', true);
+            }
+            
+            // 同步数据到全屏视图
+            if (treeVisualizer && treeVisualizer.treeData) {
+                fullscreenTreeVisualizer.setTreeData(treeVisualizer.treeData, treeVisualizer.targetNames, treeVisualizer.featureNames);
+                // 同步统计信息
+                document.getElementById('fullscreenTreeStatsContent').innerHTML = 
+                    document.getElementById('treeStatsContent').innerHTML;
+            }
+            
+            // 禁止body滚动
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // 关闭全屏视图
+        function closeFullscreen() {
+            const fullscreenContainer = document.getElementById('fullscreenContainer');
+            fullscreenContainer.style.display = 'none';
+            
+            // 恢复body滚动
+            document.body.style.overflow = 'auto';
+        }
+        
+        // 更新特征说明
+        function updateFeatureControls() {
+            const dataType = document.getElementById('dataType').value;
+            const config = datasetConfig[dataType];
+            
+            if (config) {
+                document.getElementById('featureList').textContent = 
+                    `${config.name} - 特征: ${config.features.slice(0, 5).join(', ')}${config.features.length > 5 ? '...' : ''}`;
+            }
+            
+            // 更新维度显示
+            updateDimensionDisplay();
+        }
+        
+        // 更新维度显示状态
+        function updateDimensionDisplay() {
+            const dataType = document.getElementById('dataType').value;
+            const config = datasetConfig[dataType];
+            const useFullFeatures = document.getElementById('useFullFeatures').checked;
+            
+            const dimensionStatus = document.getElementById('dimensionStatus');
+            const currentMode = document.getElementById('currentMode');
+            const featureCount = document.getElementById('featureCount');
+            const featureDescription = document.getElementById('featureDescription');
+            
+            // 根据数据集类型获取特征数量
+            const datasetFeatureCounts = {
+                'iris': 4,
+                'wine': 13,
+                'breast_cancer': 30,
+                'digits': 64
+            };
+            
+            if (useFullFeatures) {
+                // 多维模式
+                const fullFeatureCount = datasetFeatureCounts[dataType] || 4;
+                dimensionStatus.textContent = `完整特征模式 (${fullFeatureCount}维)`;
+                dimensionStatus.style.color = '#388e3c';
+            } else {
+                // 2D模式
+                dimensionStatus.textContent = '2D 可视化模式';
+                dimensionStatus.style.color = '#1976d2';
+            }
+        }
+        
+        // 生成数据
+        async function generateData() {
+            try {
+                updateStatus('正在生成数据...');
+                
+                const dataType = document.getElementById('dataType').value;
+                const sampleCount = parseInt(document.getElementById('sampleCount').value);
+                const useFullFeatures = document.getElementById('useFullFeatures').checked;
+                
+                let result;
+                
+                if (useFullFeatures) {
+                    // 使用完整维度特征
+                    const config = {
+                        shape: dataType,
+                        n_samples: sampleCount,
+                        random_state: 42
+                    };
+                    result = await apiClient.generateFullDimensionalData(config);
+                } else {
+                    // 使用2D数据
+                    const config = {
+                        type: 'classification',
+                        shape: dataType,
+                        n_samples: sampleCount,
+                        noise: 0.1,
+                        random_state: 42
+                    };
+                    result = await apiClient.generateData(config);
+                }
+                
+                if (result.status === 'success') {
+                    currentSessionKey = result.session_key;
+                    currentData = result.data;
+                    
+                    // 处理数据
+                    processTrainingData();
+                    
+                    // 显示数据
+                    displayData();
+                    
+                    // 启用构建按钮
+                    document.getElementById('buildTreeBtn').disabled = false;
+                    
+                    const featureCount = currentData.n_features || currentData.X[0].length;
+                    updateStatus(`数据生成完成，共 ${currentData.n_samples} 个样本，${featureCount} 个特征`);
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                console.error('数据生成失败:', error);
+                updateStatus('数据生成失败: ' + error.message);
+            }
+        }
+        
+        // 处理训练数据
+        function processTrainingData() {
+            trainingData = [];
+            const dataType = document.getElementById('dataType').value;
+            const config = datasetConfig[dataType];
+            
+            for (let i = 0; i < currentData.X.length; i++) {
+                trainingData.push({
+                    features: currentData.X[i],
+                    label: currentData.y[i],
+                    name: `样本${i + 1}`,
+                    prediction: null,
+                    misclassified: false
+                });
+            }
+        }
+        
+        // 显示数据
+        function displayData() {
+            const dataDisplay = document.getElementById('dataDisplay');
+            const dataType = document.getElementById('dataType').value;
+            const config = datasetConfig[dataType];
+            
+            let html = '<div style="max-height: 300px; overflow-y: auto;">';
+            html += '<h4>原始数据 (未训练):</h4>';
+            
+            trainingData.slice(0, 30).forEach((sample, index) => {
+                const className = `class-${sample.label}`;
+                const targetName = config.target_names[sample.label] || `类别${sample.label}`;
+                
+                html += `
+                    <div class="data-point ${className}" style="margin: 3px 0; padding: 5px; border-left: 3px solid var(--class-color-${sample.label}, #ccc); background: #f9f9f9;">
+                        <strong>样本 ${index + 1}:</strong> ${targetName}
+                        <br><small>特征: [${sample.features.slice(0, 4).map(f => f.toFixed(2)).join(', ')}]</small>
+                    </div>
+                `;
+            });
+            
+            if (trainingData.length > 30) {
+                html += `<div style="text-align: center; color: #666; margin: 10px;">... 还有 ${trainingData.length - 30} 个样本</div>`;
+            }
+            
+            html += '</div>';
+            dataDisplay.innerHTML = html;
+        }
+        
+        function displayDataWithResults() {
+            const dataDisplay = document.getElementById('dataDisplay');
+            const dataType = document.getElementById('dataType').value;
+            const config = datasetConfig[dataType];
+            
+            let html = '<div style="max-height: 450px; overflow-y: auto;">';
+            
+            // 显示训练数据结果
+            if (window.trainData && window.trainData.length > 0) {
+                html += '<div style="margin-bottom: 25px; padding: 15px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 10px; border-left: 5px solid #2196F3;">';
+                html += '<h4 style="color: #1976D2; margin: 0 0 15px 0; display: flex; align-items: center;"><span style="margin-right: 8px;">📚</span>训练集预测结果</h4>';
+                
+                const trainCorrect = window.trainData.filter(s => !s.misclassified).length;
+                const trainTotal = window.trainData.length;
+                const trainAccuracy = (trainCorrect/trainTotal*100).toFixed(1);
+                
+                html += `<div style="background: rgba(255, 255, 255, 0.9); padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center;">
+                        <span style="font-size: 24px; margin-right: 10px;">${trainAccuracy >= 90 ? '🎯' : trainAccuracy >= 70 ? '✅' : '⚠️'}</span>
+                        <div>
+                            <div style="font-weight: 600; font-size: 16px; color: #1976D2;">训练准确率</div>
+                            <div style="font-size: 24px; font-weight: bold; color: ${trainAccuracy >= 90 ? '#4CAF50' : trainAccuracy >= 70 ? '#FF9800' : '#F44336'};">${trainAccuracy}%</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right; color: #666; font-size: 14px;">
+                        正确: ${trainCorrect} / 总数: ${trainTotal}
+                    </div>
+                </div>`;
+                
+                // 显示训练样本详情
+                html += '<div style="background: rgba(255, 255, 255, 0.7); border-radius: 8px; padding: 10px; max-height: 200px; overflow-y: auto;">';
+                window.trainData.slice(0, 20).forEach((sample, index) => {
+                    const targetName = config.target_names[sample.label] || `类别${sample.label}`;
+                    const predName = config.target_names[sample.prediction] || `类别${sample.prediction}`;
+                    const icon = sample.misclassified ? '❌' : '✅';
+                    const bgColor = sample.misclassified ? '#ffebee' : '#e8f5e8';
+                    const borderColor = sample.misclassified ? '#f44336' : '#4caf50';
+                    
+                    html += `
+                        <div style="margin: 6px 0; padding: 10px; border-left: 4px solid ${borderColor}; background: ${bgColor}; border-radius: 4px; font-size: 13px; transition: all 0.2s ease;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-weight: 600;">样本 ${index + 1}</span>
+                                <span style="font-size: 16px;">${icon}</span>
+                            </div>
+                            <div style="margin: 4px 0; color: #555;">
+                                <strong>真实:</strong> <span style="color: #2196F3; font-weight: 600;">${targetName}</span> | 
+                                <strong>预测:</strong> <span style="color: ${sample.misclassified ? '#f44336' : '#4caf50'}; font-weight: 600;">${predName}</span>
+                            </div>
+                            <div style="font-size: 12px; color: #666;">
+                                特征: [${sample.features.slice(0, 4).map(f => f.toFixed(2)).join(', ')}${sample.features.length > 4 ? '...' : ''}]
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                if (window.trainData.length > 20) {
+                    html += `<div style="text-align: center; color: #666; margin: 10px; padding: 8px; background: rgba(255,255,255,0.8); border-radius: 4px;">... 还有 ${window.trainData.length - 20} 个训练样本</div>`;
+                }
+                html += '</div></div>';
+            }
+            
+            // 显示测试数据结果
+            if (window.testData && window.testData.length > 0) {
+                html += '<div style="padding: 15px; background: linear-gradient(135deg, #fff3e0, #ffcc02); border-radius: 10px; border-left: 5px solid #FF9800;">';
+                html += '<h4 style="color: #F57C00; margin: 0 0 15px 0; display: flex; align-items: center;"><span style="margin-right: 8px;">🧪</span>测试集预测结果</h4>';
+                
+                const testCorrect = window.testData.filter(s => !s.misclassified).length;
+                const testTotal = window.testData.length;
+                const testAccuracy = (testCorrect/testTotal*100).toFixed(1);
+                
+                html += `<div style="background: rgba(255, 255, 255, 0.9); padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center;">
+                        <span style="font-size: 24px; margin-right: 10px;">${testAccuracy >= 90 ? '🎯' : testAccuracy >= 70 ? '✅' : '⚠️'}</span>
+                        <div>
+                            <div style="font-weight: 600; font-size: 16px; color: #F57C00;">测试准确率</div>
+                            <div style="font-size: 24px; font-weight: bold; color: ${testAccuracy >= 90 ? '#4CAF50' : testAccuracy >= 70 ? '#FF9800' : '#F44336'};">${testAccuracy}%</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right; color: #666; font-size: 14px;">
+                        正确: ${testCorrect} / 总数: ${testTotal}
+                    </div>
+                </div>`;
+                
+                // 显示测试样本详情
+                html += '<div style="background: rgba(255, 255, 255, 0.7); border-radius: 8px; padding: 10px; max-height: 200px; overflow-y: auto;">';
+                window.testData.forEach((sample, index) => {
+                    const targetName = config.target_names[sample.label] || `类别${sample.label}`;
+                    const predName = config.target_names[sample.prediction] || `类别${sample.prediction}`;
+                    const icon = sample.misclassified ? '❌' : '✅';
+                    const bgColor = sample.misclassified ? '#ffebee' : '#e8f5e8';
+                    const borderColor = sample.misclassified ? '#f44336' : '#4caf50';
+                    
+                    html += `
+                        <div style="margin: 6px 0; padding: 10px; border-left: 4px solid ${borderColor}; background: ${bgColor}; border-radius: 4px; font-size: 13px; transition: all 0.2s ease;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-weight: 600;">测试样本 ${index + 1}</span>
+                                <span style="font-size: 16px;">${icon}</span>
+                            </div>
+                            <div style="margin: 4px 0; color: #555;">
+                                <strong>真实:</strong> <span style="color: #2196F3; font-weight: 600;">${targetName}</span> | 
+                                <strong>预测:</strong> <span style="color: ${sample.misclassified ? '#f44336' : '#4caf50'}; font-weight: 600;">${predName}</span>
+                            </div>
+                            <div style="font-size: 12px; color: #666;">
+                                特征: [${sample.features.slice(0, 4).map(f => f.toFixed(2)).join(', ')}${sample.features.length > 4 ? '...' : ''}]
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+            }
+            
+            html += '</div>';
+            dataDisplay.innerHTML = html;
+        }
+        
+        // 构建决策树
+        async function buildTree() {
+            if (!currentSessionKey) {
+                alert('请先生成数据！');
+                return;
+            }
+            
+            try {
+                updateStatus('正在构建决策树...');
+                
+                const maxFeaturesValue = document.getElementById('maxFeatures').value;
+                const maxFeatures = maxFeaturesValue === 'None' ? null : maxFeaturesValue;
+                
+                const config = {
+                    session_key: currentSessionKey,
+                    algorithm: 'decision_tree',
+                    params: {
+                        max_depth: parseInt(document.getElementById('maxDepth').value),
+                        min_samples_split: parseInt(document.getElementById('minSamplesSplit').value),
+                        min_samples_leaf: parseInt(document.getElementById('minSamplesLeaf').value),
+                        max_features: maxFeatures,
+                        criterion: document.getElementById('criterion').value,
+                        use_full_features: document.getElementById('useFullFeatures').checked,
+                        test_size: 0.2,
+                        random_state: 42
+                    }
+                };
+                
+                const result = await apiClient.trainDecisionTree(config);
+                
+                if (result.status === 'success') {
+                    currentModelKey = result.model_key;
+                    decisionTree = result; // 保存完整的结果数据
+                    
+                    // 更新预测结果
+                    updatePredictions(result.results);
+                    
+                    // 更新性能指标
+                    updatePerformanceMetrics(result.results.metrics);
+                    
+                    // 可视化决策树
+                    visualizeDecisionTree();
+                    
+                    // 启用测试按钮
+                    document.getElementById('testSampleBtn').disabled = false;
+                    
+                    updateStatus('决策树构建完成');
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                console.error('决策树构建失败:', error);
+                updateStatus('决策树构建失败: ' + error.message);
+            }
+        }
+        
+        // 更新预测结果
+        function updatePredictions(results) {
+            // 使用后端提供的完整标识数据
+            if (results.full_data_with_labels) {
+                const fullDataWithLabels = results.full_data_with_labels;
+                
+                // 分离训练集和测试集数据
+                const trainData = fullDataWithLabels.filter(item => item.data_type === 'train');
+                const testData = fullDataWithLabels.filter(item => item.data_type === 'test');
+                
+                // 保存分离的数据
+                window.trainData = trainData;
+                window.testData = testData;
+                window.fullDataWithLabels = fullDataWithLabels;
+                
+                console.log('数据更新完成:', {
+                    trainSize: trainData.length,
+                    testSize: testData.length,
+                    trainCorrect: trainData.filter(d => !d.misclassified).length,
+                    testCorrect: testData.filter(d => !d.misclassified).length
+                });
+            } else {
+                // 兼容旧版本数据格式
+                console.warn('使用旧版本数据格式，可能存在准确性问题');
+                const trainPredictions = results.predictions.train;
+                const testPredictions = results.predictions.test;
+                
+                // 简单分割（可能不准确）
+                const trainData = trainingData.slice(0, trainPredictions.length);
+                const testData = trainingData.slice(trainPredictions.length);
+                
+                // 更新预测结果
+                trainData.forEach((item, i) => {
+                    if (i < trainPredictions.length) {
+                        item.prediction = trainPredictions[i];
+                        item.misclassified = (trainPredictions[i] !== item.label);
+                        item.data_type = 'train';
+                    }
+                });
+                
+                testData.forEach((item, i) => {
+                    if (i < testPredictions.length) {
+                        item.prediction = testPredictions[i];
+                        item.misclassified = (testPredictions[i] !== item.label);
+                        item.data_type = 'test';
+                    }
+                });
+                
+                window.trainData = trainData;
+                window.testData = testData;
+            }
+            
+            // 重新显示数据
+            displayDataWithResults();
+        }
+        
+        // 更新性能指标
+        function updatePerformanceMetrics(metrics) {
+            const metricsDisplay = document.getElementById('performanceMetrics');
+            const comparisonDisplay = document.getElementById('performanceComparison');
+            const trainMetricsDisplay = document.getElementById('trainMetrics');
+            const testMetricsDisplay = document.getElementById('testMetrics');
+            
+            // 主要指标显示 - 只显示关键指标
+            const mainMetrics = ['train_accuracy', 'test_accuracy'];
+            let mainHtml = '';
+            
+            for (const key of mainMetrics) {
+                if (metrics[key] !== undefined) {
+                    const value = metrics[key];
+                    const displayValue = typeof value === 'number' ? (value * 100).toFixed(1) + '%' : value;
+                    const numericValue = typeof value === 'number' ? value * 100 : 0;
+                    const isTraining = key.includes('train');
+                    
+                    // 根据性能设置颜色
+                    let color = '#1976d2';
+                    if (numericValue >= 95) color = '#4caf50';
+                    else if (numericValue >= 85) color = '#2196f3';
+                    else if (numericValue >= 75) color = '#ff9800';
+                    else color = '#f44336';
+                    
+                    const icon = isTraining ? '📚' : '🧪';
+                    const label = isTraining ? '训练准确率' : '测试准确率';
+                    
+                    mainHtml += `
+                        <div class="metric-item" style="border-left-color: ${color};">
+                            <div class="metric-label">${icon} ${label}</div>
+                            <div class="metric-value" style="color: ${color};">${displayValue}</div>
+                        </div>
+                    `;
+                }
+            }
+            
+            // 性能差异警告
+            if (metrics.train_accuracy && metrics.test_accuracy) {
+                const diff = Math.abs(metrics.train_accuracy - metrics.test_accuracy) * 100;
+                if (diff > 10) {
+                    mainHtml += `
+                        <div class="metric-item" style="border-left-color: #ff5722; background: linear-gradient(135deg, #fff, #ffebee);">
+                            <div class="metric-label">⚠️ 性能差异</div>
+                            <div class="metric-value" style="color: #ff5722; font-size: 16px;">${diff.toFixed(1)}%</div>
+                        </div>
+                    `;
+                }
+            }
+            
+            metricsDisplay.innerHTML = mainHtml;
+            
+            // 详细对比显示
+            const trainMetrics = ['train_accuracy', 'train_precision', 'train_recall', 'train_f1'];
+            const testMetrics = ['test_accuracy', 'test_precision', 'test_recall', 'test_f1'];
+            
+            const metricNames = {
+                'train_accuracy': '准确率', 'test_accuracy': '准确率',
+                'train_precision': '精确率', 'test_precision': '精确率',
+                'train_recall': '召回率', 'test_recall': '召回率',
+                'train_f1': 'F1分数', 'test_f1': 'F1分数'
+            };
+            
+            function createMetricHtml(metricKeys) {
+                let html = '';
+                for (const key of metricKeys) {
+                    if (metrics[key] !== undefined) {
+                        const value = metrics[key];
+                        const displayValue = typeof value === 'number' ? (value * 100).toFixed(1) + '%' : value;
+                        const label = metricNames[key] || key;
+                        
+                        html += `
+                            <div class="performance-metric">
+                                <span class="label">${label}</span>
+                                <span class="value">${displayValue}</span>
+                            </div>
+                        `;
+                    }
+                }
+                return html;
+            }
+            
+            trainMetricsDisplay.innerHTML = createMetricHtml(trainMetrics);
+            testMetricsDisplay.innerHTML = createMetricHtml(testMetrics);
+            
+            // 显示对比区域
+            comparisonDisplay.style.display = 'grid';
+        }
+        
+        // 决策树可视化类
+        class DecisionTreeVisualizer {
+            constructor(canvasId, nodeInfoId, isFullscreen = false) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.nodeInfo = document.getElementById(nodeInfoId);
+                this.isFullscreen = isFullscreen;
+                this.treeData = null;
+                this.nodes = [];
+                this.nodeRadius = 30;
+                this.levelHeight = 80;
+                this.nodeSpacing = 120;
+                this.zoomLevel = 1.0;
+                this.panX = 0;
+                this.panY = 0;
+                this.isDragging = false;
+                this.lastMouseX = 0;
+                this.lastMouseY = 0;
+                this.hoveredNode = null;
+                this.targetNames = null; // 存储真实的类别名称
+                this.featureNames = null; // 存储真实的特征名称
+                
+                // 增强颜色配置
+                this.colors = {
+                    internalNode: {
+                        fill: 'linear-gradient(135deg, #1976d2, #42a5f5)',
+                        border: '#1565c0',
+                        text: '#ffffff',
+                        shadow: 'rgba(25, 118, 210, 0.3)'
+                    },
+                    leafNode: {
+                        fill: 'linear-gradient(135deg, #388e3c, #66bb6a)',
+                        border: '#2e7d32',
+                        text: '#ffffff',
+                        shadow: 'rgba(56, 142, 60, 0.3)'
+                    },
+                    connection: '#37474f',
+                    text: '#263238',
+                    highlight: {
+                        fill: 'linear-gradient(135deg, #ff5722, #ff8a65)',
+                        border: '#d84315',
+                        text: '#ffffff',
+                        shadow: 'rgba(255, 87, 34, 0.4)'
+                    },
+                    hover: {
+                        shadowColor: 'rgba(0, 0, 0, 0.2)',
+                        shadowBlur: 15,
+                        scale: 1.1
+                    }
+                };
+                
+                // 添加鼠标事件
+                this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+                this.canvas.addEventListener('mouseleave', this.onMouseLeave.bind(this));
+                this.canvas.addEventListener('mousedown', this.onMouseDown.bind(this));
+                this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
+                this.canvas.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
+                
+                // 添加缩放控制事件
+                this.setupZoomControls();
+                
+                // 自适应Canvas尺寸
+                this.setupResponsiveCanvas();
+            }
+            
+            // 设置自适应Canvas
+            setupResponsiveCanvas() {
+                if (this.isFullscreen) {
+                    // 全屏模式下动态调整Canvas尺寸
+                    const resizeCanvas = () => {
+                        const container = this.canvas.parentElement;
+                        this.canvas.width = container.clientWidth;
+                        this.canvas.height = container.clientHeight;
+                        this.calculateNodePositions();
+                        this.draw();
+                    };
+                    
+                    window.addEventListener('resize', resizeCanvas);
+                    resizeCanvas();
+                } else {
+                    // 普通模式下保持固定尺寸但可调整
+                    const container = document.getElementById('canvasWrapper');
+                    if (container) {
+                        const resizeCanvas = () => {
+                            const width = Math.max(800, container.clientWidth - 20);
+                            const height = Math.max(600, container.clientHeight - 20);
+                            this.canvas.width = width;
+                            this.canvas.height = height;
+                            this.calculateNodePositions();
+                            this.draw();
+                        };
+                        resizeCanvas();
+                    }
+                }
+            }
+            
+            // 设置缩放控制
+            setupZoomControls() {
+                const prefix = this.isFullscreen ? 'fullscreen' : '';
+                const zoomInBtn = document.getElementById(prefix + 'ZoomIn' + (this.isFullscreen ? '' : 'Btn'));
+                const zoomOutBtn = document.getElementById(prefix + 'ZoomOut' + (this.isFullscreen ? '' : 'Btn'));
+                const resetBtn = document.getElementById(prefix + (this.isFullscreen ? 'Reset' : 'ResetZoomBtn'));
+                
+                if (zoomInBtn) {
+                    zoomInBtn.addEventListener('click', () => {
+                        this.zoomLevel = Math.min(5.0, this.zoomLevel * 1.3);
+                        this.draw();
+                        this.updateTreeStats();
+                        this.updateZoomDisplay();
+                    });
+                }
+                
+                if (zoomOutBtn) {
+                    zoomOutBtn.addEventListener('click', () => {
+                        this.zoomLevel = Math.max(0.2, this.zoomLevel / 1.3);
+                        this.draw();
+                        this.updateTreeStats();
+                        this.updateZoomDisplay();
+                    });
+                }
+                
+                if (resetBtn) {
+                    resetBtn.addEventListener('click', () => {
+                        this.resetView();
+                    });
+                }
+            }
+            
+            // 重置视图
+            resetView() {
+                this.zoomLevel = 1.0;
+                this.panX = 0;
+                this.panY = 0;
+                this.calculateNodePositions();
+                this.draw();
+                this.updateTreeStats();
+                this.updateZoomDisplay();
+            }
+            
+            // 更新缩放显示
+            updateZoomDisplay() {
+                const zoomDisplay = document.getElementById(this.isFullscreen ? 'fullscreenZoomLevel' : 'zoomLevel');
+                if (zoomDisplay) {
+                    zoomDisplay.textContent = `${Math.round(this.zoomLevel * 100)}%`;
+                }
+            }
+            
+            // 鼠标滚轮缩放
+            onWheel(event) {
+                event.preventDefault();
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+                
+                const delta = event.deltaY > 0 ? 0.9 : 1.1;
+                const newZoom = Math.max(0.2, Math.min(5.0, this.zoomLevel * delta));
+                
+                // 以鼠标位置为中心缩放
+                const scale = newZoom / this.zoomLevel;
+                this.panX = mouseX - (mouseX - this.panX) * scale;
+                this.panY = mouseY - (mouseY - this.panY) * scale;
+                this.zoomLevel = newZoom;
+                
+                this.draw();
+                this.updateZoomDisplay();
+            }
+            
+            // 鼠标拖拽
+            onMouseDown(event) {
+                this.isDragging = true;
+                this.lastMouseX = event.clientX;
+                this.lastMouseY = event.clientY;
+                this.canvas.style.cursor = 'grabbing';
+            }
+            
+            onMouseUp(event) {
+                this.isDragging = false;
+                this.canvas.style.cursor = 'default';
+            }
+            
+            // 设置树数据并绘制
+            setTreeData(treeStructure, targetNames = null, featureNames = null) {
+                this.treeData = treeStructure;
+                this.targetNames = targetNames;
+                this.featureNames = featureNames;
+                this.calculateNodePositions();
+                this.draw();
+                this.updateTreeStats();
+            }
+            
+            // 更新树统计信息
+            updateTreeStats() {
+                if (!this.treeData) {
+                    document.getElementById('treeStatsContent').innerHTML = '等待构建决策树...';
+                    return;
+                }
+                
+                const depth = this.getTreeDepth(this.treeData);
+                const totalNodes = this.nodes.length;
+                const leafNodes = this.nodes.filter(node => node.is_leaf).length;
+                const internalNodes = totalNodes - leafNodes;
+                
+                const statsHTML = `
+                    <div style="line-height: 1.4;">
+                        <div><strong>树深度:</strong> ${depth} 层</div>
+                        <div><strong>总节点:</strong> ${totalNodes} 个</div>
+                        <div><strong>内部节点:</strong> ${internalNodes} 个</div>
+                        <div><strong>叶节点:</strong> ${leafNodes} 个</div>
+                        <div><strong>缩放:</strong> ${(this.zoomLevel * 100).toFixed(0)}%</div>
+                    </div>
+                `;
+                
+                document.getElementById('treeStatsContent').innerHTML = statsHTML;
+            }
+            
+            // 计算节点位置
+            calculateNodePositions() {
+                if (!this.treeData) return;
+                
+                this.nodes = [];
+                const canvasWidth = this.canvas.width;
+                
+                // 计算树的深度
+                const treeDepth = this.getTreeDepth(this.treeData);
+                
+                // 根据树的深度动态调整Canvas高度和间距
+                const requiredHeight = Math.max(400, treeDepth * 100 + 100);
+                if (requiredHeight > this.canvas.height) {
+                    this.canvas.height = requiredHeight;
+                }
+                
+                // 根据树的深度动态调整间距
+                this.levelHeight = Math.min(100, Math.max(60, (this.canvas.height - 100) / (treeDepth + 1)));
+                
+                // 递归计算每个节点的位置
+                this.assignPositions(this.treeData, canvasWidth / 2, 50, 0, canvasWidth);
+            }
+            
+            // 计算树的深度
+            getTreeDepth(node) {
+                if (!node || node.is_leaf) return 1;
+                
+                let leftDepth = 0;
+                let rightDepth = 0;
+                
+                if (node.left) leftDepth = this.getTreeDepth(node.left);
+                if (node.right) rightDepth = this.getTreeDepth(node.right);
+                
+                return 1 + Math.max(leftDepth, rightDepth);
+            }
+            
+            // 递归分配位置
+            assignPositions(node, x, y, level, width) {
+                node.x = x;
+                node.y = y;
+                node.level = level;
+                this.nodes.push(node);
+                
+                if (!node.is_leaf && node.left && node.right) {
+                    const childY = y + this.levelHeight;
+                    const leftX = x - width / 4;
+                    const rightX = x + width / 4;
+                    
+                    this.assignPositions(node.left, leftX, childY, level + 1, width / 2);
+                    this.assignPositions(node.right, rightX, childY, level + 1, width / 2);
+                }
+            }
+            
+            // 绘制决策树
+            draw() {
+                // 清空画布
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                if (!this.treeData) {
+                    this.drawPlaceholder();
+                    return;
+                }
+                
+                // 保存当前变换状态
+                this.ctx.save();
+                
+                // 应用缩放和平移
+                this.ctx.scale(this.zoomLevel, this.zoomLevel);
+                this.ctx.translate(this.panX, this.panY);
+                
+                // 绘制连接线
+                this.drawConnections(this.treeData);
+                
+                // 绘制节点
+                this.nodes.forEach(node => {
+                    const isHovered = this.hoveredNode === node;
+                    this.drawNode(node, isHovered);
+                });
+                
+                // 恢复变换状态
+                this.ctx.restore();
+            }
+            
+            // 绘制占位符
+            drawPlaceholder() {
+                this.ctx.fillStyle = '#666';
+                this.ctx.font = '16px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('请先构建决策树', this.canvas.width / 2, this.canvas.height / 2);
+            }
+            
+            // 绘制连接线
+            drawConnections(node) {
+                if (!node.is_leaf && node.left && node.right) {
+                    // 分别绘制左右连接线，确保样式独立
+                    this.drawSingleConnection(node, node.left, 'left');
+                    this.drawSingleConnection(node, node.right, 'right');
+                    
+                    // 递归绘制子树连接线
+                    this.drawConnections(node.left);
+                    this.drawConnections(node.right);
+                }
+            }
+            
+            // 绘制单条连接线
+            drawSingleConnection(parentNode, childNode, direction) {
+                // 重置画布样式
+                this.ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+                this.ctx.shadowBlur = 4;
+                this.ctx.shadowOffsetX = 1;
+                this.ctx.shadowOffsetY = 2;
+                this.ctx.lineCap = 'round';
+                this.ctx.lineJoin = 'round';
+                
+                // 检查这条连接线是否在决策路径中
+                const isInPath = this.isConnectionInPath(parentNode, childNode);
+                
+                if (isInPath) {
+                    // 高亮连接线样式（红色）
+                    this.ctx.strokeStyle = '#ff4444';
+                    this.ctx.lineWidth = 6;
+                    this.ctx.shadowColor = 'rgba(255, 68, 68, 0.6)';
+                    this.ctx.shadowBlur = 8;
+                } else {
+                    // 普通连接线样式（灰色）
+                    this.ctx.strokeStyle = '#546e7a';
+                    this.ctx.lineWidth = 3;
+                }
+                
+                // 绘制连接线
+                this.ctx.beginPath();
+                this.ctx.moveTo(parentNode.x, parentNode.y + this.nodeRadius);
+                const midX = (parentNode.x + childNode.x) / 2;
+                const midY = (parentNode.y + childNode.y) / 2;
+                this.ctx.quadraticCurveTo(midX, midY, childNode.x, childNode.y - this.nodeRadius);
+                this.ctx.stroke();
+                
+                // 重置阴影
+                this.ctx.shadowColor = 'transparent';
+                this.ctx.shadowBlur = 0;
+                this.ctx.shadowOffsetX = 0;
+                this.ctx.shadowOffsetY = 0;
+            }
+            
+            // 绘制单个节点
+            drawNode(node, isHovered = false) {
+                const x = node.x;
+                const y = node.y;
+                const radius = this.nodeRadius;
+                const colorScheme = node.is_leaf ? this.colors.leafNode : this.colors.internalNode;
+                const isHighlighted = this.highlightedNodes && this.highlightedNodes.has(node);
+                
+                // 保存当前上下文
+                this.ctx.save();
+                
+                // 高亮效果（优先级高于悬停）
+                if (isHighlighted) {
+                    this.ctx.shadowColor = '#ff4444';
+                    this.ctx.shadowBlur = 20;
+                    this.ctx.shadowOffsetX = 0;
+                    this.ctx.shadowOffsetY = 0;
+                } else if (isHovered) {
+                    this.ctx.shadowColor = this.colors.hover.shadowColor;
+                    this.ctx.shadowBlur = this.colors.hover.shadowBlur;
+                    this.ctx.shadowOffsetX = 2;
+                    this.ctx.shadowOffsetY = 2;
+                }
+                
+                // 创建渐变背景
+                const gradient = this.ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, 0, x, y, radius);
+                if (isHighlighted) {
+                    // 高亮颜色（红色系）
+                    gradient.addColorStop(0, '#ff6b6b');
+                    gradient.addColorStop(1, '#e53935');
+                } else if (node.is_leaf) {
+                    gradient.addColorStop(0, '#66bb6a');
+                    gradient.addColorStop(1, '#388e3c');
+                } else {
+                    gradient.addColorStop(0, '#42a5f5');
+                    gradient.addColorStop(1, '#1976d2');
+                }
+                
+                // 绘制节点背景
+                this.ctx.fillStyle = gradient;
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 重置阴影设置
+                this.ctx.shadowColor = 'transparent';
+                this.ctx.shadowBlur = 0;
+                this.ctx.shadowOffsetX = 0;
+                this.ctx.shadowOffsetY = 0;
+                
+                // 节点边框
+                this.ctx.strokeStyle = colorScheme.border;
+                this.ctx.lineWidth = 2.5;
+                this.ctx.stroke();
+                
+                // 内部高光效果
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                this.ctx.lineWidth = 1;
+                this.ctx.beginPath();
+                this.ctx.arc(x - radius * 0.2, y - radius * 0.2, radius * 0.7, 0, Math.PI * 2);
+                this.ctx.stroke();
+                
+                // 节点文本
+                this.ctx.fillStyle = colorScheme.text;
+                this.ctx.font = 'bold 11px "Segoe UI", Arial, sans-serif';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                
+                // 文字阴影效果
+                this.ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                this.ctx.shadowBlur = 2;
+                this.ctx.shadowOffsetX = 0;
+                this.ctx.shadowOffsetY = 1;
+                
+                if (node.is_leaf) {
+                    // 叶节点显示类别
+                    const classLabel = this.getClassLabel(node.value);
+                    this.ctx.fillText(classLabel, x, y - 6);
+                    this.ctx.font = '9px "Segoe UI", Arial, sans-serif';
+                    this.ctx.fillText(`样本: ${node.samples}`, x, y + 8);
+                } else {
+                    // 内部节点显示特征
+                    this.ctx.fillText(`特征 ${node.feature}`, x, y - 6);
+                    this.ctx.font = '9px "Segoe UI", Arial, sans-serif';
+                    this.ctx.fillText(`≤ ${node.threshold.toFixed(2)}`, x, y + 8);
+                }
+                
+                // 恢复上下文
+                this.ctx.restore();
+            }
+            
+            // 获取类别标签
+            getClassLabel(value) {
+                // value是一个数组，找到最大值的索引
+                if (!Array.isArray(value) || !value[0]) return 'Unknown';
+                const classCounts = value[0];
+                const maxIndex = classCounts.indexOf(Math.max(...classCounts));
+                
+                // 使用真实的类别名称
+                if (this.targetNames && this.targetNames[maxIndex]) {
+                    return this.targetNames[maxIndex];
+                }
+                return `类别 ${maxIndex}`;
+            }
+            
+            // 鼠标移动事件
+            onMouseMove(event) {
+                if (this.isDragging) {
+                    // 拖拽平移
+                    const deltaX = event.clientX - this.lastMouseX;
+                    const deltaY = event.clientY - this.lastMouseY;
+                    this.panX += deltaX / this.zoomLevel;
+                    this.panY += deltaY / this.zoomLevel;
+                    this.lastMouseX = event.clientX;
+                    this.lastMouseY = event.clientY;
+                    this.draw();
+                    return;
+                }
+                
+                const rect = this.canvas.getBoundingClientRect();
+                let mouseX = (event.clientX - rect.left) / this.zoomLevel - this.panX;
+                let mouseY = (event.clientY - rect.top) / this.zoomLevel - this.panY;
+                
+                // 检查是否悬停在节点上
+                const hoveredNode = this.nodes.find(node => {
+                    const distance = Math.sqrt((mouseX - node.x) ** 2 + (mouseY - node.y) ** 2);
+                    return distance <= this.nodeRadius;
+                });
+                
+                // 检查悬停状态是否改变
+                if (this.hoveredNode !== hoveredNode) {
+                    this.hoveredNode = hoveredNode;
+                    this.draw(); // 重绘以显示悬停效果
+                }
+                
+                if (hoveredNode) {
+                    this.showNodeInfo(hoveredNode);
+                    this.canvas.style.cursor = 'pointer';
+                } else {
+                    this.hideNodeInfo();
+                    this.canvas.style.cursor = 'grab';
+                }
+            }
+            
+            // 鼠标离开事件
+            onMouseLeave() {
+                if (this.hoveredNode) {
+                    this.hoveredNode = null;
+                    this.draw(); // 重绘以清除悬停效果
+                }
+                this.hideNodeInfo();
+                this.canvas.style.cursor = 'default';
+            }
+            
+            // 显示节点信息
+            showNodeInfo(node) {
+                let html = '<div class="node-detail">';
+                
+                if (node.is_leaf) {
+                    const classCounts = node.value[0];
+                    const totalSamples = classCounts.reduce((a, b) => a + b, 0);
+                    const majorityClass = classCounts.indexOf(Math.max(...classCounts));
+                    
+                    // 获取真实类别名称
+                    const majorityClassName = this.targetNames && this.targetNames[majorityClass] 
+                        ? this.targetNames[majorityClass] 
+                        : `类别 ${majorityClass}`;
+                    
+                    html += `<strong>叶节点</strong><br>`;
+                    html += `<div class="node-detail">预测类别: <span class="feature-importance">${majorityClassName}</span></div>`;
+                    html += `<div class="node-detail">样本数量: ${node.samples}</div>`;
+                    html += `<div class="node-detail">类别分布:</div>`;
+                    
+                    html += '<div class="class-distribution">';
+                    classCounts.forEach((count, i) => {
+                        const width = (count / totalSamples) * 200;
+                        const hue = (i * 120) % 360;
+                        const className = this.targetNames && this.targetNames[i] ? this.targetNames[i] : `类别${i}`;
+                        html += `<div class="class-bar" style="width: ${width}px; background: hsl(${hue}, 70%, 50%);">${className}: ${count}</div>`;
+                    });
+                    html += '</div>';
+                } else {
+                    // 获取真实特征名称
+                    const featureName = this.featureNames && this.featureNames[node.feature] 
+                        ? this.featureNames[node.feature] 
+                        : `特征 ${node.feature}`;
+                    
+                    html += `<strong>内部节点</strong><br>`;
+                    html += `<div class="node-detail">分裂特征: <span class="feature-importance">${featureName}</span></div>`;
+                    html += `<div class="node-detail">分裂阈值: ${node.threshold.toFixed(4)}</div>`;
+                    html += `<div class="node-detail">样本数量: ${node.samples}</div>`;
+                    html += `<div class="node-detail">分裂条件: ≤ ${node.threshold.toFixed(2)} (左) / > ${node.threshold.toFixed(2)} (右)</div>`;
+                }
+                
+                html += '</div>';
+                this.nodeInfo.innerHTML = html;
+            }
+            
+            // 隐藏节点信息
+            hideNodeInfo() {
+                this.nodeInfo.innerHTML = '<div style="text-align: center; color: #666;">悬停在节点上查看详细信息</div>';
+            }
+            
+            // 高亮决策路径
+            highlightPath(decisionPath, testSample) {
+                // 清除之前的高亮
+                this.clearHighlight();
+                
+                // 存储决策路径和测试样本
+                this.currentDecisionPath = decisionPath;
+                this.currentTestSample = testSample;
+                
+                // 构建精确的路径映射
+                this.buildPrecisePath();
+                
+                // 重绘树以显示高亮效果
+                this.draw();
+                
+                // 不再自动清除高亮，保持显示直到新的测试
+            }
+            
+            // 构建精确的决策路径
+            buildPrecisePath() {
+                if (!this.currentDecisionPath || !this.currentTestSample) return;
+                
+                this.highlightedNodes = new Set();
+                this.highlightedConnections = new Map(); // 存储父节点到子节点的连接
+                
+                // 使用更精确的方法：从根节点开始，沿着决策路径逐步向下
+                const buildPathRecursively = (treeNode, pathIndex) => {
+                    if (!treeNode || pathIndex >= this.currentDecisionPath.length) return;
+                    
+                    const pathNode = this.currentDecisionPath[pathIndex];
+                    
+                    // 检查当前树节点是否与路径节点匹配
+                    if (this.nodesMatch(treeNode, pathNode)) {
+                        this.highlightedNodes.add(treeNode);
+                        
+                        // 如果不是叶节点，继续向下
+                        if (!pathNode.is_leaf && pathIndex + 1 < this.currentDecisionPath.length) {
+                            const nextPathNode = this.currentDecisionPath[pathIndex + 1];
+                            
+                            // 根据测试样本的特征值决定走向
+                            const featureValue = this.currentTestSample[pathNode.feature];
+                            const threshold = pathNode.threshold;
+                            const shouldGoLeft = featureValue <= threshold;
+                            
+                            let childNode = null;
+                            if (shouldGoLeft && treeNode.left) {
+                                childNode = treeNode.left;
+                                // 记录连接
+                                this.highlightedConnections.set(treeNode, {
+                                    child: childNode,
+                                    isLeft: true
+                                });
+                            } else if (!shouldGoLeft && treeNode.right) {
+                                childNode = treeNode.right;
+                                // 记录连接
+                                this.highlightedConnections.set(treeNode, {
+                                    child: childNode,
+                                    isLeft: false
+                                });
+                            }
+                            
+                            // 递归处理子节点
+                            if (childNode) {
+                                buildPathRecursively(childNode, pathIndex + 1);
+                            }
+                        }
+                    }
+                };
+                
+                // 从根节点开始构建路径
+                if (this.treeData) {
+                    buildPathRecursively(this.treeData, 0);
+                }
+            }
+            
+            // 清除高亮
+            clearHighlight() {
+                this.highlightedNodes = new Set();
+                this.highlightedConnections = new Map();
+                this.currentDecisionPath = null;
+                this.currentTestSample = null;
+                this.draw();
+            }
+            
+            // 检查两个节点是否匹配
+            nodesMatch(treeNode, pathNode) {
+                if (!treeNode || !pathNode) return false;
+                
+                // 匹配叶节点
+                if (pathNode.is_leaf && treeNode.is_leaf) {
+                    return true;
+                }
+                
+                // 匹配内部节点（通过特征和阈值）
+                if (!pathNode.is_leaf && !treeNode.is_leaf && 
+                    pathNode.feature !== undefined && treeNode.feature !== undefined &&
+                    pathNode.threshold !== undefined && treeNode.threshold !== undefined &&
+                    pathNode.feature === treeNode.feature &&
+                    Math.abs(pathNode.threshold - treeNode.threshold) < 0.001) {
+                    return true;
+                }
+                
+                return false;
+            }
+            
+            // 判断节点是否在决策路径中（使用精确的高亮节点集合）
+            isNodeInPath(node) {
+                return this.highlightedNodes && this.highlightedNodes.has(node);
+            }
+            
+            // 判断连接线是否在决策路径中（新的精确方法）
+            isConnectionInPath(parentNode, childNode) {
+                if (!this.highlightedConnections) return false;
+                
+                const connection = this.highlightedConnections.get(parentNode);
+                return connection && connection.child === childNode;
+            }
+            
+            // 在树中找到匹配的节点
+            findMatchingNode(pathNode) {
+                const findInTree = (treeNode) => {
+                    if (!treeNode) return null;
+                    
+                    // 匹配叶节点
+                    if (pathNode.is_leaf && treeNode.is_leaf) {
+                        return treeNode;
+                    }
+                    
+                    // 匹配内部节点（通过特征和阈值）
+                    if (!pathNode.is_leaf && !treeNode.is_leaf && 
+                        pathNode.feature === treeNode.feature &&
+                        Math.abs(pathNode.threshold - treeNode.threshold) < 0.001) {
+                        return treeNode;
+                    }
+                    
+                    // 递归搜索子树
+                    let result = findInTree(treeNode.left);
+                    if (!result) {
+                        result = findInTree(treeNode.right);
+                    }
+                    return result;
+                };
+                
+                return findInTree(this.treeData);
+            }
+            
+            // 判断是否为左分支
+            isLeftBranch(parentNode, childNode, pathNode, testSample) {
+                if (!parentNode || parentNode.is_leaf) return false;
+                
+                // 使用父节点的特征和阈值来判断分支方向
+                // 父节点的特征和阈值决定了样本走向哪个子节点
+                const featureValue = testSample[parentNode.feature];
+                const threshold = parentNode.threshold;
+                
+                // 左分支条件：特征值 <= 阈值
+                // 检查当前子节点是否确实是父节点的左子节点
+                const shouldGoLeft = featureValue <= threshold;
+                const isActuallyLeftChild = parentNode.left === childNode;
+                
+                return shouldGoLeft && isActuallyLeftChild;
+            }
+        }
+        
+        // 初始化可视化器
+        let treeVisualizer = null;
+        let fullscreenTreeVisualizer = null;
+        
+        // 可视化决策树
+        function visualizeDecisionTree() {
+            if (!treeVisualizer) {
+                treeVisualizer = new DecisionTreeVisualizer('treeCanvas', 'nodeInfo');
+            }
+            
+            // 获取当前数据集的配置信息
+            const dataType = document.getElementById('dataType').value;
+            const config = datasetConfig[dataType];
+            const targetNames = config ? config.target_names : null;
+            
+            // 获取特征名称，考虑不同的维度模式
+            let featureNames = null;
+            if (config) {
+                const useFullFeatures = document.getElementById('useFullFeatures').checked;
+                if (useFullFeatures) {
+                    // 完整特征模式，使用数据集的真实特征名称
+                    featureNames = config.features;
+                } else {
+                    // 2D模式，使用PCA降维后的通用特征名称
+                    featureNames = ['主成分1', '主成分2'];
+                }
+            }
+            
+            // 使用真实的树结构数据
+            if (decisionTree && decisionTree.results && decisionTree.results.algorithm_params && decisionTree.results.algorithm_params.tree_structure) {
+                console.log('使用真实树结构数据:', decisionTree.results.algorithm_params.tree_structure);
+                treeVisualizer.setTreeData(decisionTree.results.algorithm_params.tree_structure, targetNames, featureNames);
+            } else {
+                console.warn('未找到树结构数据，使用示例树');
+                // 创建示例树结构
+                const exampleTree = createExampleTree();
+                treeVisualizer.setTreeData(exampleTree, targetNames, featureNames);
+            }
+        }
+        
+        // 创建示例树结构（当没有真实数据时）
+        function createExampleTree() {
+            const dataType = document.getElementById('dataType').value;
+            const config = datasetConfig[dataType];
+            const maxDepth = parseInt(document.getElementById('maxDepth').value) || 3;
+            const totalSamples = trainingData.length || 100;
+            
+            // 根据用户设置的最大深度创建更深的示例树
+            function createSubTree(depth, samples, featureIndex) {
+                if (depth >= maxDepth || samples <= parseInt(document.getElementById('minSamplesLeaf').value) || 1) {
+                    // 叶节点
+                    const class0 = Math.floor(samples * 0.6);
+                    const class1 = samples - class0;
+                    return {
+                        is_leaf: true,
+                        value: [[class0, class1]],
+                        samples: samples
+                    };
+                }
+                
+                // 内部节点
+                const leftSamples = Math.floor(samples * (0.4 + Math.random() * 0.2));
+                const rightSamples = samples - leftSamples;
+                
+                return {
+                    is_leaf: false,
+                    feature: featureIndex % 4,
+                    threshold: Math.random() * 2 - 1,
+                    samples: samples,
+                    left: createSubTree(depth + 1, leftSamples, featureIndex + 1),
+                    right: createSubTree(depth + 1, rightSamples, featureIndex + 2)
+                };
+            }
+            
+            return createSubTree(0, totalSamples, 0);
+        }
+        
+        // 测试新样本
+        async function testSample() {
+            if (!currentModelKey) {
+                alert('请先构建决策树！');
+                return;
+            }
+            
+            try {
+                // 清除之前的路径高亮
+                if (treeVisualizer) {
+                    treeVisualizer.clearHighlight();
+                }
+                
+                updateStatus('正在生成测试样本...');
+                
+                const dataType = document.getElementById('dataType').value;
+                const config = datasetConfig[dataType];
+                const useFullFeatures = document.getElementById('useFullFeatures').checked;
+                
+                // 获取特征数量
+                let featureCount = 2; // 默认2D
+                if (useFullFeatures && currentData && currentData.feature_names) {
+                    featureCount = currentData.feature_names.length;
+                } else if (currentData && currentData.X && currentData.X[0]) {
+                    featureCount = currentData.X[0].length;
+                }
+                
+                // 基于训练数据范围生成随机测试样本
+                const testSample = [];
+                if (currentData && currentData.X) {
+                    // 计算每个特征的范围
+                    for (let i = 0; i < featureCount; i++) {
+                        const values = currentData.X.map(sample => sample[i]);
+                        const min = Math.min(...values);
+                        const max = Math.max(...values);
+                        const range = max - min;
+                        testSample.push(min + Math.random() * range);
+                    }
+                } else {
+                    // 如果没有数据，生成随机值
+                    for (let i = 0; i < featureCount; i++) {
+                        testSample.push(Math.random() * 10);
+                    }
+                }
+                
+                // 调用预测API
+                const predConfig = {
+                    model_key: currentModelKey,
+                    X: [testSample]
+                };
+                
+                const predResult = await apiClient.predictDecisionTree(predConfig);
+                
+                if (predResult.status === 'success') {
+                    const prediction = predResult.predictions[0];
+                    const probabilities = predResult.probabilities ? predResult.probabilities[0] : null;
+                    
+                    // 获取决策路径
+                    const pathConfig = {
+                        model_key: currentModelKey,
+                        X: [testSample]
+                    };
+                    
+                    const pathResult = await apiClient.getDecisionTreePath(pathConfig);
+                    
+                    // 显示测试结果
+                    const testResult = document.getElementById('testResult');
+                    const testPath = document.getElementById('testPath');
+                    
+                    let html = '<div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin: 15px 0;">';
+                    html += '<h4 style="color: #2196F3; margin: 0 0 15px 0;">🧪 测试样本预测结果</h4>';
+                    
+                    // 显示特征值
+                    html += '<div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">';
+                    html += '<h5 style="color: #333; margin: 0 0 10px 0;">📊 输入特征:</h5>';
+                    
+                    const featureNames = currentData.feature_names || config.features;
+                    testSample.forEach((value, i) => {
+                        const featureName = featureNames[i] || `特征${i + 1}`;
+                        html += `<div style="margin: 5px 0; padding: 5px 10px; background: #f1f3f4; border-radius: 4px; font-size: 14px;">`;
+                        html += `<strong>${featureName}:</strong> ${value.toFixed(3)}`;
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                    
+                    // 显示预测结果
+                    html += '<div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">';
+                    html += '<h5 style="color: #333; margin: 0 0 10px 0;">🎯 预测结果:</h5>';
+                    const predictionName = config.target_names[prediction] || `类别${prediction}`;
+                    html += `<div style="font-size: 18px; font-weight: bold; color: #4CAF50; margin: 8px 0;">`;
+                    html += `${predictionName}`;
+                    html += '</div>';
+                    
+                    // 显示概率（如果可用）
+                    if (probabilities) {
+                        html += '<div style="margin-top: 10px;">';
+                        html += '<strong>预测概率:</strong><br>';
+                        probabilities.forEach((prob, i) => {
+                            const className = config.target_names[i] || `类别${i}`;
+                            const percentage = (prob * 100).toFixed(1);
+                            html += `<div style="margin: 3px 0; display: flex; justify-content: space-between; align-items: center;">`;
+                            html += `<span>${className}:</span>`;
+                            html += `<span style="font-weight: bold; color: ${prob === Math.max(...probabilities) ? '#4CAF50' : '#666'};">${percentage}%</span>`;
+                            html += '</div>';
+                        });
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                    
+                    // 显示决策路径
+                    if (pathResult.status === 'success' && pathResult.decision_paths && pathResult.decision_paths[0]) {
+                        html += '<div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">';
+                        html += '<h5 style="color: #333; margin: 0 0 15px 0;">🛤️ 决策路径:</h5>';
+                        
+                        const path = pathResult.decision_paths[0].path;
+                        path.forEach((node, i) => {
+                            const isHighlight = i === path.length - 1; // 最后一个节点（叶节点）高亮
+                            const bgColor = isHighlight ? '#ffebee' : i % 2 === 0 ? '#e8f5e8' : '#e3f2fd';
+                            const borderColor = isHighlight ? '#f44336' : i % 2 === 0 ? '#4caf50' : '#2196f3';
+                            
+                            html += `<div style="margin: 8px 0; padding: 12px; border-left: 4px solid ${borderColor}; background: ${bgColor}; border-radius: 6px; font-size: 14px;">`;
+                            
+                            if (node.is_leaf) {
+                                // 叶节点
+                                html += `<div style="font-weight: bold; color: #d32f2f;">🍃 叶节点 (最终预测)</div>`;
+                                html += `<div style="margin: 5px 0;">预测类别: <strong>${config.target_names[node.predicted_class] || `类别${node.predicted_class}`}</strong></div>`;
+                                html += `<div style="color: #666; font-size: 12px;">样本数: ${node.samples}</div>`;
+                            } else {
+                                // 内部节点
+                                const featureName = featureNames[node.feature] || `特征${node.feature}`;
+                                const sampleValue = testSample[node.feature];
+                                const threshold = node.threshold;
+                                const direction = sampleValue <= threshold ? '≤' : '>';
+                                const arrow = sampleValue <= threshold ? '⬅️' : '➡️';
+                                
+                                html += `<div style="font-weight: bold; color: #1976d2;">🔍 内部节点 ${i + 1}</div>`;
+                                html += `<div style="margin: 5px 0;">判断条件: <strong>${featureName} ${direction} ${threshold.toFixed(3)}</strong></div>`;
+                                html += `<div style="margin: 5px 0;">样本值: <strong>${sampleValue.toFixed(3)}</strong> ${arrow}</div>`;
+                                html += `<div style="color: #666; font-size: 12px;">样本数: ${node.samples}</div>`;
+                            }
+                            
+                            html += '</div>';
+                        });
+                        
+                        html += '</div>';
+                    }
+                    
+                    html += '</div>';
+                    
+                    testPath.innerHTML = html;
+                    testResult.style.display = 'block';
+                    
+                    // 在树可视化中高亮显示决策路径
+                    if (pathResult.status === 'success' && treeVisualizer) {
+                        treeVisualizer.highlightPath(pathResult.decision_paths[0].path, testSample);
+                    }
+                    
+                    updateStatus('测试样本预测完成');
+                    
+                } else {
+                    throw new Error(predResult.message || '预测失败');
+                }
+                
+            } catch (error) {
+                console.error('样本测试失败:', error);
+                updateStatus('样本测试失败: ' + error.message);
+                alert('测试失败: ' + error.message);
+            }
+        }
+        
+        // 清空所有
+        function clearAll() {
+            currentSessionKey = null;
+            currentModelKey = null;
+            currentData = null;
+            trainingData = [];
+            decisionTree = null;
+            
+            document.getElementById('dataDisplay').innerHTML = '暂无数据，请先生成训练数据';
+            
+            // 重置树可视化
+            if (treeVisualizer) {
+                treeVisualizer.setTreeData(null);
+            }
+            
+            document.getElementById('performanceMetrics').innerHTML = '<div class="metric-item"><span class="metric-label">等待训练...</span></div>';
+            document.getElementById('testResult').style.display = 'none';
+            
+            document.getElementById('buildTreeBtn').disabled = true;
+            document.getElementById('testSampleBtn').disabled = true;
+            
+            updateStatus('已清空所有数据');
+        }
+        
+        // 更新状态
+        function updateStatus(message) {
+            console.log('状态:', message);
+            // 可以在这里添加状态显示逻辑
+        }
+    </script>
+</body>
+</html>

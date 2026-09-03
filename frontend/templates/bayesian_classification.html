@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贝叶斯分类算法可视化</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            color: #333;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-bottom: 25px;
+            align-items: start;
+        }
+
+        .panel {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 18px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 360px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .panel h3 {
+            color: #2c3e50;
+            margin-bottom: 18px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+
+        .controls-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .control-group select,
+        .control-group input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin: 0;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #e9ecef;
+            outline: none;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb:hover {
+            background: #45a049;
+        }
+
+        .range-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .range-container input[type="range"] {
+            flex: 1;
+        }
+
+        .range-value {
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+            min-width: 60px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+
+        .control-group select:focus,
+        .control-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 44px;
+            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: #45a049;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn:disabled {
+            background-color: #cccccc;
+            color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #5a6268;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .chart-container {
+            margin: 20px 0;
+            height: 300px;
+            position: relative;
+        }
+
+        .visualization-area {
+            grid-column: 1 / -1;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e1e5e9;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8f9ff, #e3e7ff);
+            border-radius: 10px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .probability-calculator {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #e0e0e0;
+        }
+        
+        
+        .point-analysis {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #e0e0e0;
+        }
+
+        .bayes-formula {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-radius: 10px;
+            border-left: 4px solid #f39c12;
+        }
+
+        .probability-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .probability-table th,
+        .probability-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        .probability-table th {
+            background: #667eea;
+            color: white;
+        }
+
+        .probability-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .feature-importance {
+            margin: 20px 0;
+        }
+
+        .importance-bar {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .importance-label {
+            width: 100px;
+            font-weight: 600;
+        }
+
+        .importance-progress {
+            flex: 1;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0 10px;
+        }
+
+        .importance-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+        .importance-value {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #dc3545;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .data-points {
+            margin: 15px 0;
+        }
+
+        .point {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin: 2px;
+            border: 1px solid #333;
+        }
+
+        .algorithm-explanation {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+
+        .explanation-title {
+            font-weight: 700;
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+
+        .prediction-results {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+        }
+
+        .calculator-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .feature-slider {
+            margin: 10px 0;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-label {
+            min-width: 80px;
+            font-weight: 600;
+        }
+
+        .slider-input {
+            flex: 1;
+        }
+
+        .slider-value {
+            min-width: 60px;
+            text-align: center;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+
+        .calculation-hint {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .prior-visualization {
+            background: #f0f8ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-statistics {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .calculation-step {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .calculation-step h5 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .calculation-formula {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .probability-bar {
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .probability-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .class-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .class-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            transition: border-color 0.3s ease;
+        }
+
+        .class-card.predicted {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .class-card h6 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .statistics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #e1e5e9;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-name {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+
+        .algorithm-params {
+            background: #f8f9ff;
+            border: 1px solid #e0e3ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            min-height: 120px; /* 确保参数面板有最小高度 */
+            flex-shrink: 0; /* 防止面板压缩 */
+        }
+
+        .algorithm-params h4 {
+            color: #667eea;
+            margin: 0 0 15px 0;
+            font-size: 1rem;
+            border-bottom: 1px solid #e0e3ff;
+            padding-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .control-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .panel {
+                padding: 16px;
+                min-height: auto;
+            }
+            
+            .panel h3 {
+                font-size: 1rem;
+                margin-bottom: 16px;
+            }
+            
+            .controls-grid {
+                gap: 12px;
+            }
+            
+            .control-group {
+                gap: 4px;
+            }
+            
+            .control-group label {
+                font-size: 0.9rem;
+            }
+            
+            .btn {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .range-value {
+                min-width: 50px;
+                font-size: 0.85rem;
+                padding: 3px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 64 64" fill="none">
+                <defs>
+                    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#EAF2F8"/>
+                        <stop offset="100%" stop-color="#D6E4F0"/>
+                    </linearGradient>
+                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                    </filter>
+                    <radialGradient id="classGrad1" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#3498DB"/>
+                        <stop offset="100%" stop-color="#2E86C1"/>
+                    </radialGradient>
+                    <radialGradient id="classGrad2" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#E74C3C"/>
+                        <stop offset="100%" stop-color="#C0392B"/>
+                    </radialGradient>
+                    <linearGradient id="boundaryGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#555" stop-opacity="0.7"/>
+                        <stop offset="100%" stop-color="#555" stop-opacity="0.3"/>
+                    </linearGradient>
+                </defs>
+                <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                <ellipse cx="22" cy="32" rx="12" ry="8" fill="url(#classGrad1)" opacity="0.3"/>
+                <ellipse cx="42" cy="32" rx="12" ry="8" fill="url(#classGrad2)" opacity="0.3"/>
+                <circle cx="20" cy="30" r="1.6" fill="url(#classGrad1)" filter="url(#shadow)"/>
+                <circle cx="24" cy="34" r="1.6" fill="url(#classGrad1)" filter="url(#shadow)"/>
+                <circle cx="40" cy="30" r="1.6" fill="url(#classGrad2)" filter="url(#shadow)"/>
+                <circle cx="44" cy="34" r="1.6" fill="url(#classGrad2)" filter="url(#shadow)"/>
+                <line x1="32" y1="20" x2="32" y2="44" stroke="url(#boundaryGrad)" stroke-width="1.2" stroke-dasharray="3,2" stroke-linecap="round"/>
+            </svg> 贝叶斯分类算法可视化</h1>
+            <p>深入理解贝叶斯定理在机器学习中的应用</p>
+        </header>
+
+        <!-- 使用说明区域 -->
+        <div class="algorithm-explanation" style="margin-bottom: 20px;">
+            <div class="explanation-title">🎯 使用说明</div>
+            <p>请按照以下步骤开始使用贝叶斯分类可视化：</p>
+            <ol>
+                <li><strong>生成数据：</strong>选择数据类型和参数，点击"生成数据"按钮</li>
+                <li><strong>训练模型：</strong>调整贝叶斯分类参数，点击"训练模型"按钮</li>
+                <li><strong>探索结果：</strong>切换标签页查看概率分析和理论解释</li>
+                <li><strong>交互操作：</strong>点击散点图上的数据点查看详细概率计算</li>
+            </ol>
+        </div>
+
+        <div class="main-content">
+            <!-- 左侧数据生成面板 -->
+            <div class="panel">
+                <h3>📊 数据生成与控制</h3>
+                
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label for="dataType">数据类型</label>
+                        <select id="dataType">
+                            <optgroup label="🟢 线性可分数据">
+                                <option value="make_blobs">高斯分布聚类</option>
+                                <option value="make_classification">随机分类数据</option>
+                            </optgroup>
+                            <optgroup label="🔴 线性不可分数据">
+                                <option value="make_circles">同心圆数据</option>
+                                <option value="make_moons">月牙形数据</option>
+                                <option value="xor">XOR异或模式</option>
+                                <option value="spiral">双螺旋数据</option>
+                                <option value="checkerboard">棋盘模式</option>
+                            </optgroup>
+                            <optgroup label="🟡 真实数据集">
+                                <option value="iris">鸢尾花数据集</option>
+                                <option value="wine">红酒数据集</option>
+                                <option value="breast_cancer">乳腺癌数据集</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 50px;">
+                        <div class="control-group" style="margin: 0;">
+                            <label for="nSamples">样本数量</label>
+                            <input type="number" id="nSamples" value="200" min="50" max="1000">
+                        </div>
+                    
+                        <div class="control-group" style="margin: 0;">
+                            <label for="noise">噪声水平</label>
+                            <div class="range-container">
+                                <input type="range" id="noise" min="0" max="0.5" step="0.05" value="0.1">
+                                <span class="range-value" id="noiseValue">0.1</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="randomState">随机种子</label>
+                            <input type="number" id="randomState" value="42" min="1" max="999">
+                        </div>
+                    </div>
+
+                </div>
+                
+                <div class="button-container">
+                    <button class="btn" onclick="generateData()">🎲 生成数据</button>
+                </div>
+            </div>
+
+            <!-- 右侧高斯贝叶斯配置面板 -->
+            <div class="panel">
+                <h3>⚙️ 高斯贝叶斯分类器</h3>
+                
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label for="testSize">测试集比例</label>
+                        <div class="range-container">
+                            <input type="range" id="testSize" min="0.1" max="0.5" step="0.05" value="0.2">
+                            <span class="range-value" id="testSizeValue">20%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="varSmoothing">方差平滑参数</label>
+                        <div class="range-container">
+                            <input type="range" id="varSmoothing" min="-12" max="-5" step="0.5" value="-9">
+                            <span class="range-value" id="varSmoothingValue">1e-9</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="button-container">
+                    <button class="btn" id="trainBtn" onclick="trainModel()" disabled>🚀 训练模型</button>
+                    <button class="btn btn-secondary" onclick="clearAll()">🗑️ 清除所有</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 可视化区域 -->
+        <div class="panel visualization-area">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('visualization')">📈 可视化</div>
+                <div class="tab" onclick="switchTab('probabilities')">📊 概率分析</div>
+                <div class="tab" onclick="switchTab('theory')">📚 理论解释</div>
+            </div>
+
+            <!-- 可视化标签页 -->
+            <div id="visualization" class="tab-content active">
+                <div class="chart-container">
+                    <canvas id="scatterChart"></canvas>
+                    <div id="emptyState" class="algorithm-explanation" style="display: block;">
+                        <div class="explanation-title">📊 数据可视化</div>
+                        <p>生成数据后，这里将显示数据点的散布图。训练模型后，可以看到分类结果和决策边界。</p>
+                    </div>
+                </div>
+                
+                <div class="metrics" id="metrics">
+                    <!-- 性能指标将在这里显示 -->
+                </div>
+            </div>
+
+            <!-- 概率分析标签页 -->
+            <div id="probabilities" class="tab-content">
+                <div class="bayes-formula">
+                    <strong>贝叶斯定理：</strong><br>
+                    P(类别|特征) = P(特征|类别) × P(类别) / P(特征)
+                </div>
+                
+                <!-- 实时概率计算器 -->
+                <div class="probability-calculator">
+                    <h4>🎛️ 实时概率计算器</h4>
+                    <div id="calculatorControls">
+                        <!-- 动态生成的特征滑块 -->
+                    </div>
+                    <div class="prediction-results" id="predictionResults">
+                        <!-- 实时预测结果 -->
+                    </div>
+                </div>
+                
+                
+                <!-- 点击详细分析 -->
+                <div class="point-analysis">
+                    <h4>🎯 点击数据点查看详细分析</h4>
+                    <div class="calculation-hint">在散点图上点击任意数据点查看详细概率计算</div>
+                    <div id="pointAnalysisResult">
+                        <!-- 点击分析结果 -->
+                    </div>
+                </div>
+                
+                <!-- 先验概率可视化 -->
+                <div class="prior-visualization">
+                    <h4>📈 先验概率分布</h4>
+                    <div class="chart-container">
+                        <canvas id="priorChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 理论解释标签页 -->
+            <div id="theory" class="tab-content">
+                <div class="algorithm-explanation">
+                    <div class="explanation-title">🧮 贝叶斯分类算法原理</div>
+                    <p><strong>朴素贝叶斯分类器</strong>是基于贝叶斯定理的概率分类算法。它假设特征之间相互独立（朴素假设），通过计算后验概率来进行分类。</p>
+                    <div class="calculation-formula">
+                        P(类别|特征) = P(特征|类别) × P(类别) / P(特征)
+                    </div>
+                    <p>该算法的核心思想是：<em>给定观察到的特征，哪个类别最有可能？</em></p>
+                </div>
+
+                <div class="algorithm-explanation">
+                    <div class="explanation-title">📊 核心概念详解</div>
+                    <div class="class-comparison">
+                        <div class="class-card">
+                            <h6>🎲 先验概率 P(类别)</h6>
+                            <p><strong>定义：</strong>不考虑任何特征信息时，各类别的概率分布</p>
+                            <p><strong>计算：</strong>训练集中各类别样本数 / 总样本数</p>
+                            <p><strong>示例：</strong>如果训练集中60%是猫，40%是狗，则P(猫)=0.6, P(狗)=0.4</p>
+                        </div>
+                        
+                        <div class="class-card">
+                            <h6>📈 似然性 P(特征|类别)</h6>
+                            <p><strong>定义：</strong>在给定类别条件下，观察到特定特征值的概率</p>
+                            <p><strong>计算：</strong>使用高斯分布计算连续特征的概率密度</p>
+                            <p><strong>示例：</strong>给定是猫的情况下，体重为3kg的概率密度</p>
+                        </div>
+                        
+                        <div class="class-card">
+                            <h6>🎯 后验概率 P(类别|特征)</h6>
+                            <p><strong>定义：</strong>观察到特征后，数据属于各类别的概率</p>
+                            <p><strong>计算：</strong>通过贝叶斯定理，结合先验和似然性计算</p>
+                            <p><strong>示例：</strong>观察到体重3kg后，是猫的概率</p>
+                        </div>
+                        
+                        <div class="class-card">
+                            <h6>🤝 朴素假设</h6>
+                            <p><strong>定义：</strong>假设所有特征在给定类别下相互独立</p>
+                            <p><strong>影响：</strong>简化计算，但可能不符合现实</p>
+                            <p><strong>示例：</strong>假设动物的体重和身长相互独立</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="algorithm-explanation">
+                    <div class="explanation-title">🔢 计算示例</div>
+                    <p><strong>场景：</strong>根据身高和体重判断性别</p>
+                    <div class="calculation-step">
+                        <h5>步骤1：计算先验概率</h5>
+                        <div class="calculation-formula">
+                            P(男) = 男性样本数 / 总样本数 = 100/200 = 0.5<br>
+                            P(女) = 女性样本数 / 总样本数 = 100/200 = 0.5
+                        </div>
+                    </div>
+                    <div class="calculation-step">
+                        <h5>步骤2：计算似然性</h5>
+                        <div class="calculation-formula">
+                            P(身高=180cm|男) = 高斯分布(μ=175, σ=8) 在 180 处的概率密度<br>
+                            P(体重=75kg|男) = 高斯分布(μ=70, σ=10) 在 75 处的概率密度<br>
+                            由于朴素假设：P(特征|男) = P(身高|男) × P(体重|男)
+                        </div>
+                    </div>
+                    <div class="calculation-step">
+                        <h5>步骤3：计算后验概率</h5>
+                        <div class="calculation-formula">
+                            P(男|特征) ∝ P(特征|男) × P(男)<br>
+                            P(女|特征) ∝ P(特征|女) × P(女)<br>
+                            归一化后得到最终概率
+                        </div>
+                    </div>
+                </div>
+
+                <div class="algorithm-explanation">
+                    <div class="explanation-title">⚖️ 平滑处理</div>
+                    <p><strong>问题：</strong>如果某个特征值在训练集中从未出现，会导致零概率问题</p>
+                    <p><strong>解决方案：</strong>拉普拉斯平滑（加法平滑）</p>
+                    <div class="calculation-formula">
+                        P(特征|类别) = (该特征在该类别中出现次数 + α) / (该类别总样本数 + α × 特征值数量)
+                    </div>
+                    <p>其中 α 是平滑参数，通常取值0.1到1.0</p>
+                </div>
+
+                <div class="algorithm-explanation">
+                    <div class="explanation-title">✅ 优点与缺点</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <h5>✅ 优点：</h5>
+                            <ul>
+                                <li><strong>训练速度快：</strong>只需统计特征分布</li>
+                                <li><strong>预测效率高：</strong>简单的概率计算</li>
+                                <li><strong>小样本表现好：</strong>不容易过拟合</li>
+                                <li><strong>参数少：</strong>不需要复杂的参数调优</li>
+                                <li><strong>多分类友好：</strong>天然支持多类别分类</li>
+                                <li><strong>概率输出：</strong>提供预测的置信度</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h5>❌ 缺点：</h5>
+                            <ul>
+                                <li><strong>特征独立假设：</strong>现实中特征往往相关</li>
+                                <li><strong>对特征相关性敏感：</strong>违反独立假设时性能下降</li>
+                                <li><strong>需要平滑处理：</strong>零概率问题</li>
+                                <li><strong>分布假设：</strong>数值特征需假设正态分布</li>
+                                <li><strong>类别均衡敏感：</strong>不平衡数据影响性能</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="algorithm-explanation">
+                    <div class="explanation-title">🎯 实际应用场景</div>
+                    <div class="class-comparison">
+                        <div class="class-card">
+                            <h6>📧 文本分类</h6>
+                            <p><strong>垃圾邮件检测：</strong>基于邮件中的词频</p>
+                            <p><strong>情感分析：</strong>判断评论的正负面倾向</p>
+                            <p><strong>新闻分类：</strong>自动分配新闻到不同类别</p>
+                        </div>
+                        
+                        <div class="class-card">
+                            <h6>🏥 医疗诊断</h6>
+                            <p><strong>症状诊断：</strong>基于症状组合预测疾病</p>
+                            <p><strong>药物推荐：</strong>根据患者特征推荐治疗方案</p>
+                            <p><strong>风险评估：</strong>评估患者的健康风险</p>
+                        </div>
+                        
+                        <div class="class-card">
+                            <h6>🛒 推荐系统</h6>
+                            <p><strong>商品推荐：</strong>基于用户行为推荐商品</p>
+                            <p><strong>内容推荐：</strong>推荐用户可能感兴趣的内容</p>
+                            <p><strong>个性化营销：</strong>针对性的广告投放</p>
+                        </div>
+                        
+                        <div class="class-card">
+                            <h6>⚡ 实时预测</h6>
+                            <p><strong>欺诈检测：</strong>实时检测可疑交易</p>
+                            <p><strong>质量控制：</strong>生产线上的产品质量检测</p>
+                            <p><strong>网络安全：</strong>实时检测网络入侵</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="algorithm-explanation">
+                    <div class="explanation-title">💡 使用建议</div>
+                    <ul>
+                        <li><strong>特征选择：</strong>选择相对独立的特征，避免高度相关的特征</li>
+                        <li><strong>数据预处理：</strong>对连续特征进行适当的分布变换</li>
+                        <li><strong>平滑参数：</strong>根据数据量调整平滑参数，数据少时增大平滑参数</li>
+                        <li><strong>类别平衡：</strong>对于不平衡数据，考虑调整先验概率或采样</li>
+                        <li><strong>特征工程：</strong>创建更具区分性的特征组合</li>
+                        <li><strong>模型验证：</strong>使用交叉验证评估模型性能</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentData = null;
+        let currentModel = null;
+        let scatterChart = null;
+        let priorChart = null;
+        let selectedPoint = null;
+        let currentFeature = 0;
+        let updateTimeout = null;
+
+        // 防抖函数
+        function debounce(func, delay) {
+            return function(...args) {
+                clearTimeout(updateTimeout);
+                updateTimeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+
+        // 图表配置
+        const chartConfig = {
+            type: 'scatter',
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: '特征 1'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: '特征 2'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            font: {
+                                size: 12
+                            },
+                            generateLabels: function(chart) {
+                                const original = Chart.defaults.plugins.legend.labels.generateLabels;
+                                const labels = original.call(this, chart);
+                                
+                                // 为每个标签设置对应的点样式
+                                labels.forEach((label, index) => {
+                                    const dataset = chart.data.datasets[index];
+                                    if (dataset && dataset.pointStyle) {
+                                        label.pointStyle = dataset.pointStyle;
+                                    } else {
+                                        label.pointStyle = 'circle'; // 默认样式
+                                    }
+                                });
+                                
+                                return labels;
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleFont: { size: 14 },
+                        bodyFont: { size: 12 },
+                        callbacks: {
+                            title: function(context) {
+                                return `${context[0].dataset.label}`;
+                            },
+                            label: function(context) {
+                                const point = context.parsed;
+                                return `坐标: (${point.x.toFixed(3)}, ${point.y.toFixed(3)})`;
+                            },
+                            afterLabel: function(context) {
+                                return '点击查看详细分析';
+                            }
+                        }
+                    }
+                },
+                onClick: function(event, elements) {
+                    if (elements.length > 0) {
+                        const elementIndex = elements[0].index;
+                        const datasetIndex = elements[0].datasetIndex;
+                        handlePointClick(elementIndex, datasetIndex);
+                    }
+                }
+            }
+        };
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            setupEventListeners();
+            
+            // 显示初始提示
+            showMessage('欢迎使用贝叶斯分类可视化！请先生成数据开始探索。', 'info');
+        });
+
+        function initializeCharts() {
+            const scatterCtx = document.getElementById('scatterChart').getContext('2d');
+            scatterChart = new Chart(scatterCtx, {
+                type: 'scatter',
+                data: { datasets: [] },
+                options: chartConfig.options
+            });
+
+
+            const priorCtx = document.getElementById('priorChart').getContext('2d');
+            priorChart = new Chart(priorCtx, {
+                type: 'bar',
+                data: { datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '类别'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '先验概率'
+                            },
+                            beginAtZero: true,
+                            max: 1
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function setupEventListeners() {
+            // 噪声滑块
+            document.getElementById('noise').addEventListener('input', function(e) {
+                document.getElementById('noiseValue').textContent = e.target.value;
+            });
+
+            // 测试集比例滑块
+            document.getElementById('testSize').addEventListener('input', function(e) {
+                document.getElementById('testSizeValue').textContent = (e.target.value * 100).toFixed(0) + '%';
+            });
+
+
+            // 高斯朴素贝叶斯参数
+            document.getElementById('varSmoothing').addEventListener('input', function(e) {
+                const value = Math.pow(10, parseFloat(e.target.value));
+                document.getElementById('varSmoothingValue').textContent = value.toExponential(0);
+            });
+
+
+
+        }
+
+
+        async function generateData() {
+            try {
+                showLoading('正在生成数据...');
+                
+                const config = {
+                    type: 'classification',
+                    shape: document.getElementById('dataType').value,
+                    n_samples: parseInt(document.getElementById('nSamples').value),
+                    noise: parseFloat(document.getElementById('noise').value),
+                    random_state: parseInt(document.getElementById('randomState').value)
+                };
+
+                const response = await fetch('/api/generate_data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    currentData = result;
+                    updateScatterPlot(result.data);
+                    
+                    // 启用训练按钮
+                    const trainBtn = document.getElementById('trainBtn');
+                    trainBtn.disabled = false;
+                    
+                    hideLoading();
+                    showMessage('数据生成成功！可以开始训练模型。', 'success');
+                } else {
+                    throw new Error(result.message || '数据生成失败');
+                }
+            } catch (error) {
+                hideLoading();
+                showMessage('数据生成失败: ' + error.message, 'error');
+                console.error('Generate data error:', error);
+            }
+        }
+
+        async function trainModel() {
+            if (!currentData) {
+                showMessage('请先生成数据！', 'error');
+                return;
+            }
+
+            try {
+                showLoading('正在训练贝叶斯模型...');
+
+                const params = {
+                    test_size: parseFloat(document.getElementById('testSize').value),
+                    var_smoothing: Math.pow(10, parseFloat(document.getElementById('varSmoothing').value))
+                };
+
+                const config = {
+                    session_key: currentData.session_key,
+                    algorithm: 'naive_bayes',
+                    params: params
+                };
+
+                const response = await fetch('/api/bayesian_classification/train', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    currentModel = result;
+                    updateVisualization(result.results);
+                    updateMetrics(result.results.metrics);
+                    updateProbabilityAnalysis(result.results);
+                    hideLoading();
+                    showMessage('高斯贝叶斯模型训练成功！', 'success');
+                } else {
+                    throw new Error(result.message || '模型训练失败');
+                }
+            } catch (error) {
+                hideLoading();
+                showMessage('模型训练失败: ' + error.message, 'error');
+                console.error('Train model error:', error);
+            }
+        }
+
+        function updateScatterPlot(data) {
+            if (!data || !data.X || !data.y) return;
+
+            // 隐藏空状态提示
+            const emptyState = document.getElementById('emptyState');
+            if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+
+            const datasets = [];
+            const classes = [...new Set(data.y)];
+            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#34495e'];
+
+            classes.forEach((cls, index) => {
+                const points = data.X.filter((_, i) => data.y[i] === cls);
+                const pointData = points.map(point => ({
+                    x: point[0],
+                    y: point[1]
+                }));
+
+                datasets.push({
+                    label: `类别 ${cls}`,
+                    data: pointData,
+                    backgroundColor: colors[index % colors.length] + '70',
+                    borderColor: colors[index % colors.length],
+                    borderWidth: 2,
+                    pointRadius: 6,
+                    pointStyle: 'circle',
+                    showLine: false
+                });
+            });
+
+            scatterChart.data.datasets = datasets;
+            scatterChart.update();
+        }
+
+        function updateVisualization(results) {
+            if (!results.full_data_with_labels) return;
+
+            const datasets = [];
+            const trainData = results.full_data_with_labels.filter(d => d.data_type === 'train');
+            const testData = results.full_data_with_labels.filter(d => d.data_type === 'test');
+            
+            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#34495e'];
+            const classes = [...new Set(results.full_data_with_labels.map(d => d.label))];
+
+            // 添加训练数据 - 使用圆形点样式
+            classes.forEach((cls, index) => {
+                const trainPoints = trainData.filter(d => d.label === cls && !d.misclassified);
+                
+                if (trainPoints.length > 0) {
+                    const pointData = trainPoints.map(point => ({
+                        x: point.features[0],
+                        y: point.features[1]
+                    }));
+
+                    datasets.push({
+                        label: `类别 ${cls} (训练)`,
+                        data: pointData,
+                        backgroundColor: colors[index % colors.length] + '80',
+                        borderColor: colors[index % colors.length],
+                        borderWidth: 2,
+                        pointRadius: 6,
+                        pointStyle: 'circle',
+                        showLine: false
+                    });
+                }
+            });
+
+            // 添加测试数据 - 使用矩形点样式
+            classes.forEach((cls, index) => {
+                const testPoints = testData.filter(d => d.label === cls && !d.misclassified);
+                
+                if (testPoints.length > 0) {
+                    const pointData = testPoints.map(point => ({
+                        x: point.features[0],
+                        y: point.features[1]
+                    }));
+
+                    datasets.push({
+                        label: `类别 ${cls} (测试)`,
+                        data: pointData,
+                        backgroundColor: colors[index % colors.length] + '60',
+                        borderColor: colors[index % colors.length],
+                        borderWidth: 2,
+                        pointRadius: 5,
+                        pointStyle: 'rect',
+                        showLine: false
+                    });
+                }
+            });
+
+            // 添加错误分类的数据点 - 使用特殊样式
+            const allMisclassified = results.full_data_with_labels.filter(d => d.misclassified);
+            if (allMisclassified.length > 0) {
+                const misclassifiedData = allMisclassified.map(point => ({
+                    x: point.features[0],
+                    y: point.features[1]
+                }));
+
+                datasets.push({
+                    label: '错误分类',
+                    data: misclassifiedData,
+                    backgroundColor: '#dc3545' + '70',
+                    borderColor: '#dc3545',
+                    borderWidth: 3,
+                    pointRadius: 7,
+                    pointStyle: 'crossRot',
+                    showLine: false
+                });
+            }
+
+            scatterChart.data.datasets = datasets;
+            scatterChart.update();
+        }
+
+        function updateMetrics(metrics) {
+            const metricsContainer = document.getElementById('metrics');
+            if (!metrics) return;
+
+            metricsContainer.innerHTML = `
+                <div class="metric">
+                    <span class="metric-value">${(metrics.test_accuracy * 100).toFixed(1)}%</span>
+                    <div class="metric-label">测试准确率</div>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">${(metrics.train_accuracy * 100).toFixed(1)}%</span>
+                    <div class="metric-label">训练准确率</div>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">${(metrics.test_precision * 100).toFixed(1)}%</span>
+                    <div class="metric-label">精确率</div>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">${(metrics.test_recall * 100).toFixed(1)}%</span>
+                    <div class="metric-label">召回率</div>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">${(metrics.test_f1 * 100).toFixed(1)}%</span>
+                    <div class="metric-label">F1分数</div>
+                </div>
+            `;
+        }
+
+        function updateProbabilityAnalysis(results) {
+            if (!results.algorithm_params) return;
+
+            const params = results.algorithm_params;
+            
+            // 创建实时概率计算器
+            createProbabilityCalculator();
+            
+            // 更新先验概率图表
+            updatePriorChart(params);
+        }
+
+
+
+
+        
+        function updatePriorChart(params) {
+            if (!params.class_prior || !priorChart) return;
+            
+            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#34495e'];
+            const labels = params.class_prior.map((_, idx) => `类别 ${idx}`);
+            
+            priorChart.data = {
+                labels: labels,
+                datasets: [{
+                    label: '先验概率',
+                    data: params.class_prior,
+                    backgroundColor: colors.slice(0, params.class_prior.length).map(color => color + '80'),
+                    borderColor: colors.slice(0, params.class_prior.length),
+                    borderWidth: 2
+                }]
+            };
+            
+            priorChart.update();
+        }
+
+        function handlePointClick(pointIndex, datasetIndex) {
+            if (!currentModel || !currentModel.results.full_data_with_labels) return;
+
+            // 获取点击的数据集信息
+            const datasets = scatterChart.data.datasets;
+            const clickedDataset = datasets[datasetIndex];
+            
+            if (!clickedDataset || !clickedDataset.data || !clickedDataset.data[pointIndex]) return;
+            
+            // 获取点击点的坐标
+            const clickedPoint = clickedDataset.data[pointIndex];
+            const clickedX = clickedPoint.x;
+            const clickedY = clickedPoint.y;
+            
+            // 在完整数据集中找到对应的点（通过坐标匹配）
+            const matchedPoint = currentModel.results.full_data_with_labels.find(point => {
+                // 使用小的容差值来匹配浮点数
+                const tolerance = 1e-10;
+                return Math.abs(point.features[0] - clickedX) < tolerance && 
+                       Math.abs(point.features[1] - clickedY) < tolerance;
+            });
+            
+            if (!matchedPoint) {
+                console.warn('无法找到匹配的数据点', { x: clickedX, y: clickedY });
+                return;
+            }
+
+            selectedPoint = matchedPoint;
+            showPointAnalysis(matchedPoint);
+        }
+
+        async function showPointAnalysis(point) {
+            const container = document.getElementById('pointAnalysisResult');
+            if (!point || !currentModel) return;
+
+            const prediction = point.prediction;
+            const trueLabel = point.label;
+            const features = point.features;
+            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#34495e'];
+
+            // 显示基本信息
+            let analysisHtml = `
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 10px 0;">
+                    <h5 style="margin: 0 0 10px 0; color: #2c3e50;">📍 选中数据点信息</h5>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                        <div><strong>特征值:</strong> [${features.map(f => f.toFixed(3)).join(', ')}]</div>
+                        <div><strong>真实类别:</strong> <span style="color: ${colors[trueLabel % colors.length]}">类别 ${trueLabel}</span></div>
+                        <div><strong>预测类别:</strong> <span style="color: ${colors[prediction % colors.length]}">类别 ${prediction}</span></div>
+                        <div><strong>预测结果:</strong> <span style="color: ${point.misclassified ? '#dc3545' : '#28a745'}; font-weight: bold;">${point.misclassified ? '❌ 错误' : '✅ 正确'}</span></div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = analysisHtml;
+
+            try {
+                // 调用API获取详细概率计算
+                const response = await fetch('/api/bayesian_classification/probabilities', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model_key: currentModel.model_key,
+                        X_point: features
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.status === 'success' && result.detailed_probabilities) {
+                    const detailedProbs = result.detailed_probabilities;
+                    displayPointDetailedAnalysis(detailedProbs, container);
+                }
+
+            } catch (error) {
+                console.error('获取详细概率计算失败:', error);
+                container.innerHTML += '<p style="color: #dc3545;">获取详细分析失败，请检查网络连接</p>';
+            }
+        }
+
+        function displayPointDetailedAnalysis(detailedProbs, container) {
+            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#34495e'];
+            let analysisHtml = container.innerHTML;
+
+            // 贝叶斯公式说明
+            analysisHtml += `
+                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #f39c12; margin: 15px 0;">
+                    <h5 style="margin: 0 0 10px 0; color: #856404;">📐 贝叶斯定理应用</h5>
+                    <div style="font-family: monospace; background: #f8f9fa; padding: 10px; border-radius: 5px; text-align: center; margin: 10px 0;">
+                        P(类别|特征) = P(特征|类别) × P(类别) / P(特征)
+                    </div>
+                    <p style="margin: 0;">其中 P(特征) 是归一化常数，使所有后验概率之和为1</p>
+                </div>
+            `;
+
+            // 详细计算过程
+            analysisHtml += `
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 15px 0;">
+                    <h5 style="margin: 0 0 15px 0; color: #2c3e50;">🔍 详细概率计算</h5>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+            `;
+
+            detailedProbs.class_details.forEach((classDetail, index) => {
+                const isPredicted = index === detailedProbs.predicted_class;
+                const color = colors[index % colors.length];
+                
+                analysisHtml += `
+                    <div style="background: ${isPredicted ? '#f8fff9' : '#f8f9fa'}; 
+                                border: 2px solid ${isPredicted ? '#28a745' : '#e1e5e9'}; 
+                                border-radius: 8px; 
+                                padding: 15px;">
+                        <h6 style="color: ${color}; margin: 0 0 15px 0;">类别 ${classDetail.class_label} ${isPredicted ? '(预测类别)' : ''}</h6>
+                        
+                        <div style="margin: 10px 0;">
+                            <strong>1. 先验概率:</strong>
+                            <div style="background: #e9ecef; height: 20px; border-radius: 10px; overflow: hidden; margin: 5px 0;">
+                                <div style="height: 100%; background: ${color}; width: ${classDetail.prior_probability * 100}%; 
+                                            display: flex; align-items: center; justify-content: center; 
+                                            color: white; font-weight: bold; font-size: 11px;">
+                                    ${(classDetail.prior_probability * 100).toFixed(1)}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 10px 0;">
+                            <strong>2. 似然性:</strong>
+                            <div style="font-family: monospace; background: #f8f9fa; padding: 5px; border-radius: 3px; font-size: 0.9em;">
+                                ${classDetail.likelihood.toExponential(3)}
+                            </div>
+                        </div>
+
+                        <div style="margin: 10px 0;">
+                            <strong>3. 后验概率:</strong>
+                            <div style="background: #e9ecef; height: 25px; border-radius: 12px; overflow: hidden; margin: 5px 0;">
+                                <div style="height: 100%; background: ${color}; width: ${classDetail.posterior_probability * 100}%; 
+                                            display: flex; align-items: center; justify-content: center; 
+                                            color: white; font-weight: bold; font-size: 12px;">
+                                    ${(classDetail.posterior_probability * 100).toFixed(1)}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; color: #666;">特征详细计算</summary>
+                            <div style="margin-top: 10px; font-size: 0.9rem;">
+                                ${classDetail.feature_likelihoods.map(fl => `
+                                    <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                                        <strong>特征 ${fl.feature_index + 1}:</strong><br>
+                                        特征值: ${fl.feature_value.toFixed(3)}<br>
+                                        均值: ${fl.mean.toFixed(3)}, 方差: ${fl.variance.toFixed(6)}<br>
+                                        似然性: ${fl.likelihood.toExponential(3)}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </details>
+                    </div>
+                `;
+            });
+
+            analysisHtml += `
+                    </div>
+                </div>
+            `;
+
+            // 总结
+            analysisHtml += `
+                <div style="background: #d1ecf1; padding: 15px; border-radius: 8px; border-left: 4px solid #bee5eb; margin: 15px 0;">
+                    <h5 style="margin: 0 0 10px 0; color: #0c5460;">📊 预测总结</h5>
+                    <p style="margin: 5px 0;">模型选择概率最高的类别 <strong style="color: ${colors[detailedProbs.predicted_class % colors.length]}">类别 ${detailedProbs.predicted_class}</strong> 作为预测结果。</p>
+                    <p style="margin: 5px 0;">各类别概率：${detailedProbs.class_probabilities.map((prob, idx) => 
+                        `<span style="color: ${colors[idx % colors.length]}">类别${idx}: ${(prob * 100).toFixed(1)}%</span>`).join(', ')}</p>
+                </div>
+            `;
+
+            container.innerHTML = analysisHtml;
+        }
+
+
+
+
+        function createProbabilityCalculator() {
+            const container = document.getElementById('calculatorControls');
+            if (!currentData || !currentData.data || !currentData.data.X) return;
+
+            const X = currentData.data.X;
+            const numFeatures = X[0].length;
+            
+            // 计算特征范围
+            const featureRanges = [];
+            for (let i = 0; i < numFeatures; i++) {
+                const values = X.map(point => point[i]);
+                const min = Math.min(...values);
+                const max = Math.max(...values);
+                const range = max - min;
+                featureRanges.push({
+                    min: min - range * 0.2,
+                    max: max + range * 0.2,
+                    current: (min + max) / 2
+                });
+            }
+
+            let slidersHtml = '';
+            
+            featureRanges.forEach((range, index) => {
+                slidersHtml += `
+                    <div class="control-group">
+                        <label for="featureSlider${index}">特征 ${index + 1}: <span id="featureValue${index}">${range.current.toFixed(3)}</span></label>
+                        <input type="range" 
+                               id="featureSlider${index}"
+                               min="${range.min.toFixed(3)}" 
+                               max="${range.max.toFixed(3)}" 
+                               step="0.01" 
+                               value="${range.current.toFixed(3)}">
+                    </div>
+                `;
+            });
+
+            container.innerHTML = slidersHtml;
+
+            // 添加滑块事件监听
+            featureRanges.forEach((range, index) => {
+                const slider = document.getElementById(`featureSlider${index}`);
+                const valueDisplay = document.getElementById(`featureValue${index}`);
+                
+                // 创建防抖函数实例
+                const debouncedUpdate = debounce(() => {
+                    updateRealTimePrediction();
+                }, 150); // 150ms 防抖延迟
+                
+                slider.addEventListener('input', function(e) {
+                    const value = parseFloat(e.target.value);
+                    valueDisplay.textContent = value.toFixed(3);
+                    
+                    // 使用防抖函数调用更新
+                    debouncedUpdate();
+                });
+            });
+
+            // 初始预测
+            updateRealTimePrediction();
+        }
+
+        async function updateRealTimePrediction() {
+            if (!currentModel) return;
+
+            const container = document.getElementById('predictionResults');
+            const numFeatures = currentData.data.X[0].length;
+            
+            // 获取当前滑块值
+            const currentFeatures = [];
+            for (let i = 0; i < numFeatures; i++) {
+                const slider = document.getElementById(`featureSlider${i}`);
+                if (slider) {
+                    currentFeatures.push(parseFloat(slider.value));
+                }
+            }
+
+            if (currentFeatures.length !== numFeatures) return;
+
+            try {
+                // 调用API获取实时预测
+                const response = await fetch('/api/bayesian_classification/probabilities', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model_key: currentModel.model_key,
+                        X_point: currentFeatures
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.status === 'success' && result.detailed_probabilities) {
+                    displayRealTimePrediction(result.detailed_probabilities, currentFeatures, container);
+                }
+
+            } catch (error) {
+                console.error('实时预测失败:', error);
+                container.innerHTML = '<p>预测计算失败，请检查网络连接</p>';
+            }
+        }
+
+        function displayRealTimePrediction(detailedProbs, features, container) {
+            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#34495e'];
+            
+            let predictionHtml = `
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 10px 0;">
+                    <h5 style="margin: 0 0 10px 0; color: #2c3e50;">🎯 实时预测结果</h5>
+                    <p><strong>当前特征值:</strong> [${features.map(f => f.toFixed(3)).join(', ')}]</p>
+                    <p><strong>预测类别:</strong> <span style="color: #28a745; font-weight: bold;">类别 ${detailedProbs.predicted_class}</span></p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin: 15px 0;">
+            `;
+
+            detailedProbs.class_details.forEach((classDetail, index) => {
+                const isPredicted = index === detailedProbs.predicted_class;
+                const color = colors[index % colors.length];
+                predictionHtml += `
+                    <div style="background: ${isPredicted ? '#f8fff9' : 'white'}; 
+                                border: 2px solid ${isPredicted ? '#28a745' : '#e1e5e9'}; 
+                                border-radius: 8px; 
+                                padding: 15px;">
+                        <h6 style="color: ${color}; margin: 0 0 10px 0;">类别 ${classDetail.class_label} ${isPredicted ? '(预测)' : ''}</h6>
+                        
+                        <div style="background: #e9ecef; height: 25px; border-radius: 15px; overflow: hidden; margin: 10px 0;">
+                            <div style="height: 100%; background: ${color}; width: ${classDetail.posterior_probability * 100}%; 
+                                        display: flex; align-items: center; justify-content: center; 
+                                        color: white; font-weight: bold; font-size: 12px;">
+                                ${(classDetail.posterior_probability * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                        
+                        <div style="font-size: 0.9rem; color: #666;">
+                            <div>先验: ${(classDetail.prior_probability * 100).toFixed(1)}%</div>
+                            <div>似然性: ${classDetail.likelihood.toExponential(2)}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            predictionHtml += '</div>';
+            container.innerHTML = predictionHtml;
+        }
+
+
+        function switchTab(tabName) {
+            // 移除所有活动状态
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // 设置当前标签为活动状态
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function clearAll() {
+            currentData = null;
+            currentModel = null;
+            selectedPoint = null;
+            
+            // 禁用训练按钮
+            const trainBtn = document.getElementById('trainBtn');
+            trainBtn.disabled = true;
+            
+            // 清除所有防抖定时器
+            if (updateTimeout) {
+                clearTimeout(updateTimeout);
+                updateTimeout = null;
+            }
+            
+            scatterChart.data.datasets = [];
+            scatterChart.update();
+            
+            priorChart.data.datasets = [];
+            priorChart.update();
+            
+            document.getElementById('metrics').innerHTML = '';
+            document.getElementById('pointAnalysisResult').innerHTML = '';
+            document.getElementById('calculatorControls').innerHTML = '';
+            document.getElementById('predictionResults').innerHTML = '';
+            
+            // 显示空状态提示
+            const emptyState = document.getElementById('emptyState');
+            if (emptyState) {
+                emptyState.style.display = 'block';
+            }
+            
+            showMessage('已清除所有数据和模型', 'info');
+        }
+
+        function showLoading(message) {
+            const container = document.getElementById('visualization');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.textContent = message;
+            loadingDiv.id = 'loadingIndicator';
+            container.appendChild(loadingDiv);
+        }
+
+        function hideLoading() {
+            const loading = document.getElementById('loadingIndicator');
+            if (loading) {
+                loading.remove();
+            }
+        }
+
+        function showMessage(message, type = 'info') {
+            const existingMessage = document.querySelector('.error-message, .success-message, .info-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            
+            if (type === 'error') {
+                messageDiv.className = 'error-message';
+            } else if (type === 'success') {
+                messageDiv.style.cssText = 'background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #28a745;';
+            } else {
+                messageDiv.style.cssText = 'background: #cce7ff; color: #004085; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #007bff;';
+            }
+            
+            messageDiv.textContent = message;
+            
+            const container = document.querySelector('.panel');
+            container.insertBefore(messageDiv, container.firstChild);
+            
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.remove();
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

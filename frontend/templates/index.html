@@ -1,0 +1,2396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>机器学习算法可视化平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: #ffffff;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: width 0.4s ease;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            background: #f8f9fa;
+            color: #333;
+            position: relative;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .sidebar-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: -50px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            color: #666;
+        }
+        
+        .sidebar.collapsed .toggle-btn {
+            right: -25px;
+            top: 20px;
+            transform: translateY(0);
+        }
+
+        .toggle-btn:hover {
+            background: #f8f9fa;
+            transform: translateY(-50%) scale(1.05);
+        }
+        
+        .sidebar.collapsed .toggle-btn:hover {
+            transform: translateY(0) scale(1.05);
+        }
+
+        .nav-menu {
+            padding: 20px 0;
+            height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+        
+        .sidebar.collapsed .nav-menu {
+            padding: 60px 0 20px 0;
+            height: 100vh;
+        }
+
+        .nav-category {
+            margin-bottom: 25px;
+        }
+
+        .category-title {
+            padding: 15px 20px 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: #555;
+            transition: all 0.3s ease;
+            position: relative;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: #f8f9fa;
+            color: #667eea;
+            border-left-color: #667eea;
+        }
+
+        .nav-item.active {
+            background: #f0f4ff;
+            color: #667eea;
+            border-left-color: #667eea;
+            font-weight: 600;
+        }
+
+        .nav-item-icon {
+            display: inline-block;
+            width: 24px;
+            margin-right: 12px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-item-title {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .nav-item-desc {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 2px;
+            opacity: 0.8;
+        }
+        
+        /* 迷你侧边栏样式 */
+        .sidebar.collapsed .sidebar-header {
+            padding: 10px 0;
+            background: transparent;
+            border-bottom: none;
+        }
+        
+        .sidebar.collapsed .sidebar-title,
+        .sidebar.collapsed .sidebar-subtitle {
+            display: none;
+        }
+        
+        .sidebar.collapsed .category-title {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar.collapsed .nav-item {
+            padding: 15px 12px;
+            justify-content: center;
+            border-radius: 8px;
+            margin: 4px 8px;
+            border-left: none;
+            position: relative;
+        }
+        
+        .sidebar.collapsed .nav-item-icon {
+            margin-right: 0;
+            font-size: 1.4rem;
+        }
+        
+        .sidebar.collapsed .nav-item > div {
+            display: none;
+        }
+        
+        .sidebar.collapsed .nav-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: none;
+        }
+        
+        /* 折叠状态下的Tooltip效果 */
+        .sidebar.collapsed .nav-item {
+            position: relative;
+        }
+        
+        .sidebar.collapsed .nav-item::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 75px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 1002;
+        }
+        
+        .sidebar.collapsed .nav-item:hover::after {
+            opacity: 1;
+            left: 80px;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+            transition: margin-left 0.4s ease;
+            background: #ffffff;
+        }
+
+        .main-content.collapsed {
+            margin-left: 70px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 60px 40px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            color: #666;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            color: #333;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .content-area {
+            padding: 40px;
+        }
+
+        .algorithm-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .algorithm-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .algorithm-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            background: #667eea;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .card-description {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .card-features {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+
+        .card-features li {
+            padding: 8px 0;
+            color: #555;
+            font-size: 0.9rem;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .card-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .iframe-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 280px;
+            right: 0;
+            bottom: 0;
+            background: white;
+            z-index: 999;
+            transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .iframe-container.collapsed {
+            left: 70px;
+        }
+
+        .iframe-container.show {
+            display: block;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .close-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: rotate(90deg);
+        }
+
+        .iframe-content {
+            width: 100%;
+            height: 100vh;
+            border: none;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px;
+            background: #f8f9fa;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 1600px) {
+            .algorithm-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .algorithm-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 280px;
+                transform: translateX(-280px);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .sidebar.collapsed {
+                width: 280px;
+                transform: translateX(-280px);
+            }
+
+            .sidebar.collapsed.show {
+                transform: translateX(0);
+                width: 280px;
+            }
+
+            
+            .main-content {
+                margin-left: 0;
+            }
+
+            .main-content.collapsed {
+                margin-left: 0;
+            }
+            
+            .algorithm-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .iframe-container,
+            .iframe-container.collapsed {
+                left: 0;
+            }
+
+            /* 移动端菜单按钮 */
+            .mobile-menu-btn {
+                display: block;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                width: 50px;
+                height: 50px;
+                background: #667eea;
+                border: none;
+                border-radius: 50%;
+                color: white;
+                font-size: 1.5rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .mobile-menu-btn:hover {
+                background: #5a6fd8;
+                transform: scale(1.05);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 40px 20px;
+            }
+            
+            .content-area {
+                padding: 20px;
+            }
+            
+            .stats-bar {
+                gap: 20px;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+            
+            .card-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.7);
+        }
+
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulseIcon {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .algorithm-card {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .algorithm-card:nth-child(1) { animation-delay: 0.1s; }
+        .algorithm-card:nth-child(2) { animation-delay: 0.2s; }
+        .algorithm-card:nth-child(3) { animation-delay: 0.3s; }
+        .algorithm-card:nth-child(4) { animation-delay: 0.4s; }
+        .algorithm-card:nth-child(5) { animation-delay: 0.5s; }
+        .algorithm-card:nth-child(6) { animation-delay: 0.6s; }
+        .algorithm-card:nth-child(7) { animation-delay: 0.7s; }
+        .algorithm-card:nth-child(8) { animation-delay: 0.8s; }
+        .algorithm-card:nth-child(9) { animation-delay: 0.9s; }
+        .algorithm-card:nth-child(10) { animation-delay: 1.0s; }
+
+        /* 卡片图标hover动画 */
+        .algorithm-card:hover .card-icon {
+            animation: pulseIcon 0.6s ease-in-out;
+        }
+
+        /* 侧边栏图标hover效果 */
+        .sidebar.collapsed .nav-item:hover .nav-item-icon {
+            animation: pulseIcon 0.4s ease-in-out;
+        }
+
+        /* 桌面端隐藏移动菜单按钮 */
+        .mobile-menu-btn {
+            display: none;
+        }
+        
+        /* SVG图标样式 */
+        .nav-item-icon svg,
+        .card-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- 移动端菜单按钮 -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+
+    <!-- 侧边导航栏 -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 64 64" fill="none">
+                <defs>
+                  <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                  </filter>
+                  <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="#F5B041"/>
+                    <stop offset="50%" stop-color="#F39C12"/>
+                    <stop offset="100%" stop-color="#E74C3C"/>
+                  </linearGradient>
+                  <radialGradient id="nodeGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#85C1E9"/>
+                    <stop offset="100%" stop-color="#2E86C1"/>
+                  </radialGradient>
+                  <radialGradient id="nodeHighlight" cx="30%" cy="30%" r="50%">
+                    <stop offset="0%" stop-color="white" stop-opacity="0.6"/>
+                    <stop offset="100%" stop-color="white" stop-opacity="0"/>
+                  </radialGradient>
+                </defs>
+                <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="white" stroke="#CCC" stroke-width="1.2" filter="url(#cardShadow)"/>
+                <path d="M14 44 C18 34, 24 28, 24 28 S34 36, 34 36 S44 20, 44 20 S54 32, 54 32" fill="none" stroke="url(#lineGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="14" cy="44" r="4" fill="url(#nodeGrad)" filter="url(#cardShadow)"/>
+                <circle cx="24" cy="28" r="4" fill="url(#nodeGrad)" filter="url(#cardShadow)"/>
+                <circle cx="34" cy="36" r="4" fill="url(#nodeGrad)" filter="url(#cardShadow)"/>
+                <circle cx="44" cy="20" r="4" fill="url(#nodeGrad)" filter="url(#cardShadow)"/>
+                <circle cx="54" cy="32" r="4" fill="url(#nodeGrad)" filter="url(#cardShadow)"/>
+                <circle cx="14" cy="44" r="2" fill="url(#nodeHighlight)"/>
+                <circle cx="24" cy="28" r="2" fill="url(#nodeHighlight)"/>
+                <circle cx="34" cy="36" r="2" fill="url(#nodeHighlight)"/>
+                <circle cx="44" cy="20" r="2" fill="url(#nodeHighlight)"/>
+                <circle cx="54" cy="32" r="2" fill="url(#nodeHighlight)"/>
+              </svg> ML 算法平台</div>
+            <div class="sidebar-subtitle">机器学习可视化工具集</div>
+            <button class="toggle-btn" id="toggleBtn">
+                <span id="toggleIcon">‹</span>
+            </button>
+        </div>
+        
+        <div class="nav-menu">
+            <div class="nav-category">
+                <div class="category-title">监督学习算法</div>
+                <a href="#" class="nav-item" data-algorithm="linear_regression" data-tooltip="线性回归">
+                    <span class="nav-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#F0F2F5"/>
+                                    <stop offset="100%" stop-color="#D6DBE3"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#5D6D7E"/>
+                                    <stop offset="100%" stop-color="#34495E"/>
+                                </linearGradient>
+                                <linearGradient id="residualGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#AAA" stop-opacity="0"/>
+                                    <stop offset="100%" stop-color="#AAA" stop-opacity="0.7"/>
+                                </linearGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="10" ry="10" fill="url(#bgGrad)" stroke="#DDD" stroke-width="1.5" filter="url(#shadow)"/>
+                            <line x1="12" y1="52" x2="12" y2="14" stroke="#444" stroke-width="1.8"/>
+                            <polygon points="12,12 9,16 15,16" fill="#444"/>
+                            <line x1="12" y1="52" x2="54" y2="52" stroke="#444" stroke-width="1.8"/>
+                            <polygon points="56,52 52,50 52,54" fill="#444"/>
+                            <line x1="14" y1="48" x2="50" y2="24" stroke="url(#lineGrad)" stroke-width="1.6" stroke-linecap="round"/>
+                            <path d="M20,44 Q20.5,43 21,42" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
+                            <path d="M28,38 Q28.5,37.2 29,36.5" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
+                            <path d="M36,34 Q36.5,33 37,32.2" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
+                            <circle cx="20" cy="44" r="1.8" fill="#2E86C1" filter="url(#shadow)"/>
+                            <circle cx="24" cy="41" r="1.6" fill="#3498DB" filter="url(#shadow)"/>
+                            <circle cx="28" cy="38" r="1.6" fill="#2980B9" filter="url(#shadow)"/>
+                            <circle cx="32" cy="35" r="1.4" fill="#5DADE2" filter="url(#shadow)"/>
+                            <circle cx="36" cy="34" r="1.4" fill="#5DADE2" filter="url(#shadow)"/>
+                            <circle cx="40" cy="30" r="1.2" fill="#85C1E9" filter="url(#shadow)"/>
+                            <circle cx="44" cy="28" r="1.2" fill="#85C1E9" filter="url(#shadow)"/>
+                            <circle cx="48" cy="25" r="1.2" fill="#AED6F1" filter="url(#shadow)"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="nav-item-title">线性回归</div>
+                        <div class="nav-item-desc">拟合连续值预测</div>
+                    </div>
+                </a>
+                <a href="#" class="nav-item" data-algorithm="decision_tree" data-tooltip="决策树">
+                    <span class="nav-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#F0F4FA"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <linearGradient id="leafGradientSmall" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#2E86C1"/>
+                                    <stop offset="100%" stop-color="#5DADE2"/>
+                                </linearGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <path d="M32 8 C32 14, 32 16, 32 20" stroke="#555" stroke-width="1.3" fill="none"/>
+                            <path d="M32 20 C28 24, 20 28, 20 32" stroke="#555" stroke-width="1.1" fill="none"/>
+                            <path d="M32 20 C36 24, 44 28, 44 32" stroke="#555" stroke-width="1.1" fill="none"/>
+                            <path d="M20 32 C16 36, 14 40, 14 44" stroke="#555" stroke-width="1" fill="none"/>
+                            <path d="M20 32 C24 36, 26 40, 26 44" stroke="#555" stroke-width="1" fill="none"/>
+                            <path d="M44 32 C40 36, 38 40, 38 44" stroke="#555" stroke-width="1" fill="none"/>
+                            <path d="M44 32 C48 36, 50 40, 50 44" stroke="#555" stroke-width="1" fill="none"/>
+                            <circle cx="32" cy="8" r="2" fill="#2E86C1"/>
+                            <circle cx="20" cy="32" r="1.5" fill="#2E86C1"/>
+                            <circle cx="44" cy="32" r="1.5" fill="#2E86C1"/>
+                            <circle cx="14" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                            <circle cx="26" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                            <circle cx="38" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                            <circle cx="50" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="nav-item-title">决策树</div>
+                        <div class="nav-item-desc">基于规则的分类</div>
+                    </div>
+                </a>
+                <a href="#" class="nav-item" data-algorithm="svm" data-tooltip="支持向量机">
+                    <span class="nav-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <radialGradient id="svGrad1" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#3498DB"/>
+                                    <stop offset="100%" stop-color="#2E86C1"/>
+                                </radialGradient>
+                                <radialGradient id="svGrad2" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#E74C3C"/>
+                                    <stop offset="100%" stop-color="#C0392B"/>
+                                </radialGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <line x1="12" y1="40" x2="52" y2="20" stroke="#555" stroke-width="1.5" stroke-dasharray="4,2"/>
+                            <line x1="12" y1="42" x2="52" y2="22" stroke="#555" stroke-width="1" stroke-dasharray="2,2"/>
+                            <line x1="12" y1="38" x2="52" y2="18" stroke="#555" stroke-width="1" stroke-dasharray="2,2"/>
+                            <circle cx="20" cy="44" r="2" fill="url(#svGrad1)" filter="url(#shadow)"/>
+                            <circle cx="24" cy="40" r="1.6" fill="url(#svGrad1)" filter="url(#shadow)"/>
+                            <circle cx="16" cy="42" r="1.6" fill="url(#svGrad1)" filter="url(#shadow)"/>
+                            <circle cx="44" cy="20" r="2" fill="url(#svGrad2)" filter="url(#shadow)"/>
+                            <circle cx="40" cy="24" r="1.6" fill="url(#svGrad2)" filter="url(#shadow)"/>
+                            <circle cx="48" cy="22" r="1.6" fill="url(#svGrad2)" filter="url(#shadow)"/>
+                            <circle cx="24" cy="40" r="2.2" fill="none" stroke="#34495E" stroke-width="1.2"/>
+                            <circle cx="40" cy="24" r="2.2" fill="none" stroke="#34495E" stroke-width="1.2"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="nav-item-title">支持向量机</div>
+                        <div class="nav-item-desc">最优分离超平面</div>
+                    </div>
+                </a>
+                <a href="#" class="nav-item" data-algorithm="knn" data-tooltip="K近邻算法">
+                    <span class="nav-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <radialGradient id="knnGrad1" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#3498DB"/>
+                                    <stop offset="100%" stop-color="#2E86C1"/>
+                                </radialGradient>
+                                <radialGradient id="knnGrad2" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#E74C3C"/>
+                                    <stop offset="100%" stop-color="#C0392B"/>
+                                </radialGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <circle cx="20" cy="20" r="2" fill="url(#knnGrad1)" filter="url(#shadow)"/>
+                            <circle cx="24" cy="24" r="1.6" fill="url(#knnGrad1)" filter="url(#shadow)"/>
+                            <circle cx="44" cy="44" r="2" fill="url(#knnGrad2)" filter="url(#shadow)"/>
+                            <circle cx="40" cy="40" r="1.6" fill="url(#knnGrad2)" filter="url(#shadow)"/>
+                            <circle cx="32" cy="32" r="2.2" fill="#F1C40F" filter="url(#shadow)"/>
+                            <circle cx="32" cy="32" r="6" fill="none" stroke="#F39C12" stroke-width="1" stroke-dasharray="3,2"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="nav-item-title">K近邻算法</div>
+                        <div class="nav-item-desc">基于邻居投票</div>
+                    </div>
+                </a>
+                <a href="#" class="nav-item" data-algorithm="bayesian_classification" data-tooltip="贝叶斯分类">
+                    <span class="nav-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <radialGradient id="classGrad1" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#3498DB"/>
+                                    <stop offset="100%" stop-color="#2E86C1"/>
+                                </radialGradient>
+                                <radialGradient id="classGrad2" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#E74C3C"/>
+                                    <stop offset="100%" stop-color="#C0392B"/>
+                                </radialGradient>
+                                <linearGradient id="boundaryGrad" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#555" stop-opacity="0.7"/>
+                                    <stop offset="100%" stop-color="#555" stop-opacity="0.3"/>
+                                </linearGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <ellipse cx="22" cy="32" rx="12" ry="8" fill="url(#classGrad1)" opacity="0.3"/>
+                            <ellipse cx="42" cy="32" rx="12" ry="8" fill="url(#classGrad2)" opacity="0.3"/>
+                            <circle cx="20" cy="30" r="1.6" fill="url(#classGrad1)" filter="url(#shadow)"/>
+                            <circle cx="24" cy="34" r="1.6" fill="url(#classGrad1)" filter="url(#shadow)"/>
+                            <circle cx="40" cy="30" r="1.6" fill="url(#classGrad2)" filter="url(#shadow)"/>
+                            <circle cx="44" cy="34" r="1.6" fill="url(#classGrad2)" filter="url(#shadow)"/>
+                            <line x1="32" y1="20" x2="32" y2="44" stroke="url(#boundaryGrad)" stroke-width="1.2" stroke-dasharray="3,2" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="nav-item-title">贝叶斯分类</div>
+                        <div class="nav-item-desc">基于概率的分类</div>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="nav-category">
+                <div class="category-title">无监督学习算法</div>
+                <a href="#" class="nav-item" data-algorithm="clustering" data-tooltip="聚类算法">
+                    <span class="nav-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <radialGradient id="clusterGrad1" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#1B4F72"/>
+                                    <stop offset="100%" stop-color="#3498DB"/>
+                                </radialGradient>
+                                <radialGradient id="clusterGrad2" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#196F3D"/>
+                                    <stop offset="100%" stop-color="#2ECC71"/>
+                                </radialGradient>
+                                <radialGradient id="clusterGrad3" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#B7950B"/>
+                                    <stop offset="100%" stop-color="#F1C40F"/>
+                                </radialGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <circle cx="18" cy="18" r="2" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+                            <circle cx="22" cy="16" r="1.4" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+                            <circle cx="16" cy="22" r="1.4" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+                            <circle cx="20" cy="20" r="1.4" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+                            <circle cx="18" cy="18" r="1.8" fill="#555" filter="url(#shadow)"/>
+                            <line x1="18" y1="18" x2="22" y2="16" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <line x1="18" y1="18" x2="16" y2="22" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <line x1="18" y1="18" x2="20" y2="20" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <circle cx="46" cy="18" r="2" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+                            <circle cx="50" cy="16" r="1.4" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+                            <circle cx="42" cy="20" r="1.4" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+                            <circle cx="46" cy="22" r="1.4" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+                            <circle cx="46" cy="18" r="1.8" fill="#555" filter="url(#shadow)"/>
+                            <line x1="46" y1="18" x2="50" y2="16" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <line x1="46" y1="18" x2="42" y2="20" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <line x1="46" y1="18" x2="46" y2="22" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <circle cx="32" cy="46" r="2" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+                            <circle cx="28" cy="42" r="1.4" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+                            <circle cx="36" cy="42" r="1.4" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+                            <circle cx="32" cy="50" r="1.4" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+                            <circle cx="32" cy="46" r="1.8" fill="#555" filter="url(#shadow)"/>
+                            <line x1="32" y1="46" x2="28" y2="42" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <line x1="32" y1="46" x2="36" y2="42" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <line x1="32" y1="46" x2="32" y2="50" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="nav-item-title">聚类算法</div>
+                        <div class="nav-item-desc">数据分组与聚集</div>
+                    </div>
+                </a>
+                <a href="#" class="nav-item" data-algorithm="dimensionality_reduction" data-tooltip="降维算法">
+                    <span class="nav-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <radialGradient id="highGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#2E86C1"/>
+                                    <stop offset="100%" stop-color="#1B4F72"/>
+                                </radialGradient>
+                                <radialGradient id="projGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#5DADE2"/>
+                                    <stop offset="100%" stop-color="#AED6F1"/>
+                                </radialGradient>
+                                <marker id="arrowTiny" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto" markerUnits="strokeWidth">
+                                    <path d="M0,0 L4,2 L0,4 L1.5,2 Z" fill="#555"/>
+                                </marker>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <polygon points="22,16 42,16 48,28 28,28" fill="#F0F5FA" stroke="#555" stroke-width="1.2"/>
+                            <line x1="22" y1="16" x2="28" y2="28" stroke="#555" stroke-width="1.2"/>
+                            <line x1="42" y1="16" x2="48" y2="28" stroke="#555" stroke-width="1.2"/>
+                            <line x1="28" y1="28" x2="48" y2="28" stroke="#555" stroke-width="1.2"/>
+                            <polygon points="20,38 46,38 46,42 20,42" fill="url(#projGrad)" stroke="#555" stroke-width="1" filter="url(#shadow)"/>
+                            <circle cx="30" cy="20" r="1.6" fill="url(#highGrad)" filter="url(#shadow)"/>
+                            <circle cx="38" cy="20" r="1.6" fill="url(#highGrad)" filter="url(#shadow)"/>
+                            <circle cx="34" cy="26" r="1.6" fill="url(#highGrad)" filter="url(#shadow)"/>
+                            <line x1="30" y1="20" x2="26" y2="40" stroke="#AAA" stroke-width="1" marker-end="url(#arrowTiny)"/>
+                            <line x1="38" y1="20" x2="34" y2="40" stroke="#AAA" stroke-width="1" marker-end="url(#arrowTiny)"/>
+                            <line x1="34" y1="26" x2="40" y2="40" stroke="#AAA" stroke-width="1" marker-end="url(#arrowTiny)"/>
+                            <circle cx="26" cy="40" r="1.4" fill="url(#projGrad)" filter="url(#shadow)"/>
+                            <circle cx="34" cy="40" r="1.4" fill="url(#projGrad)" filter="url(#shadow)"/>
+                            <circle cx="40" cy="40" r="1.4" fill="url(#projGrad)" filter="url(#shadow)"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="nav-item-title">降维算法</div>
+                        <div class="nav-item-desc">高维数据可视化</div>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="nav-category">
+                <div class="category-title">深度学习</div>
+                <a href="#" class="nav-item" data-algorithm="neural_network" data-tooltip="神经网络">
+                    <span class="nav-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <radialGradient id="inputGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#F1948A"/>
+                                    <stop offset="100%" stop-color="#C0392B"/>
+                                </radialGradient>
+                                <radialGradient id="hiddenGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#5DADE2"/>
+                                    <stop offset="100%" stop-color="#2E86C1"/>
+                                </radialGradient>
+                                <radialGradient id="outputGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#58D68D"/>
+                                    <stop offset="100%" stop-color="#239B56"/>
+                                </radialGradient>
+                                <linearGradient id="connGrad1" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#F1948A"/>
+                                    <stop offset="100%" stop-color="#5DADE2"/>
+                                </linearGradient>
+                                <linearGradient id="connGrad2" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#5DADE2"/>
+                                    <stop offset="100%" stop-color="#58D68D"/>
+                                </linearGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <circle cx="16" cy="20" r="2" fill="url(#inputGrad)" filter="url(#shadow)"/>
+                            <circle cx="16" cy="32" r="2" fill="url(#inputGrad)" filter="url(#shadow)"/>
+                            <circle cx="16" cy="44" r="2" fill="url(#inputGrad)" filter="url(#shadow)"/>
+                            <circle cx="32" cy="16" r="2" fill="url(#hiddenGrad)" filter="url(#shadow)"/>
+                            <circle cx="32" cy="28" r="2" fill="url(#hiddenGrad)" filter="url(#shadow)"/>
+                            <circle cx="32" cy="40" r="2" fill="url(#hiddenGrad)" filter="url(#shadow)"/>
+                            <circle cx="32" cy="52" r="2" fill="url(#hiddenGrad)" filter="url(#shadow)"/>
+                            <circle cx="48" cy="28" r="2" fill="url(#outputGrad)" filter="url(#shadow)"/>
+                            <circle cx="48" cy="44" r="2" fill="url(#outputGrad)" filter="url(#shadow)"/>
+                            <line x1="16" y1="20" x2="32" y2="16" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="20" x2="32" y2="28" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="20" x2="32" y2="40" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="32" x2="32" y2="16" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="32" x2="32" y2="28" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="32" x2="32" y2="40" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="32" x2="32" y2="52" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="44" x2="32" y2="28" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="44" x2="32" y2="40" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="44" x2="32" y2="52" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="32" y1="16" x2="48" y2="28" stroke="url(#connGrad2)" stroke-width="0.9"/>
+                            <line x1="32" y1="28" x2="48" y2="28" stroke="url(#connGrad2)" stroke-width="0.9"/>
+                            <line x1="32" y1="40" x2="48" y2="44" stroke="url(#connGrad2)" stroke-width="0.9"/>
+                            <line x1="32" y1="52" x2="48" y2="44" stroke="url(#connGrad2)" stroke-width="0.9"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="nav-item-title">神经网络</div>
+                        <div class="nav-item-desc">多层感知器</div>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="nav-category">
+                <div class="category-title">优化算法</div>
+                <a href="#" class="nav-item" data-algorithm="sgd" data-tooltip="随机梯度下降">
+                    <span class="nav-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <linearGradient id="curveGrad" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#2E86C1"/>
+                                    <stop offset="100%" stop-color="#5DADE2"/>
+                                </linearGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <path d="M12 48 C20 36, 36 28, 52 16" stroke="url(#curveGrad)" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="48" r="1.6" fill="#2E86C1" filter="url(#shadow)"/>
+                            <circle cx="20" cy="36" r="1.4" fill="#3498DB" filter="url(#shadow)"/>
+                            <circle cx="36" cy="28" r="1.4" fill="#3498DB" filter="url(#shadow)"/>
+                            <circle cx="52" cy="16" r="1.8" fill="#1B4F72" filter="url(#shadow)"/>
+                            <line x1="12" y1="48" x2="12" y2="16" stroke="#AAA" stroke-width="0.5" stroke-dasharray="2,2"/>
+                            <line x1="12" y1="48" x2="52" y2="48" stroke="#AAA" stroke-width="0.5" stroke-dasharray="2,2"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="nav-item-title">随机梯度下降</div>
+                        <div class="nav-item-desc">优化求解器</div>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="nav-category">
+                <div class="category-title">集成学习</div>
+                <a href="#" class="nav-item" data-algorithm="ensemble" data-tooltip="集成学习">
+                    <span class="nav-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <radialGradient id="modelGrad1" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#2E86C1"/>
+                                    <stop offset="100%" stop-color="#5DADE2"/>
+                                </radialGradient>
+                                <radialGradient id="modelGrad2" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#196F3D"/>
+                                    <stop offset="100%" stop-color="#2ECC71"/>
+                                </radialGradient>
+                                <radialGradient id="modelGrad3" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#B7950B"/>
+                                    <stop offset="100%" stop-color="#F1C40F"/>
+                                </radialGradient>
+                                <marker id="arrow" markerWidth="4" markerHeight="4" refX="4" refY="2" orient="auto" markerUnits="strokeWidth">
+                                    <path d="M0,0 L4,2 L0,4 L1,2 Z" fill="#555"/>
+                                </marker>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <circle cx="20" cy="16" r="2.2" fill="url(#modelGrad1)" filter="url(#shadow)"/>
+                            <rect x="28" y="14" width="4" height="4" rx="1" ry="1" fill="url(#modelGrad2)" filter="url(#shadow)"/>
+                            <polygon points="36,14 38,18 34,18" fill="url(#modelGrad3)" filter="url(#shadow)"/>
+                            <rect x="24" y="28" width="16" height="12" rx="4" ry="4" fill="#85C1E9" stroke="#555" stroke-width="1.2" filter="url(#shadow)"/>
+                            <rect x="28" y="30" width="4" height="4" rx="1" ry="1" fill="#2E86C1" filter="url(#shadow)"/>
+                            <line x1="20" y1="16" x2="32" y2="28" stroke="#555" stroke-width="1.2" marker-end="url(#arrow)"/>
+                            <line x1="30" y1="16" x2="32" y2="28" stroke="#555" stroke-width="1.2" marker-end="url(#arrow)"/>
+                            <line x1="36" y1="16" x2="32" y2="28" stroke="#555" stroke-width="1.2" marker-end="url(#arrow)"/>
+                            <rect x="24" y="28" width="16" height="12" rx="4" ry="4" fill="none" stroke="#3498DB" stroke-width="0.8"/>
+                            <line x1="32" y1="28" x2="32" y2="40" stroke="#3498DB" stroke-width="0.8" stroke-dasharray="2,2"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="nav-item-title">集成学习</div>
+                        <div class="nav-item-desc">多模型组合</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <main class="main-content" id="mainContent">
+        <header class="header">
+            <h1><svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 64 64" fill="none">
+                <defs>
+                  <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#EAF2F8"/>
+                    <stop offset="100%" stop-color="#D6E4F0"/>
+                  </linearGradient>
+                  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                  </filter>
+                  <linearGradient id="rocketGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#3498DB"/>
+                    <stop offset="100%" stop-color="#1B4F72"/>
+                  </linearGradient>
+                  <linearGradient id="flameGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#F1C40F"/>
+                    <stop offset="100%" stop-color="#E67E22"/>
+                  </linearGradient>
+                </defs>
+                <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                <path d="M32 12 L36 32 L32 28 L28 32 Z" fill="url(#rocketGrad)" stroke="#555" stroke-width="1.2"/>  <path d="M28 32 L24 36 L28 36 Z" fill="url(#rocketGrad)" stroke="#555" stroke-width="1"/>
+                <path d="M36 32 L40 36 L36 36 Z" fill="url(#rocketGrad)" stroke="#555" stroke-width="1"/>
+                <path d="M32 36 L30 44 L32 42 L34 44 Z" fill="url(#flameGrad)" filter="url(#shadow)"/>
+              </svg> 机器学习算法可视化平台</h1>
+            <p>交互式学习，直观理解各种机器学习算法的工作原理</p>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-number">10</span>
+                    <span class="stat-label">算法模块</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">4</span>
+                    <span class="stat-label">学习类别</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">∞</span>
+                    <span class="stat-label">可能性</span>
+                </div>
+            </div>
+        </header>
+
+        <section class="content-area">
+            <div class="algorithm-grid">
+                <!-- 线性回归 -->
+                <div class="algorithm-card">
+                    <div class="card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#F0F2F5"/>
+                                    <stop offset="100%" stop-color="#D6DBE3"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#5D6D7E"/>
+                                    <stop offset="100%" stop-color="#34495E"/>
+                                </linearGradient>
+                                <linearGradient id="residualGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#AAA" stop-opacity="0"/>
+                                    <stop offset="100%" stop-color="#AAA" stop-opacity="0.7"/>
+                                </linearGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="10" ry="10" fill="url(#bgGrad)" stroke="#DDD" stroke-width="1.5" filter="url(#shadow)"/>
+                            <line x1="12" y1="52" x2="12" y2="14" stroke="#444" stroke-width="1.8"/>
+                            <polygon points="12,12 9,16 15,16" fill="#444"/>
+                            <line x1="12" y1="52" x2="54" y2="52" stroke="#444" stroke-width="1.8"/>
+                            <polygon points="56,52 52,50 52,54" fill="#444"/>
+                            <line x1="14" y1="48" x2="50" y2="24" stroke="url(#lineGrad)" stroke-width="1.6" stroke-linecap="round"/>
+                            <path d="M20,44 Q20.5,43 21,42" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
+                            <path d="M28,38 Q28.5,37.2 29,36.5" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
+                            <path d="M36,34 Q36.5,33 37,32.2" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
+                            <circle cx="20" cy="44" r="1.8" fill="#2E86C1" filter="url(#shadow)"/>
+                            <circle cx="24" cy="41" r="1.6" fill="#3498DB" filter="url(#shadow)"/>
+                            <circle cx="28" cy="38" r="1.6" fill="#2980B9" filter="url(#shadow)"/>
+                            <circle cx="32" cy="35" r="1.4" fill="#5DADE2" filter="url(#shadow)"/>
+                            <circle cx="36" cy="34" r="1.4" fill="#5DADE2" filter="url(#shadow)"/>
+                            <circle cx="40" cy="30" r="1.2" fill="#85C1E9" filter="url(#shadow)"/>
+                            <circle cx="44" cy="28" r="1.2" fill="#85C1E9" filter="url(#shadow)"/>
+                            <circle cx="48" cy="25" r="1.2" fill="#AED6F1" filter="url(#shadow)"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">线性回归算法</h3>
+                    <p class="card-description">通过拟合最佳直线来建立输入特征与连续目标值之间的线性关系，使用最小二乘法优化损失函数，是监督学习中最基础且重要的回归算法。</p>
+                    <ul class="card-features">
+                        <li>多种回归模式：线性、多项式、岭回归</li>
+                        <li>实时损失函数下降曲线可视化</li>
+                        <li>支持真实数据集和合成数据生成</li>
+                        <li>残差分析和预测区间显示</li>
+                        <li>特征工程和数据预处理展示</li>
+                    </ul>
+                    <div class="card-actions">
+                        <a href="#" class="btn btn-primary" data-algorithm="linear_regression">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 64 64" fill="none">
+                                <defs>
+                                    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#F0F2F5"/>
+                                        <stop offset="100%" stop-color="#D6DBE3"/>
+                                    </linearGradient>
+                                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                    </filter>
+                                    <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0%" stop-color="#5D6D7E"/>
+                                        <stop offset="100%" stop-color="#34495E"/>
+                                    </linearGradient>
+                                    <linearGradient id="residualGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#AAA" stop-opacity="0"/>
+                                        <stop offset="100%" stop-color="#AAA" stop-opacity="0.7"/>
+                                    </linearGradient>
+                                </defs>
+                                <rect x="2" y="2" width="60" height="60" rx="10" ry="10" fill="url(#bgGrad)" stroke="#DDD" stroke-width="1.5" filter="url(#shadow)"/>
+                                <line x1="12" y1="52" x2="12" y2="14" stroke="#444" stroke-width="1.8"/>
+                                <polygon points="12,12 9,16 15,16" fill="#444"/>
+                                <line x1="12" y1="52" x2="54" y2="52" stroke="#444" stroke-width="1.8"/>
+                                <polygon points="56,52 52,50 52,54" fill="#444"/>
+                                <line x1="14" y1="48" x2="50" y2="24" stroke="url(#lineGrad)" stroke-width="1.6" stroke-linecap="round"/>
+                                <path d="M20,44 Q20.5,43 21,42" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
+                                <path d="M28,38 Q28.5,37.2 29,36.5" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
+                                <path d="M36,34 Q36.5,33 37,32.2" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
+                                <circle cx="20" cy="44" r="1.8" fill="#2E86C1" filter="url(#shadow)"/>
+                                <circle cx="24" cy="41" r="1.6" fill="#3498DB" filter="url(#shadow)"/>
+                                <circle cx="28" cy="38" r="1.6" fill="#2980B9" filter="url(#shadow)"/>
+                                <circle cx="32" cy="35" r="1.4" fill="#5DADE2" filter="url(#shadow)"/>
+                                <circle cx="36" cy="34" r="1.4" fill="#5DADE2" filter="url(#shadow)"/>
+                                <circle cx="40" cy="30" r="1.2" fill="#85C1E9" filter="url(#shadow)"/>
+                                <circle cx="44" cy="28" r="1.2" fill="#85C1E9" filter="url(#shadow)"/>
+                                <circle cx="48" cy="25" r="1.2" fill="#AED6F1" filter="url(#shadow)"/>
+                            </svg> 回归分析
+                        </a>
+                        <a href="html/linear_regression.html" class="btn btn-secondary" target="_blank">
+                            <span>🔗</span> 新窗口打开
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 聚类算法 -->
+                <div class="algorithm-card">
+                    <div class="card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <radialGradient id="clusterGrad1" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#1B4F72"/>
+                                    <stop offset="100%" stop-color="#3498DB"/>
+                                </radialGradient>
+                                <radialGradient id="clusterGrad2" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#196F3D"/>
+                                    <stop offset="100%" stop-color="#2ECC71"/>
+                                </radialGradient>
+                                <radialGradient id="clusterGrad3" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#B7950B"/>
+                                    <stop offset="100%" stop-color="#F1C40F"/>
+                                </radialGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <circle cx="18" cy="18" r="2" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+                            <circle cx="22" cy="16" r="1.4" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+                            <circle cx="16" cy="22" r="1.4" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+                            <circle cx="20" cy="20" r="1.4" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+                            <circle cx="18" cy="18" r="1.8" fill="#555" filter="url(#shadow)"/>
+                            <line x1="18" y1="18" x2="22" y2="16" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <line x1="18" y1="18" x2="16" y2="22" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <line x1="18" y1="18" x2="20" y2="20" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <circle cx="46" cy="18" r="2" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+                            <circle cx="50" cy="16" r="1.4" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+                            <circle cx="42" cy="20" r="1.4" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+                            <circle cx="46" cy="22" r="1.4" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+                            <circle cx="46" cy="18" r="1.8" fill="#555" filter="url(#shadow)"/>
+                            <line x1="46" y1="18" x2="50" y2="16" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <line x1="46" y1="18" x2="42" y2="20" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <line x1="46" y1="18" x2="46" y2="22" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <circle cx="32" cy="46" r="2" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+                            <circle cx="28" cy="42" r="1.4" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+                            <circle cx="36" cy="42" r="1.4" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+                            <circle cx="32" cy="50" r="1.4" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+                            <circle cx="32" cy="46" r="1.8" fill="#555" filter="url(#shadow)"/>
+                            <line x1="32" y1="46" x2="28" y2="42" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <line x1="32" y1="46" x2="36" y2="42" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            <line x1="32" y1="46" x2="32" y2="50" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">聚类算法</h3>
+                    <p class="card-description">无监督学习的经典算法，在无标签数据中自动发现隐藏的群组结构和数据模式，通过相似性度量将数据点划分为不同的簇。</p>
+                    <ul class="card-features">
+                        <li>四大聚类算法：K-Means、DBSCAN、GMM、层次聚类</li>
+                        <li>分步执行模式，观察聚类中心迭代过程</li>
+                        <li>支持噪声检测和异常点识别（DBSCAN）</li>
+                        <li>GMM概率分布和椭圆边界可视化</li>
+                        <li>聚类质量评估：轮廓系数、惯性指标</li>
+                    </ul>
+                    <div class="card-actions">
+                        <a href="#" class="btn btn-primary" data-algorithm="clustering">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 64 64" fill="none">
+                                <defs>
+                                    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#EAF2F8"/>
+                                        <stop offset="100%" stop-color="#D6E4F0"/>
+                                    </linearGradient>
+                                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                    </filter>
+                                    <radialGradient id="clusterGrad1" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#1B4F72"/>
+                                        <stop offset="100%" stop-color="#3498DB"/>
+                                    </radialGradient>
+                                    <radialGradient id="clusterGrad2" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#196F3D"/>
+                                        <stop offset="100%" stop-color="#2ECC71"/>
+                                    </radialGradient>
+                                    <radialGradient id="clusterGrad3" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#B7950B"/>
+                                        <stop offset="100%" stop-color="#F1C40F"/>
+                                    </radialGradient>
+                                </defs>
+                                <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                                <circle cx="18" cy="18" r="2" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+                                <circle cx="22" cy="16" r="1.4" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+                                <circle cx="16" cy="22" r="1.4" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+                                <circle cx="20" cy="20" r="1.4" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+                                <circle cx="18" cy="18" r="1.8" fill="#555" filter="url(#shadow)"/>
+                                <line x1="18" y1="18" x2="22" y2="16" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                                <line x1="18" y1="18" x2="16" y2="22" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                                <line x1="18" y1="18" x2="20" y2="20" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                                <circle cx="46" cy="18" r="2" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+                                <circle cx="50" cy="16" r="1.4" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+                                <circle cx="42" cy="20" r="1.4" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+                                <circle cx="46" cy="22" r="1.4" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+                                <circle cx="46" cy="18" r="1.8" fill="#555" filter="url(#shadow)"/>
+                                <line x1="46" y1="18" x2="50" y2="16" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                                <line x1="46" y1="18" x2="42" y2="20" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                                <line x1="46" y1="18" x2="46" y2="22" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                                <circle cx="32" cy="46" r="2" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+                                <circle cx="28" cy="42" r="1.4" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+                                <circle cx="36" cy="42" r="1.4" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+                                <circle cx="32" cy="50" r="1.4" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+                                <circle cx="32" cy="46" r="1.8" fill="#555" filter="url(#shadow)"/>
+                                <line x1="32" y1="46" x2="28" y2="42" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                                <line x1="32" y1="46" x2="36" y2="42" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                                <line x1="32" y1="46" x2="32" y2="50" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+                            </svg> 模式发现
+                        </a>
+                        <a href="html/clustering.html" class="btn btn-secondary" target="_blank">
+                            <span>🔗</span>新窗口打开
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 降维算法 -->
+                <div class="algorithm-card">
+                    <div class="card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <radialGradient id="highGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#2E86C1"/>
+                                    <stop offset="100%" stop-color="#1B4F72"/>
+                                </radialGradient>
+                                <radialGradient id="projGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#5DADE2"/>
+                                    <stop offset="100%" stop-color="#AED6F1"/>
+                                </radialGradient>
+                                <marker id="arrowTiny" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto" markerUnits="strokeWidth">
+                                    <path d="M0,0 L4,2 L0,4 L1.5,2 Z" fill="#555"/>
+                                </marker>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <polygon points="22,16 42,16 48,28 28,28" fill="#F0F5FA" stroke="#555" stroke-width="1.2"/>
+                            <line x1="22" y1="16" x2="28" y2="28" stroke="#555" stroke-width="1.2"/>
+                            <line x1="42" y1="16" x2="48" y2="28" stroke="#555" stroke-width="1.2"/>
+                            <line x1="28" y1="28" x2="48" y2="28" stroke="#555" stroke-width="1.2"/>
+                            <polygon points="20,38 46,38 46,42 20,42" fill="url(#projGrad)" stroke="#555" stroke-width="1" filter="url(#shadow)"/>
+                            <circle cx="30" cy="20" r="1.6" fill="url(#highGrad)" filter="url(#shadow)"/>
+                            <circle cx="38" cy="20" r="1.6" fill="url(#highGrad)" filter="url(#shadow)"/>
+                            <circle cx="34" cy="26" r="1.6" fill="url(#highGrad)" filter="url(#shadow)"/>
+                            <line x1="30" y1="20" x2="26" y2="40" stroke="#AAA" stroke-width="1" marker-end="url(#arrowTiny)"/>
+                            <line x1="38" y1="20" x2="34" y2="40" stroke="#AAA" stroke-width="1" marker-end="url(#arrowTiny)"/>
+                            <line x1="34" y1="26" x2="40" y2="40" stroke="#AAA" stroke-width="1" marker-end="url(#arrowTiny)"/>
+                            <circle cx="26" cy="40" r="1.4" fill="url(#projGrad)" filter="url(#shadow)"/>
+                            <circle cx="34" cy="40" r="1.4" fill="url(#projGrad)" filter="url(#shadow)"/>
+                            <circle cx="40" cy="40" r="1.4" fill="url(#projGrad)" filter="url(#shadow)"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">降维算法可视化</h3>
+                    <p class="card-description">将高维数据投影到低维空间的核心技术，在保持数据内在结构的同时实现可视化，是机器学习预处理和数据分析的重要工具。</p>
+                    <ul class="card-features">
+                        <li>经典降维算法：PCA、t-SNE、LDA、UMAP</li>
+                        <li>支持真实高维数据集（鸢尾花、红酒、乳腺癌）</li>
+                        <li>特征重要性排序和贡献度分析</li>
+                        <li>算法性能对比和效果评估</li>
+                        <li>重构误差和信息损失量化</li>
+                    </ul>
+                    <div class="card-actions">
+                        <a href="#" class="btn btn-primary" data-algorithm="dimensionality_reduction">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 64 64" fill="none">
+                                <defs>
+                                    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#EAF2F8"/>
+                                        <stop offset="100%" stop-color="#D6E4F0"/>
+                                    </linearGradient>
+                                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                    </filter>
+                                    <radialGradient id="highGrad" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#2E86C1"/>
+                                        <stop offset="100%" stop-color="#1B4F72"/>
+                                    </radialGradient>
+                                    <radialGradient id="projGrad" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#5DADE2"/>
+                                        <stop offset="100%" stop-color="#AED6F1"/>
+                                    </radialGradient>
+                                    <marker id="arrowTiny" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto" markerUnits="strokeWidth">
+                                        <path d="M0,0 L4,2 L0,4 L1.5,2 Z" fill="#555"/>
+                                    </marker>
+                                </defs>
+                                <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                                <polygon points="22,16 42,16 48,28 28,28" fill="#F0F5FA" stroke="#555" stroke-width="1.2"/>
+                                <line x1="22" y1="16" x2="28" y2="28" stroke="#555" stroke-width="1.2"/>
+                                <line x1="42" y1="16" x2="48" y2="28" stroke="#555" stroke-width="1.2"/>
+                                <line x1="28" y1="28" x2="48" y2="28" stroke="#555" stroke-width="1.2"/>
+                                <polygon points="20,38 46,38 46,42 20,42" fill="url(#projGrad)" stroke="#555" stroke-width="1" filter="url(#shadow)"/>
+                                <circle cx="30" cy="20" r="1.6" fill="url(#highGrad)" filter="url(#shadow)"/>
+                                <circle cx="38" cy="20" r="1.6" fill="url(#highGrad)" filter="url(#shadow)"/>
+                                <circle cx="34" cy="26" r="1.6" fill="url(#highGrad)" filter="url(#shadow)"/>
+                                <line x1="30" y1="20" x2="26" y2="40" stroke="#AAA" stroke-width="1" marker-end="url(#arrowTiny)"/>
+                                <line x1="38" y1="20" x2="34" y2="40" stroke="#AAA" stroke-width="1" marker-end="url(#arrowTiny)"/>
+                                <line x1="34" y1="26" x2="40" y2="40" stroke="#AAA" stroke-width="1" marker-end="url(#arrowTiny)"/>
+                                <circle cx="26" cy="40" r="1.4" fill="url(#projGrad)" filter="url(#shadow)"/>
+                                <circle cx="34" cy="40" r="1.4" fill="url(#projGrad)" filter="url(#shadow)"/>
+                                <circle cx="40" cy="40" r="1.4" fill="url(#projGrad)" filter="url(#shadow)"/>
+                            </svg> 降维探索
+                        </a>
+                        <a href="html/dimensionality_reduction.html" class="btn btn-secondary" target="_blank">
+                            <span>🔗</span> 新窗口打开
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 神经网络 -->
+                <div class="algorithm-card">
+                    <div class="card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <radialGradient id="inputGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#F1948A"/>
+                                    <stop offset="100%" stop-color="#C0392B"/>
+                                </radialGradient>
+                                <radialGradient id="hiddenGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#5DADE2"/>
+                                    <stop offset="100%" stop-color="#2E86C1"/>
+                                </radialGradient>
+                                <radialGradient id="outputGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#58D68D"/>
+                                    <stop offset="100%" stop-color="#239B56"/>
+                                </radialGradient>
+                                <linearGradient id="connGrad1" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#F1948A"/>
+                                    <stop offset="100%" stop-color="#5DADE2"/>
+                                </linearGradient>
+                                <linearGradient id="connGrad2" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#5DADE2"/>
+                                    <stop offset="100%" stop-color="#58D68D"/>
+                                </linearGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <circle cx="16" cy="20" r="2" fill="url(#inputGrad)" filter="url(#shadow)"/>
+                            <circle cx="16" cy="32" r="2" fill="url(#inputGrad)" filter="url(#shadow)"/>
+                            <circle cx="16" cy="44" r="2" fill="url(#inputGrad)" filter="url(#shadow)"/>
+                            <circle cx="32" cy="16" r="2" fill="url(#hiddenGrad)" filter="url(#shadow)"/>
+                            <circle cx="32" cy="28" r="2" fill="url(#hiddenGrad)" filter="url(#shadow)"/>
+                            <circle cx="32" cy="40" r="2" fill="url(#hiddenGrad)" filter="url(#shadow)"/>
+                            <circle cx="32" cy="52" r="2" fill="url(#hiddenGrad)" filter="url(#shadow)"/>
+                            <circle cx="48" cy="28" r="2" fill="url(#outputGrad)" filter="url(#shadow)"/>
+                            <circle cx="48" cy="44" r="2" fill="url(#outputGrad)" filter="url(#shadow)"/>
+                            <line x1="16" y1="20" x2="32" y2="16" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="20" x2="32" y2="28" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="20" x2="32" y2="40" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="32" x2="32" y2="16" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="32" x2="32" y2="28" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="32" x2="32" y2="40" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="32" x2="32" y2="52" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="44" x2="32" y2="28" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="44" x2="32" y2="40" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="16" y1="44" x2="32" y2="52" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                            <line x1="32" y1="16" x2="48" y2="28" stroke="url(#connGrad2)" stroke-width="0.9"/>
+                            <line x1="32" y1="28" x2="48" y2="28" stroke="url(#connGrad2)" stroke-width="0.9"/>
+                            <line x1="32" y1="40" x2="48" y2="44" stroke="url(#connGrad2)" stroke-width="0.9"/>
+                            <line x1="32" y1="52" x2="48" y2="44" stroke="url(#connGrad2)" stroke-width="0.9"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">神经网络Playground</h3>
+                    <p class="card-description">深度学习的核心算法，通过模拟生物神经网络的信息传递机制，使用多层感知器和反向传播算法学习复杂的非线性映射关系。</p>
+                    <ul class="card-features">
+                        <li>多层感知器（MLP）架构和感知器模式</li>
+                        <li>多种激活函数：ReLU、Sigmoid、Tanh</li>
+                        <li>优化器选择：Adam、SGD、RMSprop</li>
+                        <li>实时训练过程和决策边界可视化</li>
+                        <li>损失函数收敛曲线和性能指标监控</li>
+                    </ul>
+                    <div class="card-actions">
+                        <a href="#" class="btn btn-primary" data-algorithm="neural_network">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 64 64" fill="none">
+                                <defs>
+                                    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#EAF2F8"/>
+                                        <stop offset="100%" stop-color="#D6E4F0"/>
+                                    </linearGradient>
+                                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                    </filter>
+                                    <radialGradient id="inputGrad" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#F1948A"/>
+                                        <stop offset="100%" stop-color="#C0392B"/>
+                                    </radialGradient>
+                                    <radialGradient id="hiddenGrad" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#5DADE2"/>
+                                        <stop offset="100%" stop-color="#2E86C1"/>
+                                    </radialGradient>
+                                    <radialGradient id="outputGrad" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#58D68D"/>
+                                        <stop offset="100%" stop-color="#239B56"/>
+                                    </radialGradient>
+                                    <linearGradient id="connGrad1" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0%" stop-color="#F1948A"/>
+                                        <stop offset="100%" stop-color="#5DADE2"/>
+                                    </linearGradient>
+                                    <linearGradient id="connGrad2" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0%" stop-color="#5DADE2"/>
+                                        <stop offset="100%" stop-color="#58D68D"/>
+                                    </linearGradient>
+                                </defs>
+                                <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                                <circle cx="16" cy="20" r="2" fill="url(#inputGrad)" filter="url(#shadow)"/>
+                                <circle cx="16" cy="32" r="2" fill="url(#inputGrad)" filter="url(#shadow)"/>
+                                <circle cx="16" cy="44" r="2" fill="url(#inputGrad)" filter="url(#shadow)"/>
+                                <circle cx="32" cy="16" r="2" fill="url(#hiddenGrad)" filter="url(#shadow)"/>
+                                <circle cx="32" cy="28" r="2" fill="url(#hiddenGrad)" filter="url(#shadow)"/>
+                                <circle cx="32" cy="40" r="2" fill="url(#hiddenGrad)" filter="url(#shadow)"/>
+                                <circle cx="32" cy="52" r="2" fill="url(#hiddenGrad)" filter="url(#shadow)"/>
+                                <circle cx="48" cy="28" r="2" fill="url(#outputGrad)" filter="url(#shadow)"/>
+                                <circle cx="48" cy="44" r="2" fill="url(#outputGrad)" filter="url(#shadow)"/>
+                                <line x1="16" y1="20" x2="32" y2="16" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                                <line x1="16" y1="20" x2="32" y2="28" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                                <line x1="16" y1="20" x2="32" y2="40" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                                <line x1="16" y1="32" x2="32" y2="16" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                                <line x1="16" y1="32" x2="32" y2="28" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                                <line x1="16" y1="32" x2="32" y2="40" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                                <line x1="16" y1="32" x2="32" y2="52" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                                <line x1="16" y1="44" x2="32" y2="28" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                                <line x1="16" y1="44" x2="32" y2="40" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                                <line x1="16" y1="44" x2="32" y2="52" stroke="url(#connGrad1)" stroke-width="0.9"/>
+                                <line x1="32" y1="16" x2="48" y2="28" stroke="url(#connGrad2)" stroke-width="0.9"/>
+                                <line x1="32" y1="28" x2="48" y2="28" stroke="url(#connGrad2)" stroke-width="0.9"/>
+                                <line x1="32" y1="40" x2="48" y2="44" stroke="url(#connGrad2)" stroke-width="0.9"/>
+                                <line x1="32" y1="52" x2="48" y2="44" stroke="url(#connGrad2)" stroke-width="0.9"/>
+                            </svg> 训练网络
+                        </a>
+                        <a href="html/neural_network.html" class="btn btn-secondary" target="_blank">
+                            <span>🔗</span> 新窗口打开
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 支持向量机 -->
+                <div class="algorithm-card">
+                    <div class="card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <radialGradient id="svGrad1" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#3498DB"/>
+                                    <stop offset="100%" stop-color="#2E86C1"/>
+                                </radialGradient>
+                                <radialGradient id="svGrad2" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#E74C3C"/>
+                                    <stop offset="100%" stop-color="#C0392B"/>
+                                </radialGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <line x1="12" y1="40" x2="52" y2="20" stroke="#555" stroke-width="1.5" stroke-dasharray="4,2"/>
+                            <line x1="12" y1="42" x2="52" y2="22" stroke="#555" stroke-width="1" stroke-dasharray="2,2"/>
+                            <line x1="12" y1="38" x2="52" y2="18" stroke="#555" stroke-width="1" stroke-dasharray="2,2"/>
+                            <circle cx="20" cy="44" r="2" fill="url(#svGrad1)" filter="url(#shadow)"/>
+                            <circle cx="24" cy="40" r="1.6" fill="url(#svGrad1)" filter="url(#shadow)"/>
+                            <circle cx="16" cy="42" r="1.6" fill="url(#svGrad1)" filter="url(#shadow)"/>
+                            <circle cx="44" cy="20" r="2" fill="url(#svGrad2)" filter="url(#shadow)"/>
+                            <circle cx="40" cy="24" r="1.6" fill="url(#svGrad2)" filter="url(#shadow)"/>
+                            <circle cx="48" cy="22" r="1.6" fill="url(#svGrad2)" filter="url(#shadow)"/>
+                            <circle cx="24" cy="40" r="2.2" fill="none" stroke="#34495E" stroke-width="1.2"/>
+                            <circle cx="40" cy="24" r="2.2" fill="none" stroke="#34495E" stroke-width="1.2"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">支持向量机</h3>
+                    <p class="card-description">基于结构风险最小化原理的分类算法，通过寻找最优分离超平面和最大化分类间隔，在小样本情况下具有优秀的泛化性能。</p>
+                    <ul class="card-features">
+                        <li>多种核函数：线性、多项式、RBF、Sigmoid</li>
+                        <li>支持向量和决策边界实时可视化</li>
+                        <li>软间隔参数C调节与正则化控制</li>
+                        <li>核技巧处理非线性分类问题</li>
+                        <li>间隔最大化原理直观演示</li>
+                    </ul>
+                    <div class="card-actions">
+                        <a href="#" class="btn btn-primary" data-algorithm="svm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 64 64" fill="none">
+                                <defs>
+                                    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#EAF2F8"/>
+                                        <stop offset="100%" stop-color="#D6E4F0"/>
+                                    </linearGradient>
+                                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                    </filter>
+                                    <radialGradient id="svGrad1" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#3498DB"/>
+                                        <stop offset="100%" stop-color="#2E86C1"/>
+                                    </radialGradient>
+                                    <radialGradient id="svGrad2" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#E74C3C"/>
+                                        <stop offset="100%" stop-color="#C0392B"/>
+                                    </radialGradient>
+                                </defs>
+                                <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                                <line x1="12" y1="40" x2="52" y2="20" stroke="#555" stroke-width="1.5" stroke-dasharray="4,2"/>
+                                <line x1="12" y1="42" x2="52" y2="22" stroke="#555" stroke-width="1" stroke-dasharray="2,2"/>
+                                <line x1="12" y1="38" x2="52" y2="18" stroke="#555" stroke-width="1" stroke-dasharray="2,2"/>
+                                <circle cx="20" cy="44" r="2" fill="url(#svGrad1)" filter="url(#shadow)"/>
+                                <circle cx="24" cy="40" r="1.6" fill="url(#svGrad1)" filter="url(#shadow)"/>
+                                <circle cx="16" cy="42" r="1.6" fill="url(#svGrad1)" filter="url(#shadow)"/>
+                                <circle cx="44" cy="20" r="2" fill="url(#svGrad2)" filter="url(#shadow)"/>
+                                <circle cx="40" cy="24" r="1.6" fill="url(#svGrad2)" filter="url(#shadow)"/>
+                                <circle cx="48" cy="22" r="1.6" fill="url(#svGrad2)" filter="url(#shadow)"/>
+                                <circle cx="24" cy="40" r="2.2" fill="none" stroke="#34495E" stroke-width="1.2"/>
+                                <circle cx="40" cy="24" r="2.2" fill="none" stroke="#34495E" stroke-width="1.2"/>
+                            </svg> 最优分离
+                        </a>
+                        <a href="html/svm.html" class="btn btn-secondary" target="_blank">
+                            <span>🔗</span> 新窗口打开
+                        </a>
+                    </div>
+                </div>
+
+                <!-- K近邻算法 -->
+                <div class="algorithm-card">
+                    <div class="card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <radialGradient id="knnGrad1" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#3498DB"/>
+                                    <stop offset="100%" stop-color="#2E86C1"/>
+                                </radialGradient>
+                                <radialGradient id="knnGrad2" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#E74C3C"/>
+                                    <stop offset="100%" stop-color="#C0392B"/>
+                                </radialGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <circle cx="20" cy="20" r="2" fill="url(#knnGrad1)" filter="url(#shadow)"/>
+                            <circle cx="24" cy="24" r="1.6" fill="url(#knnGrad1)" filter="url(#shadow)"/>
+                            <circle cx="44" cy="44" r="2" fill="url(#knnGrad2)" filter="url(#shadow)"/>
+                            <circle cx="40" cy="40" r="1.6" fill="url(#knnGrad2)" filter="url(#shadow)"/>
+                            <circle cx="32" cy="32" r="2.2" fill="#F1C40F" filter="url(#shadow)"/>
+                            <circle cx="32" cy="32" r="6" fill="none" stroke="#F39C12" stroke-width="1" stroke-dasharray="3,2"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">K近邻算法</h3>
+                    <p class="card-description">基于"相似者相邻"原理的懒学习算法，无需训练过程，通过计算待分类点与K个最近邻居的距离进行多数投票决策。</p>
+                    <ul class="card-features">
+                        <li>K值参数对决策边界影响的直观展示</li>
+                        <li>多距离度量：欧几里得、曼哈顿、闵可夫斯基</li>
+                        <li>邻居搜索过程和投票机制可视化</li>
+                        <li>偏差-方差权衡和过拟合现象演示</li>
+                        <li>实时决策边界更新和分类概率显示</li>
+                    </ul>
+                    <div class="card-actions">
+                        <a href="#" class="btn btn-primary" data-algorithm="knn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 64 64" fill="none">
+                                <defs>
+                                    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#EAF2F8"/>
+                                        <stop offset="100%" stop-color="#D6E4F0"/>
+                                    </linearGradient>
+                                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                    </filter>
+                                    <radialGradient id="knnGrad1" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#3498DB"/>
+                                        <stop offset="100%" stop-color="#2E86C1"/>
+                                    </radialGradient>
+                                    <radialGradient id="knnGrad2" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#E74C3C"/>
+                                        <stop offset="100%" stop-color="#C0392B"/>
+                                    </radialGradient>
+                                </defs>
+                                <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                                <circle cx="20" cy="20" r="2" fill="url(#knnGrad1)" filter="url(#shadow)"/>
+                                <circle cx="24" cy="24" r="1.6" fill="url(#knnGrad1)" filter="url(#shadow)"/>
+                                <circle cx="44" cy="44" r="2" fill="url(#knnGrad2)" filter="url(#shadow)"/>
+                                <circle cx="40" cy="40" r="1.6" fill="url(#knnGrad2)" filter="url(#shadow)"/>
+                                <circle cx="32" cy="32" r="2.2" fill="#F1C40F" filter="url(#shadow)"/>
+                                <circle cx="32" cy="32" r="6" fill="none" stroke="#F39C12" stroke-width="1" stroke-dasharray="3,2"/>
+                            </svg> 邻居投票
+                        </a>
+                        <a href="html/knn.html" class="btn btn-secondary" target="_blank">
+                            <span>🔗</span> 新窗口打开
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 决策树 -->
+                <div class="algorithm-card">
+                    <div class="card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#F0F4FA"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <linearGradient id="leafGradientSmall" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#2E86C1"/>
+                                    <stop offset="100%" stop-color="#5DADE2"/>
+                                </linearGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <path d="M32 8 C32 14, 32 16, 32 20" stroke="#555" stroke-width="1.3" fill="none"/>
+                            <path d="M32 20 C28 24, 20 28, 20 32" stroke="#555" stroke-width="1.1" fill="none"/>
+                            <path d="M32 20 C36 24, 44 28, 44 32" stroke="#555" stroke-width="1.1" fill="none"/>
+                            <path d="M20 32 C16 36, 14 40, 14 44" stroke="#555" stroke-width="1" fill="none"/>
+                            <path d="M20 32 C24 36, 26 40, 26 44" stroke="#555" stroke-width="1" fill="none"/>
+                            <path d="M44 32 C40 36, 38 40, 38 44" stroke="#555" stroke-width="1" fill="none"/>
+                            <path d="M44 32 C48 36, 50 40, 50 44" stroke="#555" stroke-width="1" fill="none"/>
+                            <circle cx="32" cy="8" r="2" fill="#2E86C1"/>
+                            <circle cx="20" cy="32" r="1.5" fill="#2E86C1"/>
+                            <circle cx="44" cy="32" r="1.5" fill="#2E86C1"/>
+                            <circle cx="14" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                            <circle cx="26" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                            <circle cx="38" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                            <circle cx="50" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">决策树算法</h3>
+                    <p class="card-description">基于信息论构建的白盒分类算法，通过递归分割特征空间形成树形决策结构，具有优秀的可解释性和直观的决策路径展示。</p>
+                    <ul class="card-features">
+                        <li>完整决策树结构可视化和节点详情</li>
+                        <li>多种分裂准则：信息增益、基尼系数、增益率</li>
+                        <li>剪枝策略：预剪枝和后剪枝防止过拟合</li>
+                        <li>特征重要性排序和决策路径追踪</li>
+                        <li>支持高维真实数据集的完整特征分析</li>
+                    </ul>
+                    <div class="card-actions">
+                        <a href="#" class="btn btn-primary" data-algorithm="decision_tree">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 64 64" fill="none">
+                                <defs>
+                                    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#F0F4FA"/>
+                                        <stop offset="100%" stop-color="#D6E4F0"/>
+                                    </linearGradient>
+                                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                    </filter>
+                                    <linearGradient id="leafGradientSmall" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#2E86C1"/>
+                                        <stop offset="100%" stop-color="#5DADE2"/>
+                                    </linearGradient>
+                                </defs>
+                                <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                                <path d="M32 8 C32 14, 32 16, 32 20" stroke="#555" stroke-width="1.3" fill="none"/>
+                                <path d="M32 20 C28 24, 20 28, 20 32" stroke="#555" stroke-width="1.1" fill="none"/>
+                                <path d="M32 20 C36 24, 44 28, 44 32" stroke="#555" stroke-width="1.1" fill="none"/>
+                                <path d="M20 32 C16 36, 14 40, 14 44" stroke="#555" stroke-width="1" fill="none"/>
+                                <path d="M20 32 C24 36, 26 40, 26 44" stroke="#555" stroke-width="1" fill="none"/>
+                                <path d="M44 32 C40 36, 38 40, 38 44" stroke="#555" stroke-width="1" fill="none"/>
+                                <path d="M44 32 C48 36, 50 40, 50 44" stroke="#555" stroke-width="1" fill="none"/>
+                                <circle cx="32" cy="8" r="2" fill="#2E86C1"/>
+                                <circle cx="20" cy="32" r="1.5" fill="#2E86C1"/>
+                                <circle cx="44" cy="32" r="1.5" fill="#2E86C1"/>
+                                <circle cx="14" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                                <circle cx="26" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                                <circle cx="38" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                                <circle cx="50" cy="44" r="1.1" fill="url(#leafGradientSmall)"/>
+                            </svg>
+                            建决策树
+                        </a>
+                        <a href="html/decision_tree.html" class="btn btn-secondary" target="_blank">
+                            <span>🔗</span>新窗口打开
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 随机梯度下降 -->
+                <div class="algorithm-card">
+                    <div class="card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <linearGradient id="curveGrad" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#2E86C1"/>
+                                    <stop offset="100%" stop-color="#5DADE2"/>
+                                </linearGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <path d="M12 48 C20 36, 36 28, 52 16" stroke="url(#curveGrad)" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="48" r="1.6" fill="#2E86C1" filter="url(#shadow)"/>
+                            <circle cx="20" cy="36" r="1.4" fill="#3498DB" filter="url(#shadow)"/>
+                            <circle cx="36" cy="28" r="1.4" fill="#3498DB" filter="url(#shadow)"/>
+                            <circle cx="52" cy="16" r="1.8" fill="#1B4F72" filter="url(#shadow)"/>
+                            <line x1="12" y1="48" x2="12" y2="16" stroke="#AAA" stroke-width="0.5" stroke-dasharray="2,2"/>
+                            <line x1="12" y1="48" x2="52" y2="48" stroke="#AAA" stroke-width="0.5" stroke-dasharray="2,2"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">随机梯度下降</h3>
+                    <p class="card-description">机器学习优化的基石算法，通过梯度信息指导参数更新方向，使用随机采样提高效率，是深度学习训练的核心优化方法。</p>
+                    <ul class="card-features">
+                        <li>六大优化器：SGD、Momentum、Adam 等</li>
+                        <li>学习率调度策略和自适应学习率机制</li>
+                        <li>损失函数收敛轨迹和优化路径可视化</li>
+                        <li>批量大小对收敛速度影响的对比分析</li>
+                        <li>参数空间搜索和局部最优解演示</li>
+                    </ul>
+                    <div class="card-actions">
+                        <a href="#" class="btn btn-primary" data-algorithm="sgd">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 64 64" fill="none">
+                                <defs>
+                                    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#EAF2F8"/>
+                                        <stop offset="100%" stop-color="#D6E4F0"/>
+                                    </linearGradient>
+                                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                    </filter>
+                                    <linearGradient id="curveGrad" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0%" stop-color="#2E86C1"/>
+                                        <stop offset="100%" stop-color="#5DADE2"/>
+                                    </linearGradient>
+                                </defs>
+                                <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                                <path d="M12 48 C20 36, 36 28, 52 16" stroke="url(#curveGrad)" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="48" r="1.6" fill="#2E86C1" filter="url(#shadow)"/>
+                                <circle cx="20" cy="36" r="1.4" fill="#3498DB" filter="url(#shadow)"/>
+                                <circle cx="36" cy="28" r="1.4" fill="#3498DB" filter="url(#shadow)"/>
+                                <circle cx="52" cy="16" r="1.8" fill="#1B4F72" filter="url(#shadow)"/>
+                                <line x1="12" y1="48" x2="12" y2="16" stroke="#AAA" stroke-width="0.5" stroke-dasharray="2,2"/>
+                                <line x1="12" y1="48" x2="52" y2="48" stroke="#AAA" stroke-width="0.5" stroke-dasharray="2,2"/>
+                            </svg> 优化求解
+                        </a>
+                        <a href="html/sgd.html" class="btn btn-secondary" target="_blank">
+                            <span>🔗</span> 新窗口打开
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 贝叶斯分类 -->
+                <div class="algorithm-card">
+                    <div class="card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <radialGradient id="classGrad1" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#3498DB"/>
+                                    <stop offset="100%" stop-color="#2E86C1"/>
+                                </radialGradient>
+                                <radialGradient id="classGrad2" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#E74C3C"/>
+                                    <stop offset="100%" stop-color="#C0392B"/>
+                                </radialGradient>
+                                <linearGradient id="boundaryGrad" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#555" stop-opacity="0.7"/>
+                                    <stop offset="100%" stop-color="#555" stop-opacity="0.3"/>
+                                </linearGradient>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <ellipse cx="22" cy="32" rx="12" ry="8" fill="url(#classGrad1)" opacity="0.3"/>
+                            <ellipse cx="42" cy="32" rx="12" ry="8" fill="url(#classGrad2)" opacity="0.3"/>
+                            <circle cx="20" cy="30" r="1.6" fill="url(#classGrad1)" filter="url(#shadow)"/>
+                            <circle cx="24" cy="34" r="1.6" fill="url(#classGrad1)" filter="url(#shadow)"/>
+                            <circle cx="40" cy="30" r="1.6" fill="url(#classGrad2)" filter="url(#shadow)"/>
+                            <circle cx="44" cy="34" r="1.6" fill="url(#classGrad2)" filter="url(#shadow)"/>
+                            <line x1="32" y1="20" x2="32" y2="44" stroke="url(#boundaryGrad)" stroke-width="1.2" stroke-dasharray="3,2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">朴素贝叶斯分类</h3>
+                    <p class="card-description">基于贝叶斯定理和特征独立性假设的概率分类算法，通过先验概率和条件概率的乘积计算后验概率，在文本分类等领域表现优秀。</p>
+                    <ul class="card-features">
+                        <li>贝叶斯定理公式推导和可视化演示</li>
+                        <li>高斯、多项式、伯努利三种朴素贝叶斯模型</li>
+                        <li>先验概率和似然概率分布实时显示</li>
+                        <li>特征独立性假设的影响分析</li>
+                        <li>详细的概率计算过程和决策边界</li>
+                    </ul>
+                    <div class="card-actions">
+                        <a href="#" class="btn btn-primary" data-algorithm="bayesian_classification">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 64 64" fill="none">
+                                <defs>
+                                    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#EAF2F8"/>
+                                        <stop offset="100%" stop-color="#D6E4F0"/>
+                                    </linearGradient>
+                                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                    </filter>
+                                    <radialGradient id="classGrad1" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#3498DB"/>
+                                        <stop offset="100%" stop-color="#2E86C1"/>
+                                    </radialGradient>
+                                    <radialGradient id="classGrad2" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#E74C3C"/>
+                                        <stop offset="100%" stop-color="#C0392B"/>
+                                    </radialGradient>
+                                    <linearGradient id="boundaryGrad" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0%" stop-color="#555" stop-opacity="0.7"/>
+                                        <stop offset="100%" stop-color="#555" stop-opacity="0.3"/>
+                                    </linearGradient>
+                                </defs>
+                                <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                                <ellipse cx="22" cy="32" rx="12" ry="8" fill="url(#classGrad1)" opacity="0.3"/>
+                                <ellipse cx="42" cy="32" rx="12" ry="8" fill="url(#classGrad2)" opacity="0.3"/>
+                                <circle cx="20" cy="30" r="1.6" fill="url(#classGrad1)" filter="url(#shadow)"/>
+                                <circle cx="24" cy="34" r="1.6" fill="url(#classGrad1)" filter="url(#shadow)"/>
+                                <circle cx="40" cy="30" r="1.6" fill="url(#classGrad2)" filter="url(#shadow)"/>
+                                <circle cx="44" cy="34" r="1.6" fill="url(#classGrad2)" filter="url(#shadow)"/>
+                                <line x1="32" y1="20" x2="32" y2="44" stroke="url(#boundaryGrad)" stroke-width="1.2" stroke-dasharray="3,2" stroke-linecap="round"/>
+                            </svg> 概率推理
+                        </a>
+                        <a href="html/bayesian_classification.html" class="btn btn-secondary" target="_blank">
+                            <span>🔗</span> 新窗口打开
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 集成学习 -->
+                <div class="algorithm-card">
+                    <div class="card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#EAF2F8"/>
+                                    <stop offset="100%" stop-color="#D6E4F0"/>
+                                </linearGradient>
+                                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                </filter>
+                                <radialGradient id="modelGrad1" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#2E86C1"/>
+                                    <stop offset="100%" stop-color="#5DADE2"/>
+                                </radialGradient>
+                                <radialGradient id="modelGrad2" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#196F3D"/>
+                                    <stop offset="100%" stop-color="#2ECC71"/>
+                                </radialGradient>
+                                <radialGradient id="modelGrad3" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#B7950B"/>
+                                    <stop offset="100%" stop-color="#F1C40F"/>
+                                </radialGradient>
+                                <marker id="arrow" markerWidth="4" markerHeight="4" refX="4" refY="2" orient="auto" markerUnits="strokeWidth">
+                                    <path d="M0,0 L4,2 L0,4 L1,2 Z" fill="#555"/>
+                                </marker>
+                            </defs>
+                            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                            <circle cx="20" cy="16" r="2.2" fill="url(#modelGrad1)" filter="url(#shadow)"/>
+                            <rect x="28" y="14" width="4" height="4" rx="1" ry="1" fill="url(#modelGrad2)" filter="url(#shadow)"/>
+                            <polygon points="36,14 38,18 34,18" fill="url(#modelGrad3)" filter="url(#shadow)"/>
+                            <rect x="24" y="28" width="16" height="12" rx="4" ry="4" fill="#85C1E9" stroke="#555" stroke-width="1.2" filter="url(#shadow)"/>
+                            <rect x="28" y="30" width="4" height="4" rx="1" ry="1" fill="#2E86C1" filter="url(#shadow)"/>
+                            <line x1="20" y1="16" x2="32" y2="28" stroke="#555" stroke-width="1.2" marker-end="url(#arrow)"/>
+                            <line x1="30" y1="16" x2="32" y2="28" stroke="#555" stroke-width="1.2" marker-end="url(#arrow)"/>
+                            <line x1="36" y1="16" x2="32" y2="28" stroke="#555" stroke-width="1.2" marker-end="url(#arrow)"/>
+                            <rect x="24" y="28" width="16" height="12" rx="4" ry="4" fill="none" stroke="#3498DB" stroke-width="0.8"/>
+                            <line x1="32" y1="28" x2="32" y2="40" stroke="#3498DB" stroke-width="0.8" stroke-dasharray="2,2"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">集成学习算法</h3>
+                    <p class="card-description">通过组合多个弱学习器形成强学习器的元算法，利用"三个臭皮匠顶过诸葛亮"的集体智慧原理，显著提升预测性能和模型稳定性。</p>
+                    <ul class="card-features">
+                        <li>Bagging策略：随机森林算法和特征重要性</li>
+                        <li>Boosting系列：AdaBoost、XGBoost等</li>
+                        <li>投票和堆叠策略：硬投票、软投票、Stacking</li>
+                        <li>基学习器权重分配和决策过程可视化</li>
+                        <li>偏差-方差分解和模型多样性分析</li>
+                    </ul>
+                    <div class="card-actions">
+                        <a href="#" class="btn btn-primary" data-algorithm="ensemble">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 64 64" fill="none">
+                                <defs>
+                                    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#EAF2F8"/>
+                                        <stop offset="100%" stop-color="#D6E4F0"/>
+                                    </linearGradient>
+                                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                                    </filter>
+                                    <radialGradient id="modelGrad1" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#2E86C1"/>
+                                        <stop offset="100%" stop-color="#5DADE2"/>
+                                    </radialGradient>
+                                    <radialGradient id="modelGrad2" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#196F3D"/>
+                                        <stop offset="100%" stop-color="#2ECC71"/>
+                                    </radialGradient>
+                                    <radialGradient id="modelGrad3" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#B7950B"/>
+                                        <stop offset="100%" stop-color="#F1C40F"/>
+                                    </radialGradient>
+                                    <marker id="arrow" markerWidth="4" markerHeight="4" refX="4" refY="2" orient="auto" markerUnits="strokeWidth">
+                                        <path d="M0,0 L4,2 L0,4 L1,2 Z" fill="#555"/>
+                                    </marker>
+                                </defs>
+                                <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+                                <circle cx="20" cy="16" r="2.2" fill="url(#modelGrad1)" filter="url(#shadow)"/>
+                                <rect x="28" y="14" width="4" height="4" rx="1" ry="1" fill="url(#modelGrad2)" filter="url(#shadow)"/>
+                                <polygon points="36,14 38,18 34,18" fill="url(#modelGrad3)" filter="url(#shadow)"/>
+                                <rect x="24" y="28" width="16" height="12" rx="4" ry="4" fill="#85C1E9" stroke="#555" stroke-width="1.2" filter="url(#shadow)"/>
+                                <rect x="28" y="30" width="4" height="4" rx="1" ry="1" fill="#2E86C1" filter="url(#shadow)"/>
+                                <line x1="20" y1="16" x2="32" y2="28" stroke="#555" stroke-width="1.2" marker-end="url(#arrow)"/>
+                                <line x1="30" y1="16" x2="32" y2="28" stroke="#555" stroke-width="1.2" marker-end="url(#arrow)"/>
+                                <line x1="36" y1="16" x2="32" y2="28" stroke="#555" stroke-width="1.2" marker-end="url(#arrow)"/>
+                                <rect x="24" y="28" width="16" height="12" rx="4" ry="4" fill="none" stroke="#3498DB" stroke-width="0.8"/>
+                                <line x1="32" y1="28" x2="32" y2="40" stroke="#3498DB" stroke-width="0.8" stroke-dasharray="2,2"/>
+                            </svg> 集体智慧
+                        </a>
+                        <a href="html/ensemble.html" class="btn btn-secondary" target="_blank">
+                            <span>🔗</span> 新窗口打开
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>© 2024 机器学习算法可视化平台 | 让复杂的算法变得简单易懂 | 在实践中掌握AI的核心原理</p>
+        </footer>
+    </main>
+
+    <!-- 算法内嵌显示区域 -->
+    <div class="iframe-container" id="iframeContainer">
+        <button class="close-btn" id="closeBtn">✕</button>
+        <iframe class="iframe-content" id="algorithmFrame" src=""></iframe>
+    </div>
+
+    <script>
+        class MLPlatform {
+            constructor() {
+                this.sidebar = document.getElementById('sidebar');
+                this.mainContent = document.getElementById('mainContent');
+                this.toggleBtn = document.getElementById('toggleBtn');
+                this.toggleIcon = document.getElementById('toggleIcon');
+                this.mobileMenuBtn = document.getElementById('mobileMenuBtn');
+                this.iframeContainer = document.getElementById('iframeContainer');
+                this.algorithmFrame = document.getElementById('algorithmFrame');
+                this.closeBtn = document.getElementById('closeBtn');
+                
+                this.isCollapsed = false;
+                this.isMobileMenuOpen = false;
+                this.currentAlgorithm = null;
+                
+                this.algorithmNames = {
+                    'clustering': '聚类算法',
+                    'dimensionality_reduction': '降维算法',
+                    'linear_regression': '线性回归算法',
+                    'neural_network': '神经网络算法',
+                    'decision_tree': '决策树算法',
+                    'svm': '支持向量机',
+                    'knn': 'K近邻算法',
+                    'sgd': '随机梯度下降',
+                    'ensemble': '集成学习算法',
+                    'bayesian_classification': '贝叶斯分类算法'
+                };
+                
+                this.initializeEventListeners();
+                this.restoreSidebarState();
+                this.handleResponsive();
+            }
+            
+            initializeEventListeners() {
+                // 侧边栏切换
+                this.toggleBtn.addEventListener('click', () => {
+                    this.toggleSidebar();
+                });
+
+                // 移动端菜单切换
+                this.mobileMenuBtn.addEventListener('click', () => {
+                    this.toggleMobileMenu();
+                });
+                
+                // 导航项点击
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const algorithm = item.dataset.algorithm;
+                        this.loadAlgorithm(algorithm);
+                        this.setActiveNavItem(item);
+                    });
+                });
+                
+                // 卡片中的算法按钮
+                document.querySelectorAll('[data-algorithm]').forEach(btn => {
+                    if (btn.classList.contains('btn-primary')) {
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const algorithm = btn.dataset.algorithm;
+                            this.loadAlgorithm(algorithm);
+                            this.setActiveNavItem(document.querySelector(`.nav-item[data-algorithm="${algorithm}"]`));
+                        });
+                    }
+                });
+                
+                // 关闭按钮
+                this.closeBtn.addEventListener('click', () => {
+                    this.closeAlgorithm();
+                });
+                
+                // 键盘快捷键
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeAlgorithm();
+                    }
+                    if (e.key === 'F11') {
+                        e.preventDefault();
+                        this.toggleSidebar();
+                    }
+                });
+                
+                // 窗口大小变化
+                window.addEventListener('resize', () => {
+                    this.handleResponsive();
+                });
+            }
+            
+            restoreSidebarState() {
+                // 从localStorage恢复侧边栏状态，首次访问时默认展开
+                const savedState = localStorage.getItem('sidebarCollapsed');
+                if (savedState === 'true') {
+                    this.isCollapsed = true;
+                    this.sidebar.classList.add('collapsed');
+                    this.mainContent.classList.add('collapsed');
+                    this.iframeContainer.classList.add('collapsed');
+                    this.toggleIcon.textContent = '›';
+                } else {
+                    // 确保默认状态为展开
+                    this.isCollapsed = false;
+                    this.sidebar.classList.remove('collapsed');
+                    this.mainContent.classList.remove('collapsed');
+                    this.iframeContainer.classList.remove('collapsed');
+                    this.toggleIcon.textContent = '‹';
+                }
+            }
+
+            toggleMobileMenu() {
+                this.isMobileMenuOpen = !this.isMobileMenuOpen;
+                
+                if (this.isMobileMenuOpen) {
+                    this.sidebar.classList.add('show');
+                    this.mobileMenuBtn.textContent = '✕';
+                } else {
+                    this.sidebar.classList.remove('show');
+                    this.mobileMenuBtn.textContent = '☰';
+                }
+            }
+            
+            toggleSidebar() {
+                this.isCollapsed = !this.isCollapsed;
+                
+                if (this.isCollapsed) {
+                    this.sidebar.classList.add('collapsed');
+                    this.mainContent.classList.add('collapsed');
+                    this.iframeContainer.classList.add('collapsed');
+                    this.toggleIcon.textContent = '›';
+                    
+                    // 保存状态到localStorage
+                    localStorage.setItem('sidebarCollapsed', 'true');
+                } else {
+                    this.sidebar.classList.remove('collapsed');
+                    this.mainContent.classList.remove('collapsed');
+                    this.iframeContainer.classList.remove('collapsed');
+                    this.toggleIcon.textContent = '‹';
+                    
+                    // 保存状态到localStorage
+                    localStorage.setItem('sidebarCollapsed', 'false');
+                }
+            }
+            
+            loadAlgorithm(algorithm) {
+                this.currentAlgorithm = algorithm;
+                const algorithmPath = `html/${algorithm}.html`;
+                
+                // 加载算法页面
+                this.algorithmFrame.src = algorithmPath;
+                
+                // 显示iframe容器
+                this.iframeContainer.classList.add('show');
+                
+                // 添加加载动画效果
+                this.algorithmFrame.style.opacity = '0';
+                this.algorithmFrame.onload = () => {
+                    setTimeout(() => {
+                        this.algorithmFrame.style.opacity = '1';
+                        this.algorithmFrame.style.transition = 'opacity 0.3s ease';
+                    }, 100);
+                };
+            }
+            
+            closeAlgorithm() {
+                this.iframeContainer.classList.remove('show');
+                this.algorithmFrame.src = '';
+                this.currentAlgorithm = null;
+                
+                // 清除活动状态
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+            }
+            
+            setActiveNavItem(item) {
+                // 清除所有活动状态
+                document.querySelectorAll('.nav-item').forEach(navItem => {
+                    navItem.classList.remove('active');
+                });
+                
+                // 设置当前项为活动状态
+                if (item) {
+                    item.classList.add('active');
+                }
+            }
+            
+            handleResponsive() {
+                const isMobile = window.innerWidth <= 1024;
+                
+                if (isMobile) {
+                    // 移动端：清除桌面端的collapsed状态
+                    this.sidebar.classList.remove('collapsed');
+                    this.mainContent.classList.remove('collapsed');
+                    this.iframeContainer.classList.remove('collapsed');
+                    
+                    // 移动端默认隐藏侧边栏
+                    if (!this.isMobileMenuOpen) {
+                        this.sidebar.classList.remove('show');
+                    }
+                } else {
+                    // 桌面端：清除移动端状态，恢复正常侧边栏行为
+                    this.sidebar.classList.remove('show');
+                    this.isMobileMenuOpen = false;
+                    this.mobileMenuBtn.textContent = '☰';
+                    
+                    // 恢复桌面端的collapsed状态
+                    if (this.isCollapsed) {
+                        this.sidebar.classList.add('collapsed');
+                        this.mainContent.classList.add('collapsed');
+                        this.iframeContainer.classList.add('collapsed');
+                    }
+                }
+            }
+        }
+        
+        // 页面加载完成后初始化平台
+        document.addEventListener('DOMContentLoaded', () => {
+            new MLPlatform();
+            
+            // 添加页面加载动画
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+                document.body.style.transition = 'opacity 0.5s ease';
+            }, 100);
+        });
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // 添加滚动效果
+        let lastScrollTop = 0;
+        window.addEventListener('scroll', function() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const header = document.querySelector('.header');
+            
+            if (scrollTop > lastScrollTop && scrollTop > 100) {
+                // 向下滚动
+                header.style.transform = 'translateY(-20px)';
+                header.style.opacity = '0.9';
+            } else {
+                // 向上滚动
+                header.style.transform = 'translateY(0)';
+                header.style.opacity = '1';
+            }
+            
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+        });
+    </script>
+</body>
+</html>

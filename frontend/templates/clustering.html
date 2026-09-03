@@ -1,0 +1,3786 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聚类算法可视化工具</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .main-layout {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 300px;
+            flex-shrink: 0;
+        }
+        
+        .content-area {
+            flex: 1;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, select, button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        
+        .visualization {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .panel {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background: white;
+        }
+        
+        .panel h3 {
+            color: #2c3e50;
+            margin: 0 0 15px 0;
+            text-align: center;
+        }
+        
+        canvas {
+            border: 1px solid #ccc;
+            display: block;
+            margin: 0 auto;
+            background-color: #fff;
+            cursor: default;
+        }
+        
+        .canvas-info {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .info-label {
+            color: #666;
+        }
+        
+        .info-value {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .param-section {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .param-section h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        
+        .param-panel {
+            display: none;
+        }
+        
+        .param-panel.active {
+            display: block;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .cluster-colors {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .cluster-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid #ddd;
+            display: inline-block;
+        }
+        
+        .algorithm-details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .algorithm-details h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        
+        .algorithm-details p {
+            margin-bottom: 8px;
+            line-height: 1.4;
+            font-size: 14px;
+        }
+        
+        .algorithm-details ul, .algorithm-details ol {
+            margin-bottom: 8px;
+            padding-left: 20px;
+        }
+        
+        .algorithm-details li {
+            margin-bottom: 4px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+        
+        .btn-success {
+            background-color: #27ae60;
+        }
+        
+        .btn-success:hover {
+            background-color: #219a52;
+        }
+        
+        .btn-warning {
+            background-color: #f39c12;
+        }
+        
+        .btn-warning:hover {
+            background-color: #d68910;
+        }
+        
+        .btn-secondary {
+            background-color: #7f8c8d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #6c7b7d;
+        }
+        
+        /* 算法对比相关样式 */
+        .comparison-mode {
+            background-color: #e8f4f8;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .algorithm-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .algorithm-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .algorithm-option:hover {
+            background-color: #f0f8ff;
+            border-color: #3498db;
+        }
+        
+        .algorithm-option.selected {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+        
+        .algorithm-option input[type="checkbox"] {
+            margin: 0;
+        }
+        
+        .comparison-results {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .comparison-panel {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+        }
+        
+        .comparison-panel.best-algorithm {
+            border-color: #27ae60;
+            background-color: #f0fff4;
+        }
+        
+        .comparison-panel h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .algorithm-badge {
+            padding: 4px 8px;
+            background: #3498db;
+            color: white;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+        
+        .best-badge {
+            background: #27ae60;
+        }
+        
+        .error-badge {
+            background: #e74c3c;
+        }
+        
+        .comparison-canvas {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .comparison-metrics {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        
+        .metric-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .metric-value {
+            font-weight: bold;
+        }
+        
+        .positive {
+            color: #27ae60;
+        }
+        
+        .negative {
+            color: #e74c3c;
+        }
+        
+        .neutral {
+            color: #f39c12;
+        }
+        
+        .mode-toggle {
+            display: flex;
+            background: #ecf0f1;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background:  #6c7b7d;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .mode-btn.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        .comparison-summary {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .summary-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .summary-content {
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        
+        /* 对比算法参数配置样式 */
+        .comparison-param-panel {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: none;
+        }
+        
+        .comparison-param-panel.active {
+            display: block;
+        }
+        
+        .comparison-param-header {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+            font-size: 0.9em;
+        }
+        
+        .comparison-param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .comparison-param-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        
+        .comparison-param-group label {
+            font-size: 0.85em;
+            color: #555;
+        }
+        
+        .comparison-param-group input,
+        .comparison-param-group select {
+            padding: 6px 8px;
+            font-size: 0.85em;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .visualization, .comparison-results {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* 单步调试界面样式 - 紧凑设计 */
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .debug-header h2 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 20px;
+        }
+        
+        .debug-quick-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .debug-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            min-width: 60px;
+        }
+        
+        .debug-btn.primary {
+            background: #2ecc71;
+            box-shadow: 0 2px 4px rgba(46, 204, 113, 0.3);
+        }
+        
+        .debug-btn.secondary {
+            background: #95a5a6;
+        }
+        
+        .debug-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .debug-btn.primary:hover:not(:disabled) {
+            background: #27ae60;
+        }
+        
+        .debug-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .debug-main-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        /* 顶部控制栏样式 */
+        .debug-control-bar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            flex-wrap: wrap;
+        }
+        
+        .control-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .control-section label {
+            color: #555;
+            font-weight: 500;
+            margin: 0;
+        }
+        
+        .compact-select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 13px;
+            background: white;
+        }
+        
+        .compact-range {
+            width: 120px;
+            margin: 0;
+        }
+        
+        .speed-display {
+            font-size: 12px;
+            color: #666;
+            min-width: 40px;
+        }
+        
+        .toggle-btn {
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #dee2e6;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .toggle-btn:hover {
+            background: #e9ecef;
+        }
+        
+        .toggle-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        /* 可折叠参数面板 */
+        .debug-params-panel {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .debug-params-panel.collapsed {
+            max-height: 0;
+            border-color: transparent;
+        }
+        
+        .debug-params-panel:not(.collapsed) {
+            max-height: 200px;
+            padding: 15px;
+        }
+        
+        .param-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: end;
+        }
+        
+        .param-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 120px;
+        }
+        
+        .param-row label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+            margin: 0;
+        }
+        
+        .param-input, .param-select {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+        }
+        
+        .param-input:focus, .param-select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 4px rgba(52, 152, 219, 0.3);
+        }
+        
+        /* 主内容区域布局 */
+        .debug-content-layout {
+            display: flex;
+            gap: 15px;
+            min-height: 500px;
+        }
+        
+        /* 画布区域样式 */
+        .debug-canvas-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .canvas-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .canvas-header h4 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .canvas-controls {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .icon-btn {
+            background: transparent;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        
+        .icon-btn:hover {
+            background: rgba(52, 152, 219, 0.1);
+        }
+        
+        .debug-canvas-container {
+            flex: 1;
+            border: 1px solid #e9ecef;
+            border-radius: 0 0 8px 8px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        #debugCanvas {
+            border-radius: 4px;
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        /* 信息面板样式 */
+        .debug-info-section {
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+        }
+        
+        .info-tabs {
+            display: flex;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 10px 8px;
+            background: #f8f9fa;
+            border: none;
+            border-right: 1px solid #e9ecef;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.2s;
+        }
+        
+        .tab-btn:last-child {
+            border-right: none;
+        }
+        
+        .tab-btn.active {
+            background: white;
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+            margin-bottom: -1px;
+        }
+        
+        .info-content {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .tab-panel {
+            display: none;
+        }
+        
+        .tab-panel.active {
+            display: block;
+        }
+        
+        /* 状态卡片样式 */
+        .status-card {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .status-card h5 {
+            margin: 0 0 8px 0;
+            color: #2c3e50;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .status-text {
+            color: #666;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        /* 统计网格样式 */
+        .stats-grid {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .stat-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .stat-value {
+            color: #2c3e50;
+            font-size: 13px;
+            font-weight: 600;
+            background: #e3f2fd;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+        
+        /* 历史记录样式 */
+        .history-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .history-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .clear-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        
+        .history-count {
+            color: #666;
+            font-size: 11px;
+        }
+        
+        .history-list {
+            flex: 1;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        
+        .step-history-item {
+            background: #f8f9fa;
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            border-left: 3px solid #3498db;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        
+        .step-history-item:hover {
+            background: #e9ecef;
+            transform: translateX(2px);
+        }
+        
+        .step-history-item.current {
+            border-left-color: #e74c3c;
+            background: #fff5f5;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 2px;
+        }
+        
+        .step-details {
+            color: #666;
+            font-size: 10px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1600px) {
+            .debug-info-section {
+                width: 260px;
+            }
+            #debugCanvas {
+                width: 550px;
+                height: 420px;
+            }
+        }
+        
+        @media (max-width: 1400px) {
+            .debug-info-section {
+                width: 240px;
+            }
+            #debugCanvas {
+                width: 500px;
+                height: 380px;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .debug-content-layout {
+                flex-direction: column;
+            }
+            
+            .debug-info-section {
+                width: 100%;
+                max-height: 300px;
+            }
+            
+            .debug-control-bar {
+                justify-content: center;
+            }
+            
+            #debugCanvas {
+                width: 100%;
+                max-width: 600px;
+                height: 400px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .debug-header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .debug-quick-actions {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .debug-control-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            
+            .control-section {
+                justify-content: space-between;
+            }
+            
+            .compact-range {
+                width: 100px;
+            }
+            
+            #debugCanvas {
+                width: 100%;
+                height: 300px;
+            }
+            
+            .param-section {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .param-row {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 64 64" fill="none">
+            <defs>
+                <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#EAF2F8"/>
+                    <stop offset="100%" stop-color="#D6E4F0"/>
+                </linearGradient>
+                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
+                </filter>
+                <radialGradient id="clusterGrad1" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#1B4F72"/>
+                    <stop offset="100%" stop-color="#3498DB"/>
+                </radialGradient>
+                <radialGradient id="clusterGrad2" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#196F3D"/>
+                    <stop offset="100%" stop-color="#2ECC71"/>
+                </radialGradient>
+                <radialGradient id="clusterGrad3" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#B7950B"/>
+                    <stop offset="100%" stop-color="#F1C40F"/>
+                </radialGradient>
+            </defs>
+            <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
+            <circle cx="18" cy="18" r="2" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+            <circle cx="22" cy="16" r="1.4" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+            <circle cx="16" cy="22" r="1.4" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+            <circle cx="20" cy="20" r="1.4" fill="url(#clusterGrad1)" filter="url(#shadow)"/>
+            <circle cx="18" cy="18" r="1.8" fill="#555" filter="url(#shadow)"/>
+            <line x1="18" y1="18" x2="22" y2="16" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+            <line x1="18" y1="18" x2="16" y2="22" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+            <line x1="18" y1="18" x2="20" y2="20" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+            <circle cx="46" cy="18" r="2" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+            <circle cx="50" cy="16" r="1.4" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+            <circle cx="42" cy="20" r="1.4" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+            <circle cx="46" cy="22" r="1.4" fill="url(#clusterGrad2)" filter="url(#shadow)"/>
+            <circle cx="46" cy="18" r="1.8" fill="#555" filter="url(#shadow)"/>
+            <line x1="46" y1="18" x2="50" y2="16" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+            <line x1="46" y1="18" x2="42" y2="20" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+            <line x1="46" y1="18" x2="46" y2="22" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+            <circle cx="32" cy="46" r="2" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+            <circle cx="28" cy="42" r="1.4" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+            <circle cx="36" cy="42" r="1.4" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+            <circle cx="32" cy="50" r="1.4" fill="url(#clusterGrad3)" filter="url(#shadow)"/>
+            <circle cx="32" cy="46" r="1.8" fill="#555" filter="url(#shadow)"/>
+            <line x1="32" y1="46" x2="28" y2="42" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+            <line x1="32" y1="46" x2="36" y2="42" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+            <line x1="32" y1="46" x2="32" y2="50" stroke="#555" stroke-width="0.8" stroke-linecap="round"/>
+        </svg> 聚类算法可视化工具</h1>
+        
+        <div class="main-layout">
+            <div class="sidebar">
+                <!-- 数据生成控制 -->
+                <div class="param-section">
+                    <h3>数据生成</h3>
+                    <div class="control-group">
+                        <label for="dataShape">数据分布</label>
+                        <select id="dataShape">
+                            <option value="blobs">分散的圆形簇</option>
+                            <option value="circles">同心圆</option>
+                            <option value="moons">新月形</option>
+                            <option value="anisotropic">椭圆形簇</option>
+                            <option value="varied">不同密度簇</option>
+                            <option value="smiley">笑脸状分布</option>
+                            <option value="petals">花瓣状分布</option>
+                            <option value="custom">手绘数据</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="numPoints">数据点数量</label>
+                        <input type="number" id="numPoints" value="200" min="50" max="500">
+                    </div>
+                    <div class="control-group">
+                        <label for="noise">噪声水平</label>
+                        <input type="range" id="noise" min="0" max="0.3" step="0.05" value="0.1">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-top: 3px;">
+                            <span>低</span>
+                            <span>高</span>
+                        </div>
+                    </div>
+                    <button id="generateDataBtn">生成数据</button>
+                    <button id="finishDrawingBtn" style="display: none; background-color: #27ae60; margin-left: 10px;">完成绘制</button>
+                </div>
+                
+                <!-- 算法选择 -->
+                <div class="param-section">
+                    <h3>模式选择</h3>
+                    <!-- 模式切换 -->
+                    <div class="mode-toggle">
+                        <button class="mode-btn active" id="singleModeBtn">算法模式</button>
+                        <button class="mode-btn" id="compareModeBtn">对比模式</button>
+                        <button class="mode-btn" id="debugModeBtn">调试模式</button>
+                    </div>
+                    
+                    <!-- 算法模式 -->
+                    <div id="singleModePanel">
+                        <div class="control-group">
+                            <label for="algorithm">聚类算法</label>
+                            <select id="algorithm">
+                                <option value="kmeans">K-Means 聚类</option>
+                                <option value="dbscan">DBSCAN 密度聚类</option>
+                                <option value="hierarchical">层次聚类</option>
+                                <option value="gmm">高斯混合模型 (GMM)</option>
+                            </select>
+                        </div>
+                        <div class="btn-group">
+                            <button id="showFinalResultsBtn">执行聚类</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 对比模式 -->
+                    <div id="compareModePanel" style="display: none;">
+                        <div class="comparison-mode">
+                            <h4 style="margin: 0 0 10px 0; color: #3498db;">选择要对比的算法</h4>
+                            <div class="algorithm-selector">
+                                <div class="algorithm-option" data-algorithm="kmeans">
+                                    <input type="checkbox" id="compare-kmeans" value="kmeans">
+                                    <label for="compare-kmeans">K-Means</label>
+                                </div>
+                                <div class="algorithm-option" data-algorithm="dbscan">
+                                    <input type="checkbox" id="compare-dbscan" value="dbscan">
+                                    <label for="compare-dbscan">DBSCAN</label>
+                                </div>
+                                <div class="algorithm-option" data-algorithm="hierarchical">
+                                    <input type="checkbox" id="compare-hierarchical" value="hierarchical">
+                                    <label for="compare-hierarchical">层次聚类</label>
+                                </div>
+                                <div class="algorithm-option" data-algorithm="gmm">
+                                    <input type="checkbox" id="compare-gmm" value="gmm">
+                                    <label for="compare-gmm">GMM</label>
+                                </div>
+                            </div>
+                            
+                            <!-- 对比算法参数配置区域 -->
+                            <div id="comparisonParams" style="margin-top: 15px;">
+                                <h5 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 0.95em;">算法参数配置</h5>
+                                <div id="comparisonParamPanels"></div>
+                            </div>
+                            
+                            <div class="btn-group">
+                                <button id="compareAlgorithmsBtn">开始对比</button>
+                                <button id="selectAllBtn" class="btn-secondary btn-small">全选</button>
+                                <button id="clearSelectionBtn" class="btn-secondary btn-small">清空</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 算法参数 -->
+                <div class="param-section">
+                    <h3>算法参数</h3>
+                    
+                    <!-- K-Means 参数 -->
+                    <div id="kmeans-params" class="param-panel active">
+                        <div class="control-group tooltip">
+                            <label for="kClusters">聚类数量 (K)</label>
+                            <input type="number" id="kClusters" value="3" min="1" max="10">
+                            <div class="tooltiptext">指定要生成的聚类数量，建议根据数据特征选择</div>
+                        </div>
+                        <div class="control-group tooltip">
+                            <label for="kMaxIter">最大迭代次数</label>
+                            <input type="number" id="kMaxIter" value="100" min="10" max="500">
+                            <div class="tooltiptext">算法最多运行的迭代次数，防止无限循环</div>
+                        </div>
+                        <div class="control-group tooltip">
+                            <label for="kInit">初始化方法</label>
+                            <select id="kInit">
+                                <option value="random">随机初始化</option>
+                                <option value="kmeans++">K-Means++ 初始化</option>
+                            </select>
+                            <div class="tooltiptext">选择中心点初始化策略，K-Means++通常效果更好</div>
+                        </div>
+                    </div>
+                    
+                    <!-- DBSCAN 参数 -->
+                    <div id="dbscan-params" class="param-panel">
+                        <div class="control-group tooltip">
+                            <label for="dbscanEps">邻域半径 (ε)</label>
+                            <input type="number" id="dbscanEps" value="0.05" min="0.01" max="0.5" step="0.01">
+                            <div class="tooltiptext">定义邻域的半径大小，较小的值会形成更多小聚类</div>
+                        </div>
+                        <div class="control-group tooltip">
+                            <label for="dbscanMinPts">最小点数 (MinPts)</label>
+                            <input type="number" id="dbscanMinPts" value="5" min="3" max="20">
+                            <div class="tooltiptext">形成聚类所需的最小点数，影响聚类的密度要求</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 层次聚类参数 -->
+                    <div id="hierarchical-params" class="param-panel">
+                        <div class="control-group tooltip">
+                            <label for="hClusters">目标聚类数</label>
+                            <input type="number" id="hClusters" value="3" min="1" max="10">
+                            <div class="tooltiptext">最终形成的聚类数量</div>
+                        </div>
+                        <div class="control-group tooltip">
+                            <label for="linkage">连接方式</label>
+                            <select id="linkage">
+                                <option value="single">单连接 (最短距离)</option>
+                                <option value="complete">全连接 (最长距离)</option>
+                                <option value="average">平均连接</option>
+                                <option value="ward">Ward 方法</option>
+                            </select>
+                            <div class="tooltiptext">定义聚类间距离的计算方式</div>
+                        </div>
+                    </div>
+                    
+                    <!-- GMM 参数 -->
+                    <div id="gmm-params" class="param-panel">
+                        <div class="control-group tooltip">
+                            <label for="gmmComponents">混合分量数</label>
+                            <input type="number" id="gmmComponents" value="3" min="1" max="8">
+                            <div class="tooltiptext">高斯混合模型中的分量数量，相当于聚类数</div>
+                        </div>
+                        <div class="control-group tooltip">
+                            <label for="covarianceType">协方差类型</label>
+                            <select id="covarianceType">
+                                <option value="full">完全协方差 (Full)</option>
+                                <option value="diag">对角协方差 (Diagonal)</option>
+                                <option value="tied">绑定协方差 (Tied)</option>
+                                <option value="spherical">球形协方差 (Spherical)</option>
+                            </select>
+                            <div class="tooltiptext">定义每个高斯分量的协方差矩阵结构</div>
+                        </div>
+                        <div class="control-group tooltip">
+                            <label for="initParams">初始化方法</label>
+                            <select id="initParams">
+                                <option value="kmeans">K-means 初始化</option>
+                                <option value="random">随机初始化</option>
+                            </select>
+                            <div class="tooltiptext">参数初始化策略</div>
+                        </div>
+                        <div class="control-group tooltip">
+                            <label for="gmmMaxIter">最大迭代次数</label>
+                            <input type="number" id="gmmMaxIter" value="100" min="10" max="500">
+                            <div class="tooltiptext">EM算法的最大迭代次数</div>
+                        </div>
+                        <div class="control-group tooltip">
+                            <label for="tolerance">收敛阈值</label>
+                            <input type="number" id="tolerance" value="0.001" min="0.000001" max="0.01" step="0.000001">
+                            <div class="tooltiptext">用于判断算法收敛的对数似然变化阈值</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 快捷操作 -->
+                <div class="param-section">
+                    <h3>快捷操作</h3>
+                    <div class="btn-group">
+                        <button id="autoParamsBtn" class="btn-warning btn-small">智能参数</button>
+                        <button id="resetBtn" class="btn-secondary btn-small">重置</button>
+                    </div>
+                </div>
+                
+                <!-- 算法说明 -->
+                <div class="algorithm-details" id="algorithmDescription">
+                    <h3>算法说明</h3>
+                    <div id="algorithmDetails">
+                        <p>选择一个聚类算法来查看详细说明。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-area">
+                
+                <!-- 可视化区域 -->
+                <div class="visualization">
+                    <!-- 原始数据面板 -->
+                    <div class="panel">
+                        <h3>原始数据</h3>
+                        <canvas id="dataCanvas" width="350" height="300"></canvas>
+                        <div class="canvas-info">
+                            <div class="info-row">
+                                <span class="info-label">数据点数量:</span>
+                                <span class="info-value" id="dataCount">0</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">数据分布:</span>
+                                <span class="info-value" id="dataShapeDisplay">未生成</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 聚类结果面板 -->
+                    <div class="panel">
+                        <h3>聚类结果</h3>
+                        <canvas id="clusterCanvas" width="350" height="300"></canvas>
+                        <div class="canvas-info">
+                            <div class="info-row">
+                                <span class="info-label">聚类数量:</span>
+                                <span class="info-value" id="numClusters">0</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">算法状态:</span>
+                                <span class="info-value" id="algorithmStatus">等待执行</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">颜色指示:</span>
+                                <div class="cluster-colors" id="clusterColors"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 单步调试区域 -->
+                <div id="debugArea" style="display: none;">
+                    <div class="debug-header">
+                        <h2>🔧 单步调试模式</h2>
+                        <div class="debug-quick-actions">
+                            <button id="debugInit" class="debug-btn primary">🎯 初始化</button>
+                            <button id="debugStep" class="debug-btn" disabled>▶️ 单步</button>
+                            <button id="debugPlay" class="debug-btn" disabled>🎮 播放</button>
+                            <button id="debugReset" class="debug-btn secondary" disabled>🔄 重置</button>
+                        </div>
+                    </div>
+                    
+                    <div class="debug-main-layout">
+                        <!-- 顶部控制栏 -->
+                        <div class="debug-control-bar">
+                            <div class="control-section">
+                                <label for="debugAlgorithm">算法:</label>
+                                <select id="debugAlgorithm" class="compact-select">
+                                    <option value="kmeans">K-means</option>
+                                    <option value="dbscan">DBSCAN</option>
+                                </select>
+                            </div>
+                            
+                            <div class="control-section">
+                                <label for="debugSpeed">速度:</label>
+                                <input type="range" id="debugSpeed" min="100" max="2000" step="100" value="800" class="compact-range">
+                                <span id="speedValue" class="speed-display">800ms</span>
+                            </div>
+                            
+                            <div class="control-section params-toggle">
+                                <button id="paramsToggle" class="toggle-btn">⚙️ 参数设置</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 可折叠参数面板 -->
+                        <div id="debugParamsPanel" class="debug-params-panel collapsed">
+                            <!-- K-means 参数 -->
+                            <div id="debugKmeansParams" class="param-section">
+                                <div class="param-row">
+                                    <label for="debugKClusters">聚类数 (K):</label>
+                                    <input type="number" id="debugKClusters" value="3" min="1" max="20" class="param-input">
+                                </div>
+                                <div class="param-row">
+                                    <label for="debugKMaxIter">最大迭代:</label>
+                                    <input type="number" id="debugKMaxIter" value="100" min="1" max="1000" class="param-input">
+                                </div>
+                                <div class="param-row">
+                                    <label for="debugKInit">初始化:</label>
+                                    <select id="debugKInit" class="param-select">
+                                        <option value="k-means++">K-means++</option>
+                                        <option value="random">随机</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- DBSCAN 参数 -->
+                            <div id="debugDbscanParams" class="param-section" style="display: none;">
+                                <div class="param-row">
+                                    <label for="debugDbscanEps">邻域半径 (ε):</label>
+                                    <input type="number" id="debugDbscanEps" value="0.05" step="0.01" min="0.001" max="10" class="param-input">
+                                </div>
+                                <div class="param-row">
+                                    <label for="debugDbscanMinPts">最小样本数:</label>
+                                    <input type="number" id="debugDbscanMinPts" value="5" min="1" max="50" class="param-input">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 主要内容区域 -->
+                        <div class="debug-content-layout">
+                            <!-- 可视化区域 -->
+                            <div class="debug-canvas-section">
+                                <div class="canvas-header">
+                                    <h4>算法可视化</h4>
+                                    <div class="canvas-controls">
+                                        <button id="canvasFullscreen" class="icon-btn" title="全屏">🔍</button>
+                                    </div>
+                                </div>
+                                <div class="debug-canvas-container">
+                                    <canvas id="debugCanvas" width="600" height="450"></canvas>
+                                </div>
+                            </div>
+                            
+                            <!-- 信息面板 -->
+                            <div class="debug-info-section">
+                                <div class="info-tabs">
+                                    <button class="tab-btn active" data-tab="current">当前状态</button>
+                                    <button class="tab-btn" data-tab="stats">统计信息</button>
+                                    <button class="tab-btn" data-tab="history">执行历史</button>
+                                </div>
+                                
+                                <div class="info-content">
+                                    <!-- 当前状态标签页 -->
+                                    <div id="tab-current" class="tab-panel active">
+                                        <div class="status-card">
+                                            <h5>🎯 当前步骤</h5>
+                                            <div id="debugCurrentStep" class="status-text">等待初始化</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 统计信息标签页 -->
+                                    <div id="tab-stats" class="tab-panel">
+                                        <div class="stats-grid">
+                                            <div class="stat-card">
+                                                <span class="stat-label">迭代轮次</span>
+                                                <span id="debugIteration" class="stat-value">0</span>
+                                            </div>
+                                            <div class="stat-card">
+                                                <span class="stat-label">聚类数</span>
+                                                <span id="debugClusters" class="stat-value">0</span>
+                                            </div>
+                                            <div class="stat-card">
+                                                <span class="stat-label">收敛状态</span>
+                                                <span id="debugConverged" class="stat-value">未开始</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 执行历史标签页 -->
+                                    <div id="tab-history" class="tab-panel">
+                                        <div class="history-container">
+                                            <div class="history-controls">
+                                                <button id="clearHistory" class="clear-btn">清空历史</button>
+                                                <span class="history-count">共 <span id="historyCount">0</span> 步</span>
+                                            </div>
+                                            <div id="debugStepHistory" class="history-list">
+                                                <!-- 动态添加步骤历史 -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 算法对比结果区域 -->
+                <div id="comparisonResults" style="display: none;">
+                    <h2 style="color: #2c3e50; margin-bottom: 20px;">🔍 算法对比结果</h2>
+                    <div class="comparison-results" id="comparisonPanels">
+                        <!-- 动态生成对比面板 -->
+                    </div>
+                    
+                    <!-- 对比总结 -->
+                    <div class="comparison-summary" id="comparisonSummary">
+                        <div class="summary-title">📊 对比分析总结</div>
+                        <div class="summary-content" id="summaryContent">
+                            等待对比结果...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API客户端 -->
+    <script src="/static/js/api-client.js"></script>
+
+    <script>
+        // 全局变量
+        let dataCanvas, dataCtx, clusterCanvas, clusterCtx;
+        let data = [];
+        let clusterResults = null;
+        let isDrawingMode = false;
+        let currentMode = 'single'; // 'single', 'comparison', 或 'debug'
+        let comparisonResults = null;
+        
+        // 调试相关变量
+        let debugCanvas, debugCtx;
+        let debugState = null;
+        let debugKey = null;
+        let isDebugging = false;
+        let debugInterval = null;
+        let debugSpeed = 800;
+        
+        // Flask API 相关变量
+        let apiClient;
+        let currentSessionKey = null;
+        let currentModelKey = null;
+        
+        // 统一的坐标转换工具函数
+        const CoordinateUtils = {
+            // 将sklearn原始坐标转换为归一化坐标（用于前端显示）
+            normalizePoint: function(point, dataRange) {
+                if (!dataRange) return {x: point[0], y: point[1]};
+                return {
+                    x: (point[0] - dataRange.xMin) / (dataRange.xMax - dataRange.xMin),
+                    y: (point[1] - dataRange.yMin) / (dataRange.yMax - dataRange.yMin)
+                };
+            },
+            
+            // 将归一化坐标转换为Canvas坐标
+            toCanvasCoordinates: function(normalizedPoint, canvas) {
+                return {
+                    x: normalizedPoint.x * canvas.width,
+                    y: normalizedPoint.y * canvas.height
+                };
+            },
+            
+            // 直接将sklearn坐标转换为Canvas坐标
+            sklearnToCanvas: function(sklearnPoint, dataRange, canvas) {
+                const normalized = this.normalizePoint(sklearnPoint, dataRange);
+                return this.toCanvasCoordinates(normalized, canvas);
+            }
+        };
+
+        // 优化的聚类颜色配置（高对比度、易区分）
+        const clusterColors = [
+            '#FF0000', '#00AA00', '#0066FF', '#FFD700', '#FF6600',
+            '#AA00FF', '#00CCCC', '#FF1493', '#32CD32', '#FF4500',
+            '#9400D3', '#00CED1', '#DC143C', '#228B22', '#FF8C00'
+        ];
+        
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 初始化API客户端
+            apiClient = new MLApiClient();
+            
+            // 检查后端连接
+            await checkBackendConnection();
+            
+            initializeCanvases();
+            setupEventListeners();
+            updateAlgorithmDescription();
+            updateParameterVisibility();
+            resetDisplay();
+        });
+        
+        // 检查后端连接
+        async function checkBackendConnection() {
+            try {
+                const isConnected = await apiClient.checkConnection();
+                if (!isConnected) {
+                    updateStatus('❌ 后端服务未连接 - 请启动Flask服务器 (python start.py)');
+                } else {
+                    updateStatus('✅ 后端服务已连接 - 基于sklearn的算法实现');
+                }
+            } catch (error) {
+                updateStatus('❌ 后端服务连接失败 - ' + error.message);
+                console.warn('后端服务连接失败:', error);
+            }
+        }
+        
+        // 初始化画布
+        function initializeCanvases() {
+            dataCanvas = document.getElementById('dataCanvas');
+            dataCtx = dataCanvas.getContext('2d');
+            clusterCanvas = document.getElementById('clusterCanvas');
+            clusterCtx = clusterCanvas.getContext('2d');
+            debugCanvas = document.getElementById('debugCanvas');
+            debugCtx = debugCanvas.getContext('2d');
+            
+            // 设置画布样式
+            setupCanvas(dataCanvas, dataCtx);
+            setupCanvas(clusterCanvas, clusterCtx);
+            setupCanvas(debugCanvas, debugCtx);
+            
+            // 添加自定义绘制事件
+            dataCanvas.addEventListener('mousedown', handleCanvasMouseDown);
+            dataCanvas.addEventListener('mousemove', handleCanvasMouseMove);
+            dataCanvas.addEventListener('mouseup', handleCanvasMouseUp);
+            dataCanvas.addEventListener('mouseleave', handleCanvasMouseUp);
+        }
+        
+        // 设置画布
+        function setupCanvas(canvas, ctx) {
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            drawGrid(ctx, canvas);
+        }
+        
+        // 绘制网格
+        function drawGrid(ctx, canvas) {
+            ctx.strokeStyle = '#e9ecef';
+            ctx.lineWidth = 1;
+            
+            // 绘制网格线
+            for (let i = 0; i <= canvas.width; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let i = 0; i <= canvas.height; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(canvas.width, i);
+                ctx.stroke();
+            }
+        }
+        
+        // 设置高DPI Canvas支持
+        function setupHighDPICanvas(canvas) {
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            
+            // 获取显示尺寸（CSS像素）
+            const rect = canvas.getBoundingClientRect();
+            const displayWidth = rect.width;
+            const displayHeight = rect.height;
+            
+            // 设置内部尺寸为显示尺寸 * 设备像素比
+            canvas.width = displayWidth * dpr;
+            canvas.height = displayHeight * dpr;
+            
+            // 缩放canvas以保持正确的绘制比例
+            ctx.scale(dpr, dpr);
+            
+            // 设置CSS尺寸以保持显示尺寸
+            canvas.style.width = displayWidth + 'px';
+            canvas.style.height = displayHeight + 'px';
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 数据生成
+            document.getElementById('generateDataBtn').addEventListener('click', generateData);
+            document.getElementById('finishDrawingBtn').addEventListener('click', finishCustomDrawing);
+            document.getElementById('dataShape').addEventListener('change', handleDataShapeChange);
+            
+            // 模式切换
+            document.getElementById('singleModeBtn').addEventListener('click', () => switchMode('single'));
+            document.getElementById('compareModeBtn').addEventListener('click', () => switchMode('comparison'));
+            document.getElementById('debugModeBtn').addEventListener('click', () => switchMode('debug'));
+            
+            // 单算法控制
+            document.getElementById('algorithm').addEventListener('change', handleAlgorithmChange);
+            document.getElementById('showFinalResultsBtn').addEventListener('click', showFinalResults);
+            
+            // 对比算法控制
+            document.getElementById('compareAlgorithmsBtn').addEventListener('click', compareAlgorithms);
+            document.getElementById('selectAllBtn').addEventListener('click', selectAllAlgorithms);
+            document.getElementById('clearSelectionBtn').addEventListener('click', clearAlgorithmSelection);
+            
+            // 算法选择器
+            document.querySelectorAll('.algorithm-option').forEach(option => {
+                option.addEventListener('click', toggleAlgorithmSelection);
+            });
+            
+            // 调试控制
+            document.getElementById('debugInit').addEventListener('click', initDebug);
+            document.getElementById('debugStep').addEventListener('click', debugStep);
+            document.getElementById('debugPlay').addEventListener('click', debugPlay);
+            document.getElementById('debugReset').addEventListener('click', debugReset);
+            document.getElementById('debugSpeed').addEventListener('input', updateDebugSpeed);
+            document.getElementById('debugAlgorithm').addEventListener('change', switchDebugAlgorithm);
+            
+            // 新的调试界面交互
+            document.getElementById('paramsToggle').addEventListener('click', toggleParamsPanel);
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', switchInfoTab);
+            });
+            
+            // 历史记录控制
+            const clearHistoryBtn = document.getElementById('clearHistory');
+            if (clearHistoryBtn) {
+                clearHistoryBtn.addEventListener('click', clearDebugHistory);
+            }
+            
+            // 其他控制
+            document.getElementById('autoParamsBtn').addEventListener('click', setOptimalParameters);
+            document.getElementById('resetBtn').addEventListener('click', resetAll);
+            
+            // 参数变化监听
+            ['kClusters', 'kMaxIter', 'dbscanEps', 'dbscanMinPts', 'hClusters', 'gmmComponents', 'gmmMaxIter', 'tolerance'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('change', validateParameters);
+                }
+            });
+        }
+        
+        // 处理数据形状变化
+        function handleDataShapeChange() {
+            const shape = document.getElementById('dataShape').value;
+            const pointsInput = document.getElementById('numPoints');
+            const noiseInput = document.getElementById('noise');
+            const generateBtn = document.getElementById('generateDataBtn');
+            const finishBtn = document.getElementById('finishDrawingBtn');
+            
+            if (shape === 'custom') {
+                pointsInput.disabled = true;
+                noiseInput.disabled = true;
+                dataCanvas.style.cursor = 'crosshair';
+                generateBtn.style.display = 'none';
+                finishBtn.style.display = 'inline-block';
+                updateStatus('点击画布绘制数据点，按住鼠标拖拽可连续绘制。完成后点击"完成绘制"按钮。');
+            } else {
+                pointsInput.disabled = false;
+                noiseInput.disabled = false;
+                dataCanvas.style.cursor = 'default';
+                generateBtn.style.display = 'inline-block';
+                finishBtn.style.display = 'none';
+                updateStatus('请点击"生成数据"按钮生成' + getShapeDisplayName(shape) + '数据');
+            }
+        }
+        
+        // 获取形状显示名称
+        function getShapeDisplayName(shape) {
+            const shapeNames = {
+                'blobs': '分散圆形簇',
+                'circles': '同心圆',
+                'moons': '新月形',
+                'anisotropic': '椭圆形簇',
+                'varied': '不同密度簇',
+                'smiley': '笑脸状分布',
+                'petals': '花瓣状分布'
+            };
+            return shapeNames[shape] || '未知';
+        }
+        
+        // 处理算法变化
+        function handleAlgorithmChange() {
+            updateParameterVisibility();
+            updateAlgorithmDescription();
+        }
+        
+        // 更新参数面板可见性
+        function updateParameterVisibility() {
+            const algorithm = document.getElementById('algorithm').value;
+            const panels = document.querySelectorAll('.param-panel');
+            
+            panels.forEach(panel => {
+                panel.classList.remove('active');
+            });
+            
+            const activePanel = document.getElementById(`${algorithm}-params`);
+            if (activePanel) {
+                activePanel.classList.add('active');
+            }
+        }
+        
+        
+        // 生成数据
+        async function generateData() {
+            try {
+                const shape = document.getElementById('dataShape').value;
+                const numPoints = parseInt(document.getElementById('numPoints').value);
+                const noise = parseFloat(document.getElementById('noise').value);
+                
+                if (shape !== 'custom') {
+                    updateStatus('正在生成数据...');
+                    
+                    // 映射形状名称到后端API
+                    const shapeMapping = {
+                        'blobs': 'blobs',
+                        'circles': 'circles',
+                        'moons': 'moons',
+                        'anisotropic': 'anisotropic',
+                        'varied': 'varied',
+                        'smiley': 'smiley',
+                        'petals': 'petals'
+                    };
+                    
+                    const config = {
+                        type: 'clustering',
+                        shape: shapeMapping[shape] || 'blobs',
+                        n_samples: numPoints,
+                        noise: noise,
+                        random_state: 42
+                    };
+                    
+                    const result = await apiClient.generateData(config);
+                    
+                    if (result.status === 'success') {
+                        currentSessionKey = result.session_key;
+                        
+                        // 保存原始数据用于后端API调用
+                        const originalData = result.data.X;
+                        
+                        // 计算数据范围用于归一化
+                        const xMin = Math.min(...originalData.map(p => p[0]));
+                        const xMax = Math.max(...originalData.map(p => p[0]));
+                        const yMin = Math.min(...originalData.map(p => p[1]));
+                        const yMax = Math.max(...originalData.map(p => p[1]));
+                        
+                        // 保存归一化参数，后续处理聚类中心时需要
+                        window.dataRange = { xMin, xMax, yMin, yMax };
+                        
+                        // 使用统一的坐标转换工具函数
+                        data = originalData.map(point => 
+                            CoordinateUtils.normalizePoint(point, window.dataRange)
+                        );
+                        
+                        drawData();
+                        updateDataDisplay();
+                        updateStatus('数据已生成，共 ' + data.length + ' 个数据点');
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } else {
+                    setupCustomDrawing();
+                }
+                
+                resetStepControls();
+            } catch (error) {
+                console.error('数据生成失败:', error);
+                updateStatus('数据生成失败: ' + error.message);
+            }
+        }
+
+        // 设置自定义绘制
+        function setupCustomDrawing() {
+            clearCanvas(dataCtx, dataCanvas);
+            updateDataDisplay();
+            updateStatus('点击画布绘制数据点，按住鼠标拖拽可连续绘制');
+        }
+        
+        // 处理画布鼠标事件
+        function handleCanvasMouseDown(event) {
+            if (document.getElementById('dataShape').value === 'custom') {
+                isDrawingMode = true;
+                addCustomDataPoint(event);
+            }
+        }
+        
+        function handleCanvasMouseMove(event) {
+            if (isDrawingMode) {
+                addCustomDataPoint(event);
+            }
+        }
+        
+        function handleCanvasMouseUp() {
+            isDrawingMode = false;
+        }
+        
+        // 添加自定义数据点
+        function addCustomDataPoint(event) {
+            const rect = dataCanvas.getBoundingClientRect();
+            const x = (event.clientX - rect.left) / dataCanvas.width;
+            const y = (event.clientY - rect.top) / dataCanvas.height;
+            
+            if (x >= 0 && x <= 1 && y >= 0 && y <= 1) {
+                data.push({ x, y });
+                drawDataPoint(dataCtx, x, y, '#4FACFE');
+                updateDataDisplay();
+            }
+        }
+        
+        // 完成手绘数据并上传到后端
+        async function finishCustomDrawing() {
+            if (data.length < 3) {
+                alert('请至少绘制3个数据点才能进行聚类分析！');
+                return;
+            }
+            
+            try {
+                updateStatus('正在上传手绘数据...');
+                
+                // 将前端格式 [{x, y}] 转换为后端格式 [[x, y]]
+                const formattedData = data.map(point => [point.x, point.y]);
+                
+                // 创建手绘数据配置并发送到后端
+                const config = {
+                    type: 'clustering',
+                    shape: 'custom',
+                    data: formattedData,
+                    n_samples: data.length,
+                    custom: true,
+                    random_state: 42
+                };
+                
+                // 调用后端API上传手绘数据
+                const result = await apiClient.generateData(config);
+                
+                if (result.status === 'success') {
+                    currentSessionKey = result.session_key;
+                    
+                    // 设置数据范围用于后续处理  
+                    window.dataRange = {
+                        xMin: 0,
+                        xMax: 1,
+                        yMin: 0,
+                        yMax: 1
+                    };
+                    
+                    // 禁用绘制模式
+                    dataCanvas.style.cursor = 'default';
+                    document.getElementById('finishDrawingBtn').disabled = true;
+                    
+                    updateStatus(`手绘数据已上传完成，共 ${data.length} 个数据点，可以开始聚类分析`);
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                console.error('手绘数据处理失败:', error);
+                updateStatus('手绘数据处理失败: ' + error.message);
+            }
+        }
+        
+        // 绘制数据
+        function drawData() {
+            clearCanvas(dataCtx, dataCanvas);
+            
+            data.forEach(point => {
+                drawDataPoint(dataCtx, point.x, point.y, '#4FACFE');
+            });
+        }
+        
+        // 绘制单个数据点
+        function drawDataPoint(ctx, x, y, color = '#4FACFE', size = 4) {
+            const canvasX = x * ctx.canvas.width;
+            const canvasY = y * ctx.canvas.height;
+            
+            ctx.beginPath();
+            ctx.arc(canvasX, canvasY, size, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+        
+        // 绘制聚类中心
+        function drawCentroid(ctx, x, y, color) {
+            const canvasX = x * ctx.canvas.width;
+            const canvasY = y * ctx.canvas.height;
+            
+            // 绘制十字标记
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(canvasX - 8, canvasY);
+            ctx.lineTo(canvasX + 8, canvasY);
+            ctx.moveTo(canvasX, canvasY - 8);
+            ctx.lineTo(canvasX, canvasY + 8);
+            ctx.stroke();
+            
+            // 绘制中心圆
+            ctx.beginPath();
+            ctx.arc(canvasX, canvasY, 6, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // 清空画布
+        function clearCanvas(ctx, canvas) {
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            drawGrid(ctx, canvas);
+        }
+        
+        
+        // 查看最终聚类结果
+        async function showFinalResults() {
+            if (data.length === 0 || !currentSessionKey) {
+                alert('请先生成数据！');
+                return;
+            }
+            
+            try {
+                const algorithm = document.getElementById('algorithm').value;
+                
+                const algorithmNames = {
+                    'kmeans': 'K-Means',
+                    'dbscan': 'DBSCAN',
+                    'hierarchical': '层次聚类',
+                    'gmm': '高斯混合模型'
+                };
+                updateStatus('正在执行 ' + (algorithmNames[algorithm] || '未知') + ' 算法...');
+                
+                // 直接获取最终聚类结果，不生成步骤信息
+                await getFinalClusteringResults(algorithm);
+                
+                updateStatus('聚类完成！查看右侧聚类结果');
+                
+            } catch (error) {
+                console.error('聚类执行失败:', error);
+                updateStatus('聚类执行失败: ' + error.message);
+            }
+        }
+        
+        // 获取最终聚类结果
+        async function getFinalClusteringResults(algorithm) {
+            const algorithmMapping = {
+                'kmeans': 'kmeans',
+                'dbscan': 'dbscan', 
+                'hierarchical': 'hierarchical',
+                'gmm': 'gmm'
+            };
+            
+            const config = {
+                session_key: currentSessionKey,
+                algorithm: algorithmMapping[algorithm],
+                params: getAlgorithmParams(algorithm)
+            };
+            
+            // 执行聚类获取最终结果
+            const result = await apiClient.trainClustering(config);
+            
+            if (result.status === 'success') {
+                currentModelKey = result.model_key;
+                clusterResults = {
+                    assignments: result.results.labels,
+                    centers: result.results.centers,
+                    algorithm: algorithm
+                };
+                
+                // 直接显示最终结果
+                displayFinalResults(clusterResults.assignments, clusterResults.centers);
+            } else {
+                throw new Error(result.message);
+            }
+        }
+        
+        // 获取算法参数
+        function getAlgorithmParams(algorithm) {
+            const params = {};
+            
+            switch (algorithm) {
+                case 'kmeans':
+                    params.n_clusters = parseInt(document.getElementById('kClusters').value);
+                    params.max_iter = parseInt(document.getElementById('kMaxIter').value);
+                    params.init = document.getElementById('kInit').value === 'kmeans++' ? 'k-means++' : 'random';
+                    break;
+                case 'dbscan':
+                    params.eps = parseFloat(document.getElementById('dbscanEps').value);
+                    params.min_samples = parseInt(document.getElementById('dbscanMinPts').value);
+                    break;
+                case 'hierarchical':
+                    params.n_clusters = parseInt(document.getElementById('hClusters').value);
+                    params.linkage = document.getElementById('linkage').value;
+                    break;
+                case 'gmm':
+                    params.n_components = parseInt(document.getElementById('gmmComponents').value);
+                    params.covariance_type = document.getElementById('covarianceType').value;
+                    params.init_params = document.getElementById('initParams').value;
+                    params.max_iter = parseInt(document.getElementById('gmmMaxIter').value);
+                    params.tol = parseFloat(document.getElementById('tolerance').value);
+                    break;
+            }
+            
+            return params;
+        }
+        
+        // 获取对比算法参数（从对比面板中获取）
+        function getComparisonAlgorithmParams(algorithm) {
+            const params = {};
+            
+            switch (algorithm) {
+                case 'kmeans':
+                    params.n_clusters = parseInt(document.getElementById(`compare-kClusters-${algorithm}`).value);
+                    params.max_iter = parseInt(document.getElementById(`compare-kMaxIter-${algorithm}`).value);
+                    params.init = document.getElementById(`compare-kInit-${algorithm}`).value === 'kmeans++' ? 'k-means++' : 'random';
+                    break;
+                case 'dbscan':
+                    params.eps = parseFloat(document.getElementById(`compare-dbscanEps-${algorithm}`).value);
+                    params.min_samples = parseInt(document.getElementById(`compare-dbscanMinPts-${algorithm}`).value);
+                    break;
+                case 'hierarchical':
+                    params.n_clusters = parseInt(document.getElementById(`compare-hClusters-${algorithm}`).value);
+                    params.linkage = document.getElementById(`compare-linkage-${algorithm}`).value;
+                    break;
+                case 'gmm':
+                    params.n_components = parseInt(document.getElementById(`compare-gmmComponents-${algorithm}`).value);
+                    params.covariance_type = document.getElementById(`compare-covarianceType-${algorithm}`).value;
+                    params.init_params = document.getElementById(`compare-initParams-${algorithm}`).value;
+                    params.max_iter = parseInt(document.getElementById(`compare-gmmMaxIter-${algorithm}`).value);
+                    params.tol = parseFloat(document.getElementById(`compare-tolerance-${algorithm}`)?.value) || 0.001;
+                    break;
+            }
+            
+            return params;
+        }
+        
+        // 验证对比算法参数
+        function validateComparisonAlgorithmParams(algorithm) {
+            let isValid = true;
+            let message = '';
+            
+            const algorithmNames = {
+                'kmeans': 'K-Means',
+                'dbscan': 'DBSCAN',
+                'hierarchical': '层次聚类',
+                'gmm': '高斯混合模型'
+            };
+            
+            switch (algorithm) {
+                case 'kmeans':
+                    const k = parseInt(document.getElementById(`compare-kClusters-${algorithm}`).value);
+                    const maxIter = parseInt(document.getElementById(`compare-kMaxIter-${algorithm}`).value);
+                    
+                    if (k <= 0 || k > data.length) {
+                        isValid = false;
+                        message = `${algorithmNames[algorithm]}: K值必须在1到数据点数量之间`;
+                    } else if (maxIter < 1) {
+                        isValid = false;
+                        message = `${algorithmNames[algorithm]}: 最大迭代次数必须至少为1`;
+                    }
+                    break;
+                    
+                case 'dbscan':
+                    const eps = parseFloat(document.getElementById(`compare-dbscanEps-${algorithm}`).value);
+                    const minPts = parseInt(document.getElementById(`compare-dbscanMinPts-${algorithm}`).value);
+                    
+                    if (eps <= 0) {
+                        isValid = false;
+                        message = `${algorithmNames[algorithm]}: Epsilon必须大于0`;
+                    } else if (minPts < 1) {
+                        isValid = false;
+                        message = `${algorithmNames[algorithm]}: MinPts必须至少为1`;
+                    }
+                    break;
+                    
+                case 'hierarchical':
+                    const hClusters = parseInt(document.getElementById(`compare-hClusters-${algorithm}`).value);
+                    
+                    if (hClusters <= 0 || hClusters > data.length) {
+                        isValid = false;
+                        message = `${algorithmNames[algorithm]}: 聚类数必须在1到数据点数量之间`;
+                    }
+                    break;
+                    
+                case 'gmm':
+                    const components = parseInt(document.getElementById(`compare-gmmComponents-${algorithm}`).value);
+                    const gmmMaxIter = parseInt(document.getElementById(`compare-gmmMaxIter-${algorithm}`).value);
+                    const tol = parseFloat(document.getElementById(`compare-tolerance-${algorithm}`).value);
+                    
+                    if (components <= 0 || components > data.length) {
+                        isValid = false;
+                        message = `${algorithmNames[algorithm]}: 分量数必须在1到数据点数量之间`;
+                    } else if (gmmMaxIter < 1) {
+                        isValid = false;
+                        message = `${algorithmNames[algorithm]}: 最大迭代次数必须至少为1`;
+                    } else if (tol <= 0) {
+                        isValid = false;
+                        message = `${algorithmNames[algorithm]}: 收敛阈值必须大于0`;
+                    }
+                    break;
+            }
+            
+            if (!isValid) {
+                updateStatus(`❌ 参数验证失败: ${message}`);
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // 显示最终结果
+        function displayFinalResults(assignments, centers = null) {
+            clearCanvas(clusterCtx, clusterCanvas);
+            
+            const uniqueClusters = [...new Set(assignments)].filter(c => c !== -1);
+            const numClusters = uniqueClusters.length;
+            
+            // 绘制聚类结果
+            data.forEach((point, i) => {
+                const clusterId = assignments[i];
+                if (clusterId === -1) {
+                    drawDataPoint(clusterCtx, point.x, point.y, '#999999'); // 噪声点
+                } else {
+                    const colorIndex = uniqueClusters.indexOf(clusterId);
+                    drawDataPoint(clusterCtx, point.x, point.y, clusterColors[colorIndex]);
+                }
+            });
+            
+            // 绘制聚类中心（如果有）
+            if (centers && centers.length > 0 && window.dataRange) {
+                centers.forEach((center, i) => {
+                    if (Array.isArray(center) && center.length >= 2) {
+                        // 使用统一的坐标转换工具函数
+                        const normalizedCenter = CoordinateUtils.normalizePoint(center, window.dataRange);
+                        drawCentroid(clusterCtx, normalizedCenter.x, normalizedCenter.y, clusterColors[i]);
+                    } else if (center.x !== undefined && center.y !== undefined) {
+                        drawCentroid(clusterCtx, center.x, center.y, clusterColors[i]);
+                    }
+                });
+            }
+            
+            updateClusterDisplay(assignments);
+        }
+        
+        // 获取训练配置参数
+        function getTrainingConfig() {
+            const algorithm = document.getElementById('algorithm').value;
+            const config = {
+                algorithm: algorithm
+            };
+            
+            // 根据算法添加特定参数
+            if (algorithm === 'kmeans') {
+                config.params = {
+                    n_clusters: parseInt(document.getElementById('kClusters').value) || 3,
+                    max_iter: parseInt(document.getElementById('kMaxIter').value) || 100,
+                    init: 'k-means++',
+                    normalize: false
+                };
+            } else if (algorithm === 'dbscan') {
+                config.params = {
+                    eps: parseFloat(document.getElementById('dbscanEps').value) || 0.05,
+                    min_samples: parseInt(document.getElementById('dbscanMinPts').value) || 5,
+                    normalize: false
+                };
+            } else if (algorithm === 'hierarchical') {
+                config.params = {
+                    n_clusters: parseInt(document.getElementById('hClusters').value) || 3,
+                    linkage: 'ward',
+                    normalize: false
+                };
+            } else if (algorithm === 'gmm') {
+                config.params = {
+                    n_components: parseInt(document.getElementById('gmmComponents').value) || 3,
+                    max_iter: parseInt(document.getElementById('gmmMaxIter').value) || 100,
+                    covariance_type: 'full',
+                    normalize: false
+                };
+            }
+            
+            return config;
+        }   
+        
+        // 数据分析工具函数
+        
+        // 计算两点间的欧几里得距离
+        function euclideanDistance(p1, p2) {
+            const dx = p1.x - p2.x;
+            const dy = p1.y - p2.y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+        
+        // 计算数据的密度分布特征
+        function analyzeDataDensity() {
+            const distances = [];
+            const numSamples = Math.min(100, data.length); // 采样分析以提高效率
+            
+            for (let i = 0; i < numSamples; i++) {
+                const point = data[i];
+                const nearestDistances = [];
+                
+                for (let j = 0; j < data.length; j++) {
+                    if (i !== j) {
+                        nearestDistances.push(euclideanDistance(point, data[j]));
+                    }
+                }
+                nearestDistances.sort((a, b) => a - b);
+                distances.push(nearestDistances[0]); // 最近邻距离
+            }
+            
+            distances.sort((a, b) => a - b);
+            const median = distances[Math.floor(distances.length / 2)];
+            const mean = distances.reduce((sum, d) => sum + d, 0) / distances.length;
+            const std = Math.sqrt(distances.reduce((sum, d) => sum + Math.pow(d - mean, 2), 0) / distances.length);
+            
+            return { median, mean, std, distances };
+        }
+        
+        // 估算数据中的自然聚类数
+        function estimateOptimalClusters() {
+            const maxK = Math.min(Math.floor(Math.sqrt(data.length)), 10);
+            const wcss = []; // Within-cluster sum of squares
+            
+            for (let k = 1; k <= maxK; k++) {
+                // 简化的K-means WCSS计算
+                let totalWCSS = 0;
+                const sampleSize = Math.min(50, data.length);
+                
+                // 使用K-means++初始化中心点
+                const centers = initializeCentersKMeansPlusPlus(k);
+                
+                // 计算每个点到最近中心的距离平方和
+                for (let i = 0; i < sampleSize; i++) {
+                    const point = data[i];
+                    let minDist = Infinity;
+                    
+                    centers.forEach(center => {
+                        const dist = Math.pow(euclideanDistance(point, center), 2);
+                        minDist = Math.min(minDist, dist);
+                    });
+                    
+                    totalWCSS += minDist;
+                }
+                
+                wcss.push(totalWCSS);
+            }
+            
+            // 使用肘部法则找最优K值
+            let optimalK = 2;
+            let maxReduction = 0;
+            
+            for (let i = 1; i < wcss.length - 1; i++) {
+                const reduction1 = wcss[i-1] - wcss[i];
+                const reduction2 = wcss[i] - wcss[i+1];
+                const elbowScore = reduction1 - reduction2;
+                
+                if (elbowScore > maxReduction) {
+                    maxReduction = elbowScore;
+                    optimalK = i + 1;
+                }
+            }
+            
+            return Math.min(Math.max(optimalK, 2), 8);
+        }
+        
+        // K-means++初始化
+        function initializeCentersKMeansPlusPlus(k) {
+            const centers = [];
+            
+            // 随机选择第一个中心
+            centers.push(data[Math.floor(Math.random() * data.length)]);
+            
+            // 选择剩余的中心点
+            for (let i = 1; i < k; i++) {
+                const distances = data.map(point => {
+                    let minDist = Infinity;
+                    centers.forEach(center => {
+                        minDist = Math.min(minDist, Math.pow(euclideanDistance(point, center), 2));
+                    });
+                    return minDist;
+                });
+                
+                const totalDist = distances.reduce((sum, d) => sum + d, 0);
+                const threshold = Math.random() * totalDist;
+                let cumulative = 0;
+                
+                for (let j = 0; j < data.length; j++) {
+                    cumulative += distances[j];
+                    if (cumulative >= threshold) {
+                        centers.push(data[j]);
+                        break;
+                    }
+                }
+            }
+            
+            return centers;
+        }
+        
+        // 检测数据分布形状特征
+        function analyzeDataShape() {
+            if (data.length < 10) return 'sparse';
+            
+            const densityAnalysis = analyzeDataDensity();
+            const aspectRatio = calculateAspectRatio();
+            const clustering = calculateClusteringTendency();
+            
+            // 基于密度变异系数判断数据分布
+            const cv = densityAnalysis.std / densityAnalysis.mean;
+            
+            if (cv > 1.0) {
+                return 'varied_density'; // 密度差异很大
+            } else if (aspectRatio > 3) {
+                return 'elongated'; // 细长形状
+            } else if (clustering < 0.3) {
+                return 'uniform'; // 均匀分布
+            } else {
+                return 'clustered'; // 有聚类倾向
+            }
+        }
+        
+        // 计算数据的长宽比
+        function calculateAspectRatio() {
+            const xValues = data.map(p => p.x);
+            const yValues = data.map(p => p.y);
+            
+            const xRange = Math.max(...xValues) - Math.min(...xValues);
+            const yRange = Math.max(...yValues) - Math.min(...yValues);
+            
+            return Math.max(xRange, yRange) / Math.min(xRange, yRange);
+        }
+        
+        // 计算聚类倾向性 (Hopkins统计量简化版本)
+        function calculateClusteringTendency() {
+            const sampleSize = Math.min(20, Math.floor(data.length / 5));
+            let hopkinsScore = 0;
+            
+            for (let i = 0; i < sampleSize; i++) {
+                // 随机点到最近数据点的距离
+                const randomPoint = { 
+                    x: Math.random(), 
+                    y: Math.random() 
+                };
+                
+                const randomMinDist = Math.min(...data.map(p => euclideanDistance(p, randomPoint)));
+                
+                // 数据点到最近数据点的距离
+                const dataPoint = data[Math.floor(Math.random() * data.length)];
+                const dataDistances = data
+                    .filter(p => p !== dataPoint)
+                    .map(p => euclideanDistance(p, dataPoint));
+                const dataMinDist = Math.min(...dataDistances);
+                
+                hopkinsScore += randomMinDist / (randomMinDist + dataMinDist);
+            }
+            
+            return hopkinsScore / sampleSize;
+        }
+        
+        // 改进的智能参数设置
+        function setOptimalParameters() {
+            if (data.length === 0) {
+                alert('请先生成数据！');
+                return;
+            }
+            
+            updateStatus('正在分析数据特征...');
+            
+            const algorithm = document.getElementById('algorithm').value;
+            const dataShape = analyzeDataShape();
+            const densityAnalysis = analyzeDataDensity();
+            
+            let statusMessage = '';
+            
+            switch (algorithm) {
+                case 'kmeans':
+                    const optimalK = estimateOptimalClusters();
+                    document.getElementById('kClusters').value = optimalK;
+                    
+                    // 根据数据特征调整其他参数
+                    if (dataShape === 'varied_density') {
+                        document.getElementById('kMaxIter').value = 200;
+                        document.getElementById('kInit').value = 'kmeans++';
+                    } else {
+                        document.getElementById('kMaxIter').value = 100;
+                        document.getElementById('kInit').value = 'kmeans++';
+                    }
+                    
+                    statusMessage = `推荐K=${optimalK} (基于肘部法则和数据分布分析)`;
+                    break;
+                    
+                case 'dbscan':
+                    const kthDistance = calculateKthNearestDistance(5);
+                    let eps = kthDistance * 1.5; // 改进的epsilon计算
+                    
+                    // 根据数据形状调整参数
+                    if (dataShape === 'varied_density') {
+                        eps *= 0.8; // 密度差异大时减小eps
+                    } else if (dataShape === 'uniform') {
+                        eps *= 1.3; // 均匀分布时增大eps
+                    }
+                    
+                    const minPts = Math.max(4, Math.min(Math.ceil(Math.log2(data.length)), 15));
+                    
+                    document.getElementById('dbscanEps').value = eps.toFixed(3);
+                    document.getElementById('dbscanMinPts').value = minPts;
+                    
+                    statusMessage = `推荐ε=${eps.toFixed(3)}, MinPts=${minPts} (基于${Math.floor(kthDistance*1000)/1000}的k近邻距离)`;
+                    break;
+                    
+                case 'hierarchical':
+                    const hOptimalClusters = estimateOptimalClusters();
+                    document.getElementById('hClusters').value = hOptimalClusters;
+                    
+                    // 根据数据形状选择连接方式
+                    let linkageMethod = 'ward';
+                    if (dataShape === 'elongated') {
+                        linkageMethod = 'complete';
+                    } else if (dataShape === 'varied_density') {
+                        linkageMethod = 'single';
+                    }
+                    
+                    document.getElementById('linkage').value = linkageMethod;
+                    statusMessage = `推荐聚类数=${hOptimalClusters}, 连接方式=${linkageMethod} (基于数据形状: ${dataShape})`;
+                    break;
+                    
+                case 'gmm':
+                    const gmmOptimalComponents = estimateOptimalClusters();
+                    document.getElementById('gmmComponents').value = gmmOptimalComponents;
+                    
+                    // 智能选择协方差类型
+                    let covType = 'full';
+                    if (data.length > 300) {
+                        covType = 'diag'; // 大数据集用对角协方差
+                    } else if (dataShape === 'elongated') {
+                        covType = 'full'; // 细长形状用完全协方差
+                    } else if (dataShape === 'uniform') {
+                        covType = 'spherical'; // 均匀分布用球形协方差
+                    }
+                    
+                    document.getElementById('covarianceType').value = covType;
+                    document.getElementById('initParams').value = 'kmeans';
+                    
+                    // 调整迭代参数
+                    const maxIter = dataShape === 'varied_density' ? 200 : 100;
+                    const tolerance = data.length > 400 ? 0.01 : 0.001;
+                    
+                    document.getElementById('gmmMaxIter').value = maxIter;
+                    document.getElementById('tolerance').value = tolerance;
+                    
+                    statusMessage = `推荐分量数=${gmmOptimalComponents}, 协方差=${covType} (基于数据特征分析)`;
+                    break;
+            }
+            
+            updateStatus('✅ ' + statusMessage);
+        }
+        
+        // 计算第K近邻距离
+        function calculateKthNearestDistance(k) {
+            const distances = [];
+            
+            data.forEach((point, i) => {
+                const pointDistances = [];
+                data.forEach((otherPoint, j) => {
+                    if (i !== j) {
+                        pointDistances.push(euclideanDistance(point, otherPoint));
+                    }
+                });
+                pointDistances.sort((a, b) => a - b);
+                distances.push(pointDistances[Math.min(k - 1, pointDistances.length - 1)]);
+            });
+            
+            distances.sort((a, b) => a - b);
+            return distances[Math.floor(distances.length * 0.8)]; // 80百分位数
+        }
+        
+        // 参数验证
+        function validateParameters() {
+            const algorithm = document.getElementById('algorithm').value;
+            let isValid = true;
+            let message = '';
+            
+            switch (algorithm) {
+                case 'kmeans':
+                    const k = parseInt(document.getElementById('kClusters').value);
+                    if (k > data.length) {
+                        isValid = false;
+                        message = 'K值不能大于数据点数量';
+                    }
+                    break;
+                    
+                case 'dbscan':
+                    const eps = parseFloat(document.getElementById('dbscanEps').value);
+                    const minPts = parseInt(document.getElementById('dbscanMinPts').value);
+                    if (eps <= 0) {
+                        isValid = false;
+                        message = 'Epsilon必须大于0';
+                    }
+                    if (minPts < 1) {
+                        isValid = false;
+                        message = 'MinPts必须至少为1';
+                    }
+                    break;
+                    
+                case 'gmm':
+                    const components = parseInt(document.getElementById('gmmComponents').value);
+                    const maxIter = parseInt(document.getElementById('gmmMaxIter').value);
+                    const tol = parseFloat(document.getElementById('tolerance').value);
+                    
+                    if (components > data.length) {
+                        isValid = false;
+                        message = '分量数不能大于数据点数量';
+                    }
+                    if (maxIter < 1) {
+                        isValid = false;
+                        message = '最大迭代次数必须至少为1';
+                    }
+                    if (tol <= 0) {
+                        isValid = false;
+                        message = '收敛阈值必须大于0';
+                    }
+                    break;
+            }
+            
+            if (!isValid) {
+                updateStatus(message);
+            }
+            
+            return isValid;
+        }
+        
+        // 更新算法说明
+        function updateAlgorithmDescription() {
+            const algorithm = document.getElementById('algorithm').value;
+            const detailsDiv = document.getElementById('algorithmDetails');
+            
+            const descriptions = {
+                kmeans: `
+                    <p><strong>K-Means聚类</strong>是一种迭代优化的聚类算法，通过最小化类内平方和来寻找最优聚类。</p>
+                    <p><strong>算法步骤：</strong></p>
+                    <ol>
+                        <li>初始化K个聚类中心</li>
+                        <li>将每个数据点分配到最近的聚类中心</li>
+                        <li>重新计算每个聚类的中心点</li>
+                        <li>重复步骤2-3直到收敛</li>
+                    </ol>
+                    <p><strong>适用场景：</strong>球形分布的数据，需要预先知道聚类数量。</p>
+                `,
+                dbscan: `
+                    <p><strong>DBSCAN</strong>是一种基于密度的聚类算法，能够发现任意形状的聚类并识别噪声点。</p>
+                    <p><strong>核心概念：</strong></p>
+                    <ul>
+                        <li><strong>核心点：</strong>邻域内点数 ≥ MinPts</li>
+                        <li><strong>边界点：</strong>在核心点邻域内但本身不是核心点</li>
+                        <li><strong>噪声点：</strong>既不是核心点也不是边界点</li>
+                    </ul>
+                    <p><strong>适用场景：</strong>任意形状的聚类，自动确定聚类数量，能处理噪声。</p>
+                `,
+                hierarchical: `
+                    <p><strong>层次聚类</strong>通过构建聚类的层次结构来组织数据，可以是自底向上（凝聚）或自顶向下（分裂）。</p>
+                    <p><strong>连接方式：</strong></p>
+                    <ul>
+                        <li><strong>单连接：</strong>两聚类最近点间的距离</li>
+                        <li><strong>全连接：</strong>两聚类最远点间的距离</li>
+                        <li><strong>平均连接：</strong>所有点对距离的平均值</li>
+                        <li><strong>Ward方法：</strong>最小化方差增长</li>
+                    </ul>
+                    <p><strong>适用场景：</strong>需要了解数据的层次结构，聚类数量不确定。</p>
+                `,
+                gmm: `
+                    <p><strong>高斯混合模型 (GMM)</strong>是一种基于概率的聚类算法，假设数据由若干个高斯分布混合而成。</p>
+                    <p><strong>EM算法步骤：</strong></p>
+                    <ol>
+                        <li><strong>初始化：</strong>设置初始的均值、协方差和权重参数</li>
+                        <li><strong>E步：</strong>计算每个数据点属于各分量的后验概率</li>
+                        <li><strong>M步：</strong>根据后验概率更新高斯分量参数</li>
+                        <li><strong>重复：</strong>E步和M步直到收敛</li>
+                    </ol>
+                    <p><strong>协方差类型：</strong></p>
+                    <ul>
+                        <li><strong>完全协方差 (Full)：</strong>每个分量有独立的完整协方差矩阵</li>
+                        <li><strong>对角协方差 (Diagonal)：</strong>协方差矩阵为对角矩阵</li>
+                        <li><strong>绑定协方差 (Tied)：</strong>所有分量共享同一协方差矩阵</li>
+                        <li><strong>球形协方差 (Spherical)：</strong>协方差矩阵为标量倍的单位矩阵</li>
+                    </ul>
+                    <p><strong>适用场景：</strong>椭圆形或球形分布的数据，能提供聚类的概率信息，适合软聚类。</p>
+                `
+            };
+            
+            detailsDiv.innerHTML = descriptions[algorithm] || '<p>请选择一个算法查看详细说明。</p>';
+        }
+        
+        // 更新数据显示
+        function updateDataDisplay() {
+            document.getElementById('dataCount').textContent = data.length;
+            const shape = document.getElementById('dataShape').value;
+            document.getElementById('dataShapeDisplay').textContent = getShapeDisplayName(shape);
+        }
+        
+        function updateClusterDisplay(assignments) {
+            const uniqueClusters = [...new Set(assignments)].filter(c => c !== -1);
+            const numClusters = uniqueClusters.length;
+            const numNoise = assignments.filter(a => a === -1).length;
+            
+            document.getElementById('numClusters').textContent = numClusters;
+            
+            // 更新颜色指示器
+            const colorsDiv = document.getElementById('clusterColors');
+            colorsDiv.innerHTML = '';
+            
+            uniqueClusters.forEach((clusterId, i) => {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'color-indicator';
+                colorDiv.style.backgroundColor = clusterColors[i];
+                colorDiv.setAttribute('data-label', `聚类 ${clusterId + 1}`);
+                colorsDiv.appendChild(colorDiv);
+            });
+            
+            if (numNoise > 0) {
+                const noiseDiv = document.createElement('div');
+                noiseDiv.className = 'color-indicator';
+                noiseDiv.style.backgroundColor = '#999999';
+                noiseDiv.setAttribute('data-label', `噪声 (${numNoise})`);
+                colorsDiv.appendChild(noiseDiv);
+            }
+        }
+        
+        function updateStatus(message) {
+            document.getElementById('algorithmStatus').textContent = message;
+        }
+        
+        // 重置显示
+        function resetDisplay() {
+            clearCanvas(dataCtx, dataCanvas);
+            clearCanvas(clusterCtx, clusterCanvas);
+            
+            document.getElementById('dataCount').textContent = '0';
+            document.getElementById('dataShapeDisplay').textContent = '未生成';
+            document.getElementById('numClusters').textContent = '0';
+            document.getElementById('clusterColors').innerHTML = '';
+            
+            updateStatus('等待执行');
+        }
+        
+        // 重置步骤控制
+        function resetStepControls() {
+            // 重置绘制模式
+            isDrawingMode = false;
+            
+            // 重置模型相关变量
+            currentModelKey = null;
+            window.dataRange = null;
+        }
+
+        // 重置算法参数到默认值
+        function resetAlgorithmParameters() {
+            // K-Means 参数重置
+            document.getElementById('kClusters').value = '3';
+            document.getElementById('kMaxIter').value = '100';
+            document.getElementById('kInit').value = 'kmeans++';
+            
+            // DBSCAN 参数重置
+            document.getElementById('dbscanEps').value = '0.05';
+            document.getElementById('dbscanMinPts').value = '5';
+            
+            // 层次聚类参数重置
+            document.getElementById('hClusters').value = '3';
+            document.getElementById('linkage').value = 'ward';
+            
+            // GMM 参数重置
+            document.getElementById('gmmComponents').value = '3';
+            document.getElementById('covarianceType').value = 'full';
+            document.getElementById('initParams').value = 'kmeans';
+            document.getElementById('gmmMaxIter').value = '100';
+            document.getElementById('tolerance').value = '0.001';
+        }
+
+        // 重置所有
+        function resetAll() {
+            data = [];
+            clusterResults = null;
+            currentSessionKey = null;
+            resetStepControls();
+            resetDisplay();
+            updateDataDisplay();
+            resetAlgorithmParameters();
+            updateStatus('已重置，请重新生成数据');
+            
+            // 重新启用数据形状选择和按钮
+            const pointsInput = document.getElementById('numPoints');
+            const noiseInput = document.getElementById('noise');
+            const generateBtn = document.getElementById('generateDataBtn');
+            const finishBtn = document.getElementById('finishDrawingBtn');
+            
+            pointsInput.disabled = false;
+            noiseInput.disabled = false;
+            dataCanvas.style.cursor = 'default';
+            
+            // 重置按钮状态
+            generateBtn.style.display = 'inline-block';
+            finishBtn.style.display = 'none';
+            finishBtn.disabled = false;
+            
+            // 重置数据生成参数
+            document.getElementById('dataShape').value = 'blobs';
+            document.getElementById('numPoints').value = '200';
+            document.getElementById('noise').value = '0.1';
+            
+            // 重置算法选择
+            document.getElementById('algorithm').value = 'kmeans';
+            updateParameterVisibility();
+            updateAlgorithmDescription();
+            
+            // 重置模式
+            switchMode('single');
+            clearAlgorithmSelection();
+        }
+        
+        // ================== 对比功能相关函数 ==================
+        
+        // 切换模式
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // 更新按钮状态
+            document.getElementById('singleModeBtn').classList.toggle('active', mode === 'single');
+            document.getElementById('compareModeBtn').classList.toggle('active', mode === 'comparison');
+            document.getElementById('debugModeBtn').classList.toggle('active', mode === 'debug');
+            
+            // 显示/隐藏面板
+            document.getElementById('singleModePanel').style.display = mode === 'single' ? 'block' : 'none';
+            document.getElementById('compareModePanel').style.display = mode === 'comparison' ? 'block' : 'none';
+            
+            // 显示/隐藏结果区域
+            document.querySelector('.visualization').style.display = mode === 'single' ? 'grid' : 'none';
+            document.getElementById('comparisonResults').style.display = mode === 'comparison' ? 'block' : 'none';
+            document.getElementById('debugArea').style.display = mode === 'debug' ? 'block' : 'none';
+            
+            // 更新状态
+            if (mode === 'single') {
+                updateStatus('单算法模式 - 选择一个算法进行分析');
+            } else if (mode === 'comparison') {
+                updateStatus('对比模式 - 选择多个算法进行对比分析');
+            } else if (mode === 'debug') {
+                updateStatus('调试模式 - 单步执行算法观察过程');
+                resetDebugInterface();
+            }
+        }
+        
+        // 切换算法选择状态
+        function toggleAlgorithmSelection(event) {
+            const option = event.currentTarget;
+            const checkbox = option.querySelector('input[type="checkbox"]');
+            
+            // 切换选择状态
+            checkbox.checked = !checkbox.checked;
+            option.classList.toggle('selected', checkbox.checked);
+            
+            // 更新按钮状态
+            updateComparisonButtons();
+            
+            // 更新参数面板
+            updateComparisonParamPanels();
+        }
+        
+        // 全选算法
+        function selectAllAlgorithms() {
+            document.querySelectorAll('.algorithm-option').forEach(option => {
+                const checkbox = option.querySelector('input[type="checkbox"]');
+                checkbox.checked = true;
+                option.classList.add('selected');
+            });
+            updateComparisonButtons();
+            updateComparisonParamPanels();
+        }
+        
+        // 清空选择
+        function clearAlgorithmSelection() {
+            document.querySelectorAll('.algorithm-option').forEach(option => {
+                const checkbox = option.querySelector('input[type="checkbox"]');
+                checkbox.checked = false;
+                option.classList.remove('selected');
+            });
+            updateComparisonButtons();
+            updateComparisonParamPanels();
+        }
+        
+        // 更新对比按钮状态
+        function updateComparisonButtons() {
+            const selectedAlgorithms = getSelectedAlgorithms();
+            const compareBtn = document.getElementById('compareAlgorithmsBtn');
+            
+            if (selectedAlgorithms.length < 2) {
+                compareBtn.disabled = true;
+                updateStatus('请至少选择2个算法进行对比');
+            } else {
+                compareBtn.disabled = false;
+                updateStatus(`已选择 ${selectedAlgorithms.length} 个算法进行对比`);
+            }
+        }
+        
+        // 获取选中的算法
+        function getSelectedAlgorithms() {
+            const selected = [];
+            document.querySelectorAll('.algorithm-option input[type="checkbox"]:checked').forEach(checkbox => {
+                selected.push(checkbox.value);
+            });
+            return selected;
+        }
+        
+        // 更新对比参数面板
+        function updateComparisonParamPanels() {
+            const selectedAlgorithms = getSelectedAlgorithms();
+            const panelsContainer = document.getElementById('comparisonParamPanels');
+            
+            // 清空现有面板
+            panelsContainer.innerHTML = '';
+            
+            // 为每个选中的算法创建参数面板
+            selectedAlgorithms.forEach(algorithm => {
+                const panel = createComparisonParamPanel(algorithm);
+                panelsContainer.appendChild(panel);
+            });
+            
+            // 如果没有选中算法，显示提示
+            if (selectedAlgorithms.length === 0) {
+                panelsContainer.innerHTML = '<div style="text-align: center; color: #666; font-size: 0.9em; padding: 10px;">请选择至少两个算法进行对比</div>';
+            }
+        }
+        
+        // 创建单个算法的参数配置面板
+        function createComparisonParamPanel(algorithm) {
+            const panel = document.createElement('div');
+            panel.className = 'comparison-param-panel active';
+            panel.setAttribute('data-algorithm', algorithm);
+            
+            const algorithmNames = {
+                'kmeans': 'K-Means',
+                'dbscan': 'DBSCAN',
+                'hierarchical': '层次聚类',
+                'gmm': '高斯混合模型'
+            };
+            
+            panel.innerHTML = `
+                <div class="comparison-param-header">${algorithmNames[algorithm]} 参数</div>
+                <div class="comparison-param-grid">
+                    ${generateParamControls(algorithm)}
+                </div>
+            `;
+            
+            return panel;
+        }
+        
+        // 生成参数控制元素
+        function generateParamControls(algorithm) {
+            let html = '';
+            
+            switch (algorithm) {
+                case 'kmeans':
+                    html = `
+                        <div class="comparison-param-group">
+                            <label>聚类数量 (K)</label>
+                            <input type="number" id="compare-kClusters-${algorithm}" value="3" min="1" max="10">
+                        </div>
+                        <div class="comparison-param-group">
+                            <label>最大迭代次数</label>
+                            <input type="number" id="compare-kMaxIter-${algorithm}" value="100" min="10" max="500">
+                        </div>
+                        <div class="comparison-param-group">
+                            <label>初始化方法</label>
+                            <select id="compare-kInit-${algorithm}">
+                                <option value="random">随机初始化</option>
+                                <option value="kmeans++">K-Means++</option>
+                            </select>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'dbscan':
+                    html = `
+                        <div class="comparison-param-group">
+                            <label>邻域半径 (ε)</label>
+                            <input type="number" id="compare-dbscanEps-${algorithm}" value="0.05" min="0.01" max="0.5" step="0.01">
+                        </div>
+                        <div class="comparison-param-group">
+                            <label>最小点数</label>
+                            <input type="number" id="compare-dbscanMinPts-${algorithm}" value="5" min="3" max="20">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'hierarchical':
+                    html = `
+                        <div class="comparison-param-group">
+                            <label>目标聚类数</label>
+                            <input type="number" id="compare-hClusters-${algorithm}" value="3" min="1" max="10">
+                        </div>
+                        <div class="comparison-param-group">
+                            <label>连接方式</label>
+                            <select id="compare-linkage-${algorithm}">
+                                <option value="single">单连接</option>
+                                <option value="complete">全连接</option>
+                                <option value="average">平均连接</option>
+                                <option value="ward">Ward方法</option>
+                            </select>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'gmm':
+                    html = `
+                        <div class="comparison-param-group">
+                            <label>混合分量数</label>
+                            <input type="number" id="compare-gmmComponents-${algorithm}" value="3" min="1" max="8">
+                        </div>
+                        <div class="comparison-param-group">
+                            <label>协方差类型</label>
+                            <select id="compare-covarianceType-${algorithm}">
+                                <option value="full">完全协方差</option>
+                                <option value="diag">对角协方差</option>
+                                <option value="tied">绑定协方差</option>
+                                <option value="spherical">球形协方差</option>
+                            </select>
+                        </div>
+                        <div class="comparison-param-group">
+                            <label>初始化方法</label>
+                            <select id="compare-initParams-${algorithm}">
+                                <option value="kmeans">K-means</option>
+                                <option value="random">随机</option>
+                            </select>
+                        </div>
+                        <div class="comparison-param-group">
+                            <label>最大迭代次数</label>
+                            <input type="number" id="compare-gmmMaxIter-${algorithm}" value="100" min="10" max="500">
+                        </div>
+                        <div class="comparison-param-group">
+                            <label>收敛阈值</label>
+                            <input type="number" id="compare-tolerance-${algorithm}" value="0.001" min="0.000001" max="0.01" step="0.000001">
+                        </div>
+                    `;
+                    break;
+            }
+            
+            return html;
+        }
+        
+        // 执行算法对比
+        async function compareAlgorithms() {
+            const selectedAlgorithms = getSelectedAlgorithms();
+            
+            if (selectedAlgorithms.length < 2) {
+                alert('请至少选择2个算法进行对比！');
+                return;
+            }
+            
+            if (data.length === 0 || !currentSessionKey) {
+                alert('请先生成数据！');
+                return;
+            }
+            
+            try {
+                updateStatus('正在执行算法对比...');
+                
+                // 验证对比算法参数
+                for (const algorithm of selectedAlgorithms) {
+                    if (!validateComparisonAlgorithmParams(algorithm)) {
+                        return;
+                    }
+                }
+                
+                // 准备算法参数
+                const algorithmParams = {};
+                selectedAlgorithms.forEach(algorithm => {
+                    algorithmParams[algorithm] = getComparisonAlgorithmParams(algorithm);
+                });
+                
+                const config = {
+                    session_key: currentSessionKey,
+                    algorithms: selectedAlgorithms,
+                    algorithm_params: algorithmParams
+                };
+                
+                // 调用对比API
+                const result = await apiClient.compareClusteringAlgorithms(config);
+                
+                if (result.status === 'success') {
+                    comparisonResults = result.results;
+                    displayComparisonResults(comparisonResults);
+                    updateStatus('算法对比完成！');
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                console.error('算法对比失败:', error);
+                updateStatus('算法对比失败: ' + error.message);
+            }
+        }
+        
+        // 显示对比结果
+        function displayComparisonResults(results) {
+            const panelsContainer = document.getElementById('comparisonPanels');
+            const summaryContainer = document.getElementById('summaryContent');
+            panelsContainer.innerHTML = '';
+            
+            // 为每个算法创建结果面板
+            Object.entries(results.algorithms).forEach(([algorithm, result]) => {
+                const panel = createComparisonPanel(algorithm, result, results.best_algorithm);
+                panelsContainer.appendChild(panel);
+            });
+            
+            // 生成对比总结
+            generateComparisonSummary(results, summaryContainer);
+        }
+        
+        // 创建单个对比面板
+        function createComparisonPanel(algorithm, result, bestAlgorithm) {
+            const panel = document.createElement('div');
+            panel.className = `comparison-panel ${algorithm === bestAlgorithm ? 'best-algorithm' : ''}`;
+            
+            const algorithmNames = {
+                'kmeans': 'K-Means',
+                'dbscan': 'DBSCAN',
+                'hierarchical': '层次聚类',
+                'gmm': '高斯混合模型'
+            };
+            
+            let badgeClass = 'algorithm-badge';
+            let badgeText = '普通';
+            
+            if (result.error) {
+                badgeClass += ' error-badge';
+                badgeText = '错误';
+            } else if (algorithm === bestAlgorithm) {
+                badgeClass += ' best-badge';
+                badgeText = '最佳';
+            }
+            
+            panel.innerHTML = `
+                <h4>
+                    ${algorithmNames[algorithm]}
+                    <span class="${badgeClass}">${badgeText}</span>
+                </h4>
+                ${result.error ? 
+                    `<div style="color: #e74c3c; font-size: 0.9em;">错误: ${result.error}</div>` :
+                    `<canvas class="comparison-canvas" id="canvas-${algorithm}" width="600" height="400"></canvas>
+                    <div class="comparison-metrics">
+                        <div class="metric-row">
+                            <span>聚类数量:</span>
+                            <span class="metric-value">${result.n_clusters || 0}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span>执行时间:</span>
+                            <span class="metric-value">${(result.execution_time || 0).toFixed(3)}s</span>
+                        </div>
+                    </div>`
+                }
+            `;
+            
+            // 绘制聚类结果
+            if (!result.error) {
+                setTimeout(() => drawComparisonResult(algorithm, result), 100);
+            }
+            
+            return panel;
+        }
+        
+        // 绘制单个算法的对比结果
+        function drawComparisonResult(algorithm, result) {
+            const canvas = document.getElementById(`canvas-${algorithm}`);
+            if (!canvas) return;
+            
+            // 设置高DPI支持
+            setupHighDPICanvas(canvas);
+            
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布并设置背景
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制数据点
+            const labels = result.labels;
+            const uniqueClusters = [...new Set(labels)].filter(c => c !== -1);
+            
+            data.forEach((point, i) => {
+                const clusterId = labels[i];
+                let color = '#999999'; // 噪声点颜色
+                
+                if (clusterId !== -1) {
+                    const colorIndex = uniqueClusters.indexOf(clusterId);
+                    color = clusterColors[colorIndex % clusterColors.length];
+                }
+                
+                drawDataPointOnCanvas(ctx, point.x, point.y, color, canvas.width, canvas.height);
+            });
+            
+            // 绘制聚类中心
+            if (result.centers && result.centers.length > 0 && window.dataRange) {
+                result.centers.forEach((center, i) => {
+                    if (Array.isArray(center) && center.length >= 2) {
+                        // 使用统一的坐标转换工具函数
+                        const normalizedCenter = CoordinateUtils.normalizePoint(center, window.dataRange);
+                        drawCentroidOnCanvas(ctx, normalizedCenter.x, normalizedCenter.y, clusterColors[i], canvas.width, canvas.height);
+                    }
+                });
+            }
+        }
+        
+        // 在指定画布上绘制数据点
+        function drawDataPointOnCanvas(ctx, x, y, color, canvasWidth, canvasHeight, size = 4) {
+            const canvasX = x * canvasWidth;
+            const canvasY = y * canvasHeight;
+            
+            ctx.beginPath();
+            ctx.arc(canvasX, canvasY, size, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+        
+        // 在指定画布上绘制聚类中心
+        function drawCentroidOnCanvas(ctx, x, y, color, canvasWidth, canvasHeight) {
+            const canvasX = x * canvasWidth;
+            const canvasY = y * canvasHeight;
+            
+            // 绘制十字标记
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(canvasX - 8, canvasY);
+            ctx.lineTo(canvasX + 8, canvasY);
+            ctx.moveTo(canvasX, canvasY - 8);
+            ctx.lineTo(canvasX, canvasY + 8);
+            ctx.stroke();
+            
+            // 绘制中心圆
+            ctx.beginPath();
+            ctx.arc(canvasX, canvasY, 6, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // 生成对比总结
+        function generateComparisonSummary(results, container) {
+            const algorithms = Object.keys(results.algorithms);
+            const bestAlgorithm = results.best_algorithm;
+            const executionTimes = results.execution_times;
+            const metrics = results.comparison_metrics;
+            
+            const algorithmNames = {
+                'kmeans': 'K-Means',
+                'dbscan': 'DBSCAN',
+                'hierarchical': '层次聚类',
+                'gmm': '高斯混合模型'
+            };
+            
+            let summary = `<div style="margin-bottom: 15px;">`;
+            summary += `<strong>参与对比的算法:</strong> ${algorithms.map(a => algorithmNames[a]).join(', ')}<br>`;
+            
+            if (bestAlgorithm) {
+                summary += `<strong>推荐算法:</strong> <span style="color: #27ae60; font-weight: bold;">${algorithmNames[bestAlgorithm]}</span><br>`;
+            }
+            
+            // 执行时间对比
+            const fastestAlgorithm = Object.entries(executionTimes).reduce((a, b) => 
+                executionTimes[a[0]] < executionTimes[b[0]] ? a : b
+            );
+            summary += `<strong>最快算法:</strong> ${algorithmNames[fastestAlgorithm[0]]} (${fastestAlgorithm[1].toFixed(3)}s)`;
+            summary += `</div>`;
+            
+            // 性能指标对比
+            if (metrics && Object.keys(metrics).length > 0) {
+                summary += `<div style="margin-bottom: 10px;"><strong>性能指标对比:</strong></div>`;
+                summary += `<div style="font-size: 0.9em; line-height: 1.4;">`;
+                
+                algorithms.forEach(algorithm => {
+                    const algoMetrics = metrics[algorithm];
+                    if (algoMetrics) {
+                        summary += `<div style="margin-bottom: 8px;">`;
+                        summary += `<strong>${algorithmNames[algorithm]}:</strong> `;
+                        summary += `聚类数 ${algoMetrics.n_clusters || 0}个, `;
+                        if (algoMetrics.silhouette_score > 0) {
+                            summary += `轮廓系数 ${algoMetrics.silhouette_score.toFixed(3)}`;
+                        } else {
+                            summary += `无效聚类`;
+                        }
+                        summary += `</div>`;
+                    }
+                });
+                summary += `</div>`;
+            }
+            
+            // 使用建议
+            summary += `<div style="margin-top: 15px; padding: 10px; background: #e8f4f8; border-radius: 4px; border-left: 4px solid #3498db;">`;
+            summary += `<strong>💡 使用建议:</strong><br>`;
+            if (bestAlgorithm) {
+                summary += `基于当前数据特征，推荐使用 <strong>${algorithmNames[bestAlgorithm]}</strong>。`;
+            } else {
+                summary += `所有算法在当前数据上表现都不理想，建议调整参数或尝试其他数据分布。`;
+            }
+            summary += `</div>`;
+            
+            container.innerHTML = summary;
+        }
+        
+        // ================== 调试功能相关函数 ==================
+        
+        // 重置调试界面
+        function resetDebugInterface() {
+            isDebugging = false;
+            debugState = null;
+            debugKey = null;
+            if (debugInterval) {
+                clearInterval(debugInterval);
+                debugInterval = null;
+            }
+            
+            // 重置按钮状态
+            document.getElementById('debugInit').disabled = false;
+            document.getElementById('debugStep').disabled = true;
+            document.getElementById('debugPlay').disabled = true;
+            document.getElementById('debugReset').disabled = true;
+            
+            // 重置显示
+            document.getElementById('debugCurrentStep').textContent = '等待初始化';
+            document.getElementById('debugIteration').textContent = '0';
+            document.getElementById('debugClusters').textContent = '0';
+            document.getElementById('debugConverged').textContent = '未开始';
+            document.getElementById('debugStepHistory').innerHTML = '';
+            document.getElementById('historyCount').textContent = '0';
+            
+            // 清空画布或显示原始数据
+            if (debugCtx) {
+                if (currentSessionKey && data.length > 0) {
+                    drawOriginalDataOnDebugCanvas();
+                } else {
+                    debugCtx.fillStyle = '#f8f9fa';
+                    debugCtx.fillRect(0, 0, debugCanvas.width, debugCanvas.height);
+                }
+            }
+        }
+        
+        // 新的调试界面交互函数
+        function toggleParamsPanel() {
+            const panel = document.getElementById('debugParamsPanel');
+            const toggleBtn = document.getElementById('paramsToggle');
+            
+            if (panel.classList.contains('collapsed')) {
+                panel.classList.remove('collapsed');
+                toggleBtn.textContent = '⚙️ 隐藏参数';
+                toggleBtn.classList.add('active');
+            } else {
+                panel.classList.add('collapsed');
+                toggleBtn.textContent = '⚙️ 参数设置';
+                toggleBtn.classList.remove('active');
+            }
+        }
+        
+        function switchInfoTab(event) {
+            const clickedTab = event.target;
+            const tabName = clickedTab.dataset.tab;
+            
+            // 更新标签按钮状态
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            clickedTab.classList.add('active');
+            
+            // 切换标签页内容
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+        
+        function clearDebugHistory() {
+            document.getElementById('debugStepHistory').innerHTML = '';
+            document.getElementById('historyCount').textContent = '0';
+        }
+        
+        function updateHistoryCount() {
+            const historyItems = document.querySelectorAll('.step-history-item');
+            document.getElementById('historyCount').textContent = historyItems.length;
+        }
+        
+        // 在调试画布上绘制原始数据
+        function drawOriginalDataOnDebugCanvas() {
+            if (!debugCtx || !data || data.length === 0) return;
+            
+            const canvas = debugCanvas;
+            const ctx = debugCtx;
+            
+            // 清空画布
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 计算缩放比例
+            const padding = 30;
+            const width = canvas.width - 2 * padding;
+            const height = canvas.height - 2 * padding;
+            
+            const xValues = data.map(p => p.x);
+            const yValues = data.map(p => p.y);
+            const minX = Math.min(...xValues);
+            const maxX = Math.max(...xValues);
+            const minY = Math.min(...yValues);
+            const maxY = Math.max(...yValues);
+            
+            const scaleX = width / (maxX - minX || 1);
+            const scaleY = height / (maxY - minY || 1);
+            const scale = Math.min(scaleX, scaleY);
+            
+            const offsetX = (width - scale * (maxX - minX)) / 2 + padding;
+            const offsetY = (height - scale * (maxY - minY)) / 2 + padding;
+            
+            // 绘制原始数据点（灰色）
+            data.forEach((point) => {
+                const x = offsetX + (point.x - minX) * scale;
+                const y = offsetY + (point.y - minY) * scale; // 修复Y坐标处理，保持一致
+                
+                ctx.fillStyle = '#bdc3c7'; // 灰色未分类状态
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // 绘制边框
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+        }
+        
+        // 初始化调试
+        async function initDebug() {
+            try {
+                if (!currentSessionKey) {
+                    updateStatus('❌ 请先生成数据！');
+                    return;
+                }
+                
+                const algorithm = document.getElementById('debugAlgorithm').value;
+                updateStatus(`🔧 初始化${algorithm.toUpperCase()}调试...`);
+                
+                let params = {};
+                if (algorithm === 'kmeans') {
+                    params = {
+                        session_key: currentSessionKey,
+                        n_clusters: parseInt(document.getElementById('debugKClusters').value) || 3,
+                        init: document.getElementById('debugKInit').value || 'k-means++',
+                        max_iter: parseInt(document.getElementById('debugKMaxIter').value) || 100
+                    };
+                } else if (algorithm === 'dbscan') {
+                    params = {
+                        session_key: currentSessionKey,
+                        eps: parseFloat(document.getElementById('debugDbscanEps').value) || 0.05,
+                        min_samples: parseInt(document.getElementById('debugDbscanMinPts').value) || 5
+                    };
+                }
+                
+                const response = await fetch(`/api/clustering/${algorithm}/debug_init`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(params)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    debugKey = result.debug_key;
+                    debugState = result.state;
+                    isDebugging = true;
+                    
+                    // 更新按钮状态
+                    document.getElementById('debugInit').disabled = true;
+                    document.getElementById('debugStep').disabled = false;
+                    document.getElementById('debugPlay').disabled = false;
+                    document.getElementById('debugReset').disabled = false;
+                    
+                    // 初始化显示
+                    updateDebugDisplay();
+                    updateStatus(`✅ ${algorithm.toUpperCase()}调试初始化成功`);
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                updateStatus('❌ 调试初始化失败: ' + error.message);
+                console.error('调试初始化错误:', error);
+            }
+        }
+        
+        // 单步执行
+        async function debugStep() {
+            if (!debugKey || !isDebugging) return;
+            
+            try {
+                const algorithm = document.getElementById('debugAlgorithm').value;
+                const response = await fetch(`/api/clustering/${algorithm}/debug_step`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        debug_key: debugKey
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    debugState = result.state;
+                    updateDebugDisplay();
+                    
+                    // 检查是否完成
+                    if ((algorithm === 'kmeans' && result.finished) || 
+                        (algorithm === 'dbscan' && result.finished)) {
+                        document.getElementById('debugStep').disabled = true;
+                        document.getElementById('debugPlay').disabled = true;
+                        updateStatus('🎯 调试完成！');
+                        
+                        if (debugInterval) {
+                            clearInterval(debugInterval);
+                            debugInterval = null;
+                        }
+                    }
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                updateStatus('❌ 调试步骤执行失败: ' + error.message);
+                console.error('调试步骤错误:', error);
+            }
+        }
+        
+        // 自动播放
+        function debugPlay() {
+            if (debugInterval) {
+                // 停止播放
+                clearInterval(debugInterval);
+                debugInterval = null;
+                document.getElementById('debugPlay').textContent = '🎮 自动播放';
+                document.getElementById('debugStep').disabled = false;
+            } else {
+                // 开始播放
+                debugInterval = setInterval(debugStep, debugSpeed);
+                document.getElementById('debugPlay').textContent = '⏸️ 暂停';
+                document.getElementById('debugStep').disabled = true;
+            }
+        }
+        
+        // 重置调试
+        function debugReset() {
+            resetDebugInterface();
+            updateStatus('🔄 调试已重置，请重新初始化');
+        }
+        
+        // 更新调试速度
+        function updateDebugSpeed() {
+            debugSpeed = parseInt(document.getElementById('debugSpeed').value);
+            document.getElementById('speedValue').textContent = debugSpeed + 'ms';
+            
+            // 如果正在自动播放，重新设置间隔
+            if (debugInterval) {
+                clearInterval(debugInterval);
+                debugInterval = setInterval(debugStep, debugSpeed);
+            }
+        }
+        
+        // 切换调试算法参数显示
+        function switchDebugAlgorithm() {
+            const algorithm = document.getElementById('debugAlgorithm').value;
+            const kmeansParams = document.getElementById('debugKmeansParams');
+            const dbscanParams = document.getElementById('debugDbscanParams');
+            
+            if (algorithm === 'kmeans') {
+                kmeansParams.style.display = 'block';
+                dbscanParams.style.display = 'none';
+            } else if (algorithm === 'dbscan') {
+                kmeansParams.style.display = 'none';
+                dbscanParams.style.display = 'block';
+            }
+            
+            // 如果正在调试，重置调试状态
+            if (isDebugging) {
+                resetDebugInterface();
+            }
+        }
+        
+        // 更新调试显示
+        function updateDebugDisplay() {
+            if (!debugState) return;
+            
+            const algorithm = document.getElementById('debugAlgorithm').value;
+            
+            // 更新统计信息
+            if (algorithm === 'kmeans') {
+                document.getElementById('debugIteration').textContent = debugState.current_iter || 0;
+                document.getElementById('debugClusters').textContent = debugState.n_clusters || 0;
+                document.getElementById('debugConverged').textContent = debugState.converged ? '是' : '否';
+            } else if (algorithm === 'dbscan') {
+                document.getElementById('debugIteration').textContent = debugState.current_point_idx || 0;
+                document.getElementById('debugClusters').textContent = debugState.current_cluster || 0;
+                document.getElementById('debugConverged').textContent = debugState.finished ? '完成' : '进行中';
+            }
+            
+            // 更新当前步骤
+            const currentStepInfo = debugState.step_info[debugState.step_info.length - 1];
+            if (currentStepInfo) {
+                document.getElementById('debugCurrentStep').textContent = currentStepInfo.description;
+            }
+            
+            // 更新步骤历史
+            updateDebugHistory();
+            
+            // 绘制调试可视化
+            drawDebugVisualization();
+        }
+        
+        // 更新调试历史
+        function updateDebugHistory() {
+            const historyContainer = document.getElementById('debugStepHistory');
+            historyContainer.innerHTML = '';
+            
+            debugState.step_info.slice(-5).reverse().forEach((step, index) => {
+                const stepElement = document.createElement('div');
+                stepElement.className = 'step-history-item' + (index === 0 ? ' current' : '');
+                stepElement.innerHTML = `
+                    <div class="step-title">步骤 ${step.step}: ${step.type}</div>
+                    <div class="step-details">${step.description}</div>
+                `;
+                historyContainer.appendChild(stepElement);
+            });
+            
+            // 更新历史计数
+            updateHistoryCount();
+        }
+        
+        // 绘制调试可视化
+        function drawDebugVisualization() {
+            if (!debugState || !debugCtx) return;
+            
+            const algorithm = document.getElementById('debugAlgorithm').value;
+            const canvas = debugCanvas;
+            const ctx = debugCtx;
+            
+            // 清空画布
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const dataPoints = debugState.X;
+            if (!dataPoints || dataPoints.length === 0) return;
+            
+            // 计算缩放比例
+            const padding = 30;
+            const width = canvas.width - 2 * padding;
+            const height = canvas.height - 2 * padding;
+            
+            const xValues = dataPoints.map(p => p[0]);
+            const yValues = dataPoints.map(p => p[1]);
+            const minX = Math.min(...xValues);
+            const maxX = Math.max(...xValues);
+            const minY = Math.min(...yValues);
+            const maxY = Math.max(...yValues);
+            
+            const scaleX = width / (maxX - minX || 1);
+            const scaleY = height / (maxY - minY || 1);
+            const scale = Math.min(scaleX, scaleY);
+            
+            const offsetX = (width - scale * (maxX - minX)) / 2 + padding;
+            const offsetY = (height - scale * (maxY - minY)) / 2 + padding;
+            
+            if (algorithm === 'kmeans') {
+                drawKmeansDebugVisualization(ctx, dataPoints, scale, offsetX, offsetY, minX, minY, maxX, maxY);
+            } else if (algorithm === 'dbscan') {
+                drawDbscanDebugVisualization(ctx, dataPoints, scale, offsetX, offsetY, minX, minY, maxX, maxY);
+            }
+        }
+        
+        // 绘制K-means调试可视化
+        function drawKmeansDebugVisualization(ctx, dataPoints, scale, offsetX, offsetY, minX, minY, maxX, maxY) {
+            // 绘制数据点
+            const labels = debugState.labels_history[debugState.labels_history.length - 1] || [];
+            const currentIter = debugState.current_iter || 0;
+            
+            dataPoints.forEach((point, index) => {
+                const x = offsetX + (point[0] - minX) * scale;
+                const y = offsetY + (point[1] - minY) * scale; // 修复Y坐标处理，保持一致
+                
+                // 根据当前迭代状态着色
+                let color = '#bdc3c7'; // 未分类的灰色
+                if (currentIter > 0 && labels.length > 0) {
+                    const label = labels[index];
+                    if (label !== undefined && label >= 0) {
+                        color = clusterColors[label % clusterColors.length];
+                    }
+                }
+                ctx.fillStyle = color;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // 绘制边框
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+            
+            // 绘制质心
+            const centroids = debugState.current_centroids || [];
+            centroids.forEach((centroid, index) => {
+                const x = offsetX + (centroid[0] - minX) * scale;
+                const y = offsetY + (centroid[1] - minY) * scale; // 修复Y坐标处理，保持一致
+                
+                // 绘制质心
+                ctx.fillStyle = clusterColors[index % clusterColors.length] || '#666';
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // 绘制质心标记
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 绘制质心编号
+                ctx.fillStyle = '#fff';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(index.toString(), x, y + 3);
+            });
+            
+            // 如果有之前的质心，绘制移动轨迹
+            if (debugState.previous_centroids && debugState.current_centroids) {
+                debugState.previous_centroids.forEach((prevCentroid, index) => {
+                    const currentCentroid = debugState.current_centroids[index];
+                    if (currentCentroid) {
+                        const x1 = offsetX + (prevCentroid[0] - minX) * scale;
+                        const y1 = offsetY + (prevCentroid[1] - minY) * scale; // 修复Y坐标处理
+                        const x2 = offsetX + (currentCentroid[0] - minX) * scale;
+                        const y2 = offsetY + (currentCentroid[1] - minY) * scale; // 修复Y坐标处理
+                        
+                        ctx.strokeStyle = '#e74c3c';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([5, 5]);
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                });
+            }
+        }
+        
+        // 绘制DBSCAN调试可视化
+        function drawDbscanDebugVisualization(ctx, dataPoints, scale, offsetX, offsetY, minX, minY, maxX, maxY) {
+            const labels = debugState.labels || [];
+            const currentPointIdx = debugState.current_point_idx || 0;
+            
+            // 绘制数据点
+            dataPoints.forEach((point, index) => {
+                const x = offsetX + (point[0] - minX) * scale;
+                const y = offsetY + (point[1] - minY) * scale; // 修复Y坐标处理，保持一致
+                
+                // 根据状态着色
+                let color = '#bdc3c7'; // 未处理
+                if (labels[index] >= 0) {
+                    color = clusterColors[labels[index] % clusterColors.length];
+                } else if (labels[index] === -1 && debugState.visited[index]) {
+                    color = '#e74c3c'; // 噪声点
+                }
+                
+                // 高亮当前处理的点
+                if (index === currentPointIdx - 1) {
+                    ctx.fillStyle = '#f39c12';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 10, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+                
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // 标记核心点
+                if (debugState.core_points && debugState.core_points.includes(index)) {
+                    ctx.strokeStyle = '#2c3e50';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                    ctx.stroke();
+                }
+            });
+            
+            // 绘制当前点的邻域
+            if (currentPointIdx > 0 && debugState.neighbors_cache) {
+                const neighbors = debugState.neighbors_cache[currentPointIdx - 1];
+                if (neighbors) {
+                    const currentPoint = dataPoints[currentPointIdx - 1];
+                    const centerX = offsetX + (currentPoint[0] - minX) * scale;
+                    const centerY = offsetY + (currentPoint[1] - minY) * scale;
+                    const radius = debugState.eps * scale;
+                    
+                    // 绘制邻域圆圈
+                    ctx.strokeStyle = '#3498db';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([3, 3]);
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
