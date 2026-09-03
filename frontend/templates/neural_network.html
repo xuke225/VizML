@@ -13,9 +13,9 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4F46E5 0%, #7C6CE7 100%);
             min-height: 100vh;
-            color: #333;
+            color: #172033;
         }
 
         .container {
@@ -76,15 +76,15 @@
         }
 
         .control-group {
-            background: #f8f9fa;
+            background: #F8FAFD;
             padding: 20px;
             border-radius: 10px;
-            border: 2px solid #e9ecef;
+            border: 2px solid #E7EDF5;
         }
 
         .control-group h3 {
             margin-bottom: 15px;
-            color: #495057;
+            color: #44516A;
             font-size: 1.1rem;
         }
 
@@ -110,7 +110,7 @@
             appearance: none;
             width: 20px;
             height: 20px;
-            background: #667eea;
+            background: #4F46E5;
             border-radius: 50%;
             cursor: pointer;
         }
@@ -139,32 +139,32 @@
         }
 
         .dataset-btn {
-            background: #e9ecef;
-            color: #495057;
+            background: #E7EDF5;
+            color: #44516A;
         }
 
         .dataset-btn.active {
-            background: #667eea;
+            background: #4F46E5;
             color: white;
         }
 
         .action-btn {
-            background: #28a745;
+            background: #0F9D8A;
             color: white;
             font-weight: bold;
         }
 
         .action-btn:hover {
-            background: #218838;
+            background: #0B7F71;
             transform: translateY(-2px);
         }
 
         .action-btn.stop {
-            background: #dc3545;
+            background: #C2415D;
         }
 
         .action-btn.stop:hover {
-            background: #c82333;
+            background: #A9344D;
         }
 
         .visualization-area {
@@ -175,7 +175,7 @@
         }
 
         .data-canvas, .network-canvas, .output-canvas {
-            border: 2px solid #e9ecef;
+            border: 2px solid #E7EDF5;
             border-radius: 10px;
             background: white;
         }
@@ -188,7 +188,7 @@
             text-align: center;
             font-weight: bold;
             margin-bottom: 10px;
-            color: #495057;
+            color: #44516A;
         }
 
         .network-layers {
@@ -209,7 +209,7 @@
         .neuron {
             width: 40px;
             height: 40px;
-            background: #667eea;
+            background: #4F46E5;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -234,7 +234,7 @@
         }
 
         .connection.strong {
-            stroke: #667eea;
+            stroke: #4F46E5;
             stroke-width: 2;
             opacity: 1;
         }
@@ -262,9 +262,9 @@
             min-width: 0;
             text-align: center;
             padding: 4px 2px;
-            background: #f8f9fa;
+            background: #F8FAFD;
             border-radius: 3px;
-            border: 1px solid #e9ecef;
+            border: 1px solid #E7EDF5;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -275,7 +275,7 @@
             display: block;
             font-size: 9px;
             font-weight: bold;
-            color: #495057;
+            color: #44516A;
             margin-bottom: 1px;
             line-height: 1;
             white-space: nowrap;
@@ -285,7 +285,7 @@
 
         .stat-value {
             display: block;
-            color: #667eea;
+            color: #4F46E5;
             font-size: 10px;
             font-weight: bold;
             line-height: 1;
@@ -328,7 +328,7 @@
 
         .feature-btn {
             padding: 8px 12px;
-            border: 2px solid #e9ecef;
+            border: 2px solid #E7EDF5;
             background: white;
             border-radius: 5px;
             cursor: pointer;
@@ -338,8 +338,8 @@
         }
 
         .feature-btn.active {
-            border-color: #667eea;
-            background: #667eea;
+            border-color: #4F46E5;
+            background: #4F46E5;
             color: white;
         }
 
@@ -356,7 +356,7 @@
         .progress-bar {
             width: 100%;
             height: 8px;
-            background: #e9ecef;
+            background: #E7EDF5;
             border-radius: 4px;
             overflow: hidden;
             margin: 10px 0;
@@ -364,26 +364,26 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(45deg, #4F46E5, #7C6CE7);
             transition: width 0.3s ease;
             width: 0%;
         }
 
         .export-btn {
             padding: 6px 10px;
-            border: 1px solid #e9ecef;
+            border: 1px solid #E7EDF5;
             background: white;
             border-radius: 4px;
             cursor: pointer;
             font-size: 11px;
             transition: all 0.2s ease;
-            color: #495057;
+            color: #44516A;
         }
         
         .export-btn:hover {
-            background: #f8f9fa;
-            border-color: #667eea;
-            color: #667eea;
+            background: #F8FAFD;
+            border-color: #4F46E5;
+            color: #4F46E5;
             transform: translateY(-1px);
         }
         
@@ -403,6 +403,9 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="/static/css/design-system.css">
+    <script defer src="/static/js/visualization-theme.js"></script>
+    <script defer src="/static/js/ui-shell.js"></script>
 </head>
 <body>
     <div class="container">
@@ -419,11 +422,11 @@
                         </filter>
                         <radialGradient id="inputGrad" cx="50%" cy="50%" r="50%">
                             <stop offset="0%" stop-color="#F1948A"/>
-                            <stop offset="100%" stop-color="#C0392B"/>
+                            <stop offset="100%" stop-color="#A9344D"/>
                         </radialGradient>
                         <radialGradient id="hiddenGrad" cx="50%" cy="50%" r="50%">
                             <stop offset="0%" stop-color="#5DADE2"/>
-                            <stop offset="100%" stop-color="#2E86C1"/>
+                            <stop offset="100%" stop-color="#2B8AC6"/>
                         </radialGradient>
                         <radialGradient id="outputGrad" cx="50%" cy="50%" r="50%">
                             <stop offset="0%" stop-color="#58D68D"/>
@@ -551,13 +554,13 @@
                                     <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
                                 </filter>
                                 <radialGradient id="dataGrad" cx="50%" cy="50%" r="50%">
-                                    <stop offset="0%" stop-color="#2E86C1"/>
+                                    <stop offset="0%" stop-color="#2B8AC6"/>
                                     <stop offset="100%" stop-color="#5DADE2"/>
                                 </radialGradient>
                             </defs>
                             <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
                             <rect x="18" y="14" width="28" height="10" rx="2" ry="2" fill="#AED6F1" stroke="#555" stroke-width="1.2" filter="url(#shadow)"/>
-                            <polygon points="46,14 52,19 46,24" fill="#3498DB" filter="url(#shadow)"/>
+                            <polygon points="46,14 52,19 46,24" fill="#2B8AC6" filter="url(#shadow)"/>
                             <circle cx="22" cy="19" r="1.6" fill="url(#dataGrad)" filter="url(#shadow)"/>
                             <circle cx="28" cy="19" r="1.6" fill="url(#dataGrad)" filter="url(#shadow)"/>
                             <circle cx="34" cy="19" r="1.6" fill="url(#dataGrad)" filter="url(#shadow)"/>
@@ -571,7 +574,7 @@
                         </svg> 生成数据</button>
                     </div>
                     <!-- 数据显示模式控制 -->
-                    <div class="control-item" style="border-top: 1px solid #e9ecef; padding-top: 12px; margin-top: 10px;">
+                    <div class="control-item" style="border-top: 1px solid #E7EDF5; padding-top: 12px; margin-top: 10px;">
                         <div style="display: flex; flex-direction: row; gap: 6px;">
                             <label style="font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                                 <input type="radio" name="dataDisplay" id="showAllData" value="all" checked style="margin: 0;"> 
@@ -650,12 +653,12 @@
                     </div>
                     <div class="control-item">
                         <!-- <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
-                            <button class="action-btn" id="realtimeTrainBtn" disabled style="width: 100%; background: #28a745; font-size: 14px;">⚡ 实时训练</button>
+                            <button class="action-btn" id="realtimeTrainBtn" disabled style="width: 100%; background: #0F9D8A; font-size: 14px;">⚡ 实时训练</button>
                             <button class="action-btn stop" id="stopTrainBtn" disabled style="width: 100%; font-size: 13px;">⏹️ 停止训练</button>
                             <button class="action-btn" id="resetBtn" style="width: 100%;">🔄 重置</button>
                         </div> -->
                         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <button class="action-btn" id="realtimeTrainBtn" disabled style="flex: 1; background: #28a745; font-size: 14px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 64 64" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 5px;">
+                            <button class="action-btn" id="realtimeTrainBtn" disabled style="flex: 1; background: #0F9D8A; font-size: 14px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 64 64" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 5px;">
                                 <defs>
                                     <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="0%" stop-color="#EAF2F8"/>
@@ -665,12 +668,12 @@
                                         <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
                                     </filter>
                                     <radialGradient id="dataGrad" cx="50%" cy="50%" r="50%">
-                                        <stop offset="0%" stop-color="#2E86C1"/>
+                                        <stop offset="0%" stop-color="#2B8AC6"/>
                                         <stop offset="100%" stop-color="#5DADE2"/>
                                     </radialGradient>
                                     <linearGradient id="deviceGrad" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="0%" stop-color="#85C1E9"/>
-                                        <stop offset="100%" stop-color="#3498DB"/>
+                                        <stop offset="100%" stop-color="#2B8AC6"/>
                                     </linearGradient>
                                     <marker id="arrow" markerWidth="4" markerHeight="4" refX="4" refY="2" orient="auto" markerUnits="strokeWidth">
                                         <path d="M0,0 L4,2 L0,4 L1,2 Z" fill="#555"/>
@@ -679,7 +682,7 @@
                                 <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
                                 <rect x="20" y="24" width="24" height="12" rx="3" ry="3" fill="url(#deviceGrad)" stroke="#555" stroke-width="1.2" filter="url(#shadow)"/>
                                 <rect x="22" y="28" width="20" height="4" rx="1.5" ry="1.5" fill="#D6EAF8"/>
-                                <rect x="22" y="28" width="12" height="4" rx="1.5" ry="1.5" fill="#2E86C1"/>
+                                <rect x="22" y="28" width="12" height="4" rx="1.5" ry="1.5" fill="#2B8AC6"/>
                                 <circle cx="18" cy="30" r="1.6" fill="url(#dataGrad)" filter="url(#shadow)"/>
                                 <circle cx="16" cy="26" r="1.4" fill="url(#dataGrad)" filter="url(#shadow)"/>
                                 <circle cx="16" cy="34" r="1.4" fill="url(#dataGrad)" filter="url(#shadow)"/>
@@ -730,11 +733,11 @@
                       
                     <!-- Loss曲线图 -->
                     <div id="compactLossChart" style="display: none; margin-top: 15px;">
-                        <h4 style="margin-bottom: 10px; color: #495057; font-size: 1rem;">损失收敛曲线</h4>
-                        <canvas id="compactLossCanvas" width="450" height="200" style="border: 1px solid #e9ecef; border-radius: 5px;"></canvas>
+                        <h4 style="margin-bottom: 10px; color: #44516A; font-size: 1rem;">损失收敛曲线</h4>
+                        <canvas id="compactLossCanvas" width="450" height="200" style="border: 1px solid #E7EDF5; border-radius: 5px;"></canvas>
                         <div class="chart-legend" style="margin-top: 8px; justify-content: center;">
                             <span class="legend-item" style="font-size: 12px;">
-                                <span class="legend-color" style="background-color: #667eea; width: 15px; height: 12px;"></span>
+                                <span class="legend-color" style="background-color: #4F46E5; width: 15px; height: 12px;"></span>
                                 训练损失
                             </span>
                             <span class="legend-item" style="font-size: 12px;">
@@ -766,9 +769,9 @@
                         <div class="network-layers" id="networkLayers" style="position: relative; z-index: 2;"></div>
                     </div>
                     <!-- 网络参数统计 -->
-                    <div id="networkStats" style="display: none; margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px; border: 1px solid #e9ecef;">
-                        <div style="font-size: 12px; font-weight: bold; margin-bottom: 8px; color: #495057;">网络参数统计</div>
-                        <div id="networkStatsContent" style="font-size: 11px; color: #666;">
+                    <div id="networkStats" style="display: none; margin-top: 10px; padding: 10px; background: #F8FAFD; border-radius: 5px; border: 1px solid #E7EDF5;">
+                        <div style="font-size: 12px; font-weight: bold; margin-bottom: 8px; color: #44516A;">网络参数统计</div>
+                        <div id="networkStatsContent" style="font-size: 11px; color: #6B7890;">
                             <!-- 参数统计内容将通过JavaScript动态添加 -->
                         </div>
                     </div>
@@ -780,7 +783,7 @@
                     <canvas class="output-canvas" id="outputCanvas" width="300" height="300"></canvas>
                     <!-- 导出功能 -->
                     <div id="exportSection" style="display: none; margin-top: 10px;">
-                        <div style="font-size: 12px; font-weight: bold; margin-bottom: 8px; color: #495057;">导出训练结果</div>
+                        <div style="font-size: 12px; font-weight: bold; margin-bottom: 8px; color: #44516A;">导出训练结果</div>
                         <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                             <button id="exportImageBtn" class="export-btn" title="导出决策边界图像">
                                 📸 图像
@@ -860,18 +863,10 @@
                 this.dataCtx = null;
                 this.outputCtx = null;
                 
-                // 颜色配置 - 扩展到支持更多类别
-                this.colors = [
-                    '#667eea', // 蓝色
-                    '#ff6b6b', // 红色  
-                    '#4ecdc4', // 青色
-                    '#ffa726', // 橙色
-                    '#ab47bc', // 紫色
-                    '#26a69a', // 蓝绿色
-                    '#ef5350', // 深红色
-                    '#42a5f5', // 浅蓝色
-                    '#66bb6a', // 绿色
-                    '#ffca28'  // 黄色
+                // 全站共享的色盲友好分类色板
+                this.colors = window.VizTheme ? [...VizTheme.palette] : [
+                    '#4F46E5', '#0F9D8A', '#E07A3F', '#D64C7F', '#2B8AC6',
+                    '#7C6CE7', '#7B8F31', '#C15FBC', '#586779', '#D99A20'
                 ];
                 
                 this.initializeEventListeners();
@@ -1149,7 +1144,7 @@
                     this.dataCtx.arc(x, y_coord, 5, 0, Math.PI * 2);
                     this.dataCtx.fillStyle = this.colors[colorIndex];
                     this.dataCtx.fill();
-                    this.dataCtx.strokeStyle = '#333';
+                    this.dataCtx.strokeStyle = '#172033';
                     this.dataCtx.lineWidth = 1;
                     this.dataCtx.stroke();
                 });
@@ -1178,7 +1173,7 @@
                         // 训练集：实心圆，粗边框
                         this.dataCtx.fillStyle = this.colors[colorIndex];
                         this.dataCtx.fill();
-                        this.dataCtx.strokeStyle = '#333';
+                        this.dataCtx.strokeStyle = '#172033';
                         this.dataCtx.lineWidth = 2;
                         this.dataCtx.stroke();
                     });
@@ -1395,7 +1390,7 @@
                         // 训练集：实心圆，粗边框（与数据分布画布保持一致）
                         this.outputCtx.fillStyle = this.colors[colorIndex];
                         this.outputCtx.fill();
-                        this.outputCtx.strokeStyle = '#333';
+                        this.outputCtx.strokeStyle = '#172033';
                         this.outputCtx.lineWidth = 2;
                         this.outputCtx.stroke();
                     });
@@ -1520,7 +1515,7 @@
                     legendItem.style.cssText = 'display: flex; align-items: center; gap: 4px; font-size: 11px;';
                     
                     const colorBox = document.createElement('div');
-                    colorBox.style.cssText = `width: 12px; height: 12px; background-color: ${color}; border-radius: 50%; border: 1px solid #333;`;
+                    colorBox.style.cssText = `width: 12px; height: 12px; background-color: ${color}; border-radius: 50%; border: 1px solid #172033;`;
                     
                     const labelText = document.createElement('span');
                     labelText.textContent = `类别 ${label}`;
@@ -1542,7 +1537,7 @@
                     trainItem.style.cssText = 'display: flex; align-items: center; gap: 4px; font-size: 11px;';
                     
                     const trainBox = document.createElement('div');
-                    trainBox.style.cssText = 'width: 12px; height: 12px; background-color: #667eea; border-radius: 50%; border: 2px solid #333;';
+                    trainBox.style.cssText = 'width: 12px; height: 12px; background-color: #4F46E5; border-radius: 50%; border: 2px solid #172033;';
                     
                     const trainText = document.createElement('span');
                     trainText.textContent = '训练集';
@@ -1556,7 +1551,7 @@
                     testItem.style.cssText = 'display: flex; align-items: center; gap: 4px; font-size: 11px;';
                     
                     const testBox = document.createElement('div');
-                    testBox.style.cssText = 'width: 10px; height: 10px; background-color: white; border-radius: 50%; border: 2px solid #667eea;';
+                    testBox.style.cssText = 'width: 10px; height: 10px; background-color: white; border-radius: 50%; border: 2px solid #4F46E5;';
                     
                     const testText = document.createElement('span');
                     testText.textContent = '测试集';
@@ -1572,7 +1567,7 @@
             // 绘制loss曲线图
             drawLossChart(ctx, canvas) {
                 // 清空画布
-                ctx.fillStyle = '#f8f9fa';
+                ctx.fillStyle = '#F8FAFD';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
                 if (!this.trainingHistory || this.trainingHistory.length === 0) return;
@@ -1593,7 +1588,7 @@
                 const lossRange = maxLoss - minLoss;
                 
                 // 绘制坐标轴
-                ctx.strokeStyle = '#333';
+                ctx.strokeStyle = '#172033';
                 ctx.lineWidth = 1;
                 ctx.beginPath();
                 // Y轴
@@ -1605,7 +1600,7 @@
                 ctx.stroke();
                 
                 // 绘制网格
-                ctx.strokeStyle = '#e0e0e0';
+                ctx.strokeStyle = '#DCE4EE';
                 ctx.lineWidth = 1;
                 const gridLines = 5;
                 
@@ -1632,7 +1627,7 @@
                 
                 // 绘制训练loss曲线
                 if (trainLosses.length > 0) {
-                    ctx.strokeStyle = '#667eea';
+                    ctx.strokeStyle = '#4F46E5';
                     ctx.lineWidth = 2;
                     ctx.beginPath();
                     
@@ -1671,7 +1666,7 @@
                 }
                 
                 // 绘制坐标轴标签
-                ctx.fillStyle = '#333';
+                ctx.fillStyle = '#172033';
                 ctx.font = '12px Arial';
                 ctx.textAlign = 'center';
                 
@@ -1788,7 +1783,7 @@
                             // 显示省略标记
                             const ellipsisNeuron = document.createElement('div');
                             ellipsisNeuron.className = 'neuron';
-                            ellipsisNeuron.style.cssText = 'background: #e9ecef; color: #6c757d; font-size: 18px; cursor: default;';
+                            ellipsisNeuron.style.cssText = 'background: #E7EDF5; color: #6B7890; font-size: 18px; cursor: default;';
                             ellipsisNeuron.textContent = '⋯';
                             ellipsisNeuron.setAttribute('data-neuron-index', 'ellipsis');
                             layer.appendChild(ellipsisNeuron);
@@ -1832,7 +1827,7 @@
                                 neuron.textContent = outputSize;
                             } else if (i === maxOutputDisplay - 2 && outputSize > maxOutputDisplay) {
                                 neuron.textContent = '⋯';
-                                neuron.style.cssText += 'background: #e9ecef; color: #6c757d; font-size: 16px;';
+                                neuron.style.cssText += 'background: #E7EDF5; color: #6B7890; font-size: 16px;';
                             } else {
                                 neuron.textContent = `Y${i + 1}`;
                             }
@@ -1920,8 +1915,8 @@
                 html += `
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                         <div style="flex: 1;">
-                            <div style="font-weight: bold; color: #495057;">总参数量: <span style="color: #667eea;">${formatNumber(totalParams)}</span></div>
-                            <div style="font-weight: bold; color: #495057;">计算量: <span style="color: #ff6b6b;">${formatNumber(totalFLOPs)} FLOPs</span></div>
+                            <div style="font-weight: bold; color: #44516A;">总参数量: <span style="color: #4F46E5;">${formatNumber(totalParams)}</span></div>
+                            <div style="font-weight: bold; color: #44516A;">计算量: <span style="color: #ff6b6b;">${formatNumber(totalFLOPs)} FLOPs</span></div>
                         </div>
                     </div>
                 `;
@@ -1929,7 +1924,7 @@
                 // 详细分层信息
                 if (layerDetails.length > 0) {
                     html += '<div style="border-top: 1px solid #ddd; padding-top: 8px; margin-top: 8px;">';
-                    html += '<div style="font-weight: bold; margin-bottom: 4px; color: #495057;">分层详情:</div>';
+                    html += '<div style="font-weight: bold; margin-bottom: 4px; color: #44516A;">分层详情:</div>';
                     
                     layerDetails.forEach((layer, index) => {
                         const layerName = index === 0 ? '输入→隐藏1' : 
@@ -1939,7 +1934,7 @@
                         html += `
                             <div style="margin-bottom: 2px; display: flex; justify-content: space-between;">
                                 <span style="font-size: 10px;">${layerName} (${layer.from}→${layer.to}):</span>
-                                <span style="font-size: 10px; color: #667eea;">${formatNumber(layer.totalParams)}参数</span>
+                                <span style="font-size: 10px; color: #4F46E5;">${formatNumber(layer.totalParams)}参数</span>
                             </div>
                         `;
                     });
@@ -2045,11 +2040,11 @@
             
             // 清空画布
             clearCanvas(ctx, canvas) {
-                ctx.fillStyle = '#f8f9fa';
+                ctx.fillStyle = '#F8FAFD';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
                 // 绘制网格
-                ctx.strokeStyle = '#e9ecef';
+                ctx.strokeStyle = '#E7EDF5';
                 ctx.lineWidth = 1;
                 for (let i = 0; i <= 10; i++) {
                     const x = (i / 10) * canvas.width;

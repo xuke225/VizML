@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>贝叶斯分类算法可视化</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="/static/vendor/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -17,8 +16,8 @@
             font-family: 'Microsoft YaHei', Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
+            background-color: #F4F7FB;
+            color: #172033;
         }
 
         .container {
@@ -33,20 +32,20 @@
         .header {
             text-align: center;
             padding: 20px 0;
-            color: #333;
+            color: #172033;
             margin-bottom: 30px;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 2px solid #DCE4EE;
         }
 
         .header h1 {
             font-size: 2.2rem;
             margin-bottom: 10px;
-            color: #2c3e50;
+            color: #172033;
         }
 
         .header p {
             font-size: 1.1rem;
-            color: #666;
+            color: #6B7890;
         }
 
         .main-content {
@@ -61,7 +60,7 @@
             background: #f9f9f9;
             border-radius: 8px;
             padding: 18px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #DCE4EE;
             margin-bottom: 20px;
             display: flex;
             flex-direction: column;
@@ -70,11 +69,11 @@
         }
 
         .panel h3 {
-            color: #2c3e50;
+            color: #172033;
             margin-bottom: 18px;
             font-size: 1.1rem;
             font-weight: 600;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 2px solid #DCE4EE;
             padding-bottom: 8px;
         }
 
@@ -116,7 +115,7 @@
             -webkit-appearance: none;
             height: 6px;
             border-radius: 3px;
-            background: #e9ecef;
+            background: #E7EDF5;
             outline: none;
         }
 
@@ -125,13 +124,13 @@
             width: 18px;
             height: 18px;
             border-radius: 50%;
-            background: #4CAF50;
+            background: #0F9D8A;
             cursor: pointer;
             transition: background 0.2s ease;
         }
 
         .control-group input[type="range"]::-webkit-slider-thumb:hover {
-            background: #45a049;
+            background: #0B7F71;
         }
 
         .range-container {
@@ -145,25 +144,25 @@
         }
 
         .range-value {
-            background: #f8f9fa;
+            background: #F8FAFD;
             padding: 4px 8px;
             border-radius: 4px;
             font-weight: 600;
-            color: #495057;
+            color: #44516A;
             font-size: 0.9rem;
             min-width: 60px;
             text-align: center;
-            border: 1px solid #e9ecef;
+            border: 1px solid #E7EDF5;
         }
 
         .control-group select:focus,
         .control-group input:focus {
             outline: none;
-            border-color: #4CAF50;
+            border-color: #0F9D8A;
         }
 
         .btn {
-            background-color: #4CAF50;
+            background-color: #0F9D8A;
             color: white;
             border: none;
             padding: 12px 20px;
@@ -179,21 +178,21 @@
         }
 
         .btn:hover:not(:disabled) {
-            background-color: #45a049;
+            background-color: #0B7F71;
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
         }
 
         .btn:disabled {
             background-color: #cccccc;
-            color: #666;
+            color: #6B7890;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
 
         .btn-secondary {
-            background-color: #6c757d;
+            background-color: #6B7890;
             box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2);
         }
 
@@ -204,11 +203,11 @@
         }
 
         .btn-danger {
-            background-color: #dc3545;
+            background-color: #C2415D;
         }
 
         .btn-danger:hover {
-            background-color: #c82333;
+            background-color: #A9344D;
         }
 
         .chart-container {
@@ -236,8 +235,8 @@
         }
 
         .tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
+            color: #4F46E5;
+            border-bottom-color: #4F46E5;
         }
 
         .tab-content {
@@ -266,31 +265,31 @@
         .metric-value {
             font-size: 2rem;
             font-weight: 700;
-            color: #667eea;
+            color: #4F46E5;
             display: block;
         }
 
         .metric-label {
             font-size: 0.9rem;
-            color: #666;
+            color: #6B7890;
             margin-top: 5px;
         }
 
         .probability-calculator {
-            background: #f8f9fa;
+            background: #F8FAFD;
             border-radius: 8px;
             padding: 20px;
             margin: 20px 0;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #DCE4EE;
         }
         
         
         .point-analysis {
-            background: #f8f9fa;
+            background: #F8FAFD;
             border-radius: 8px;
             padding: 20px;
             margin: 20px 0;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #DCE4EE;
         }
 
         .bayes-formula {
@@ -300,7 +299,7 @@
             padding: 15px;
             background: linear-gradient(135deg, #fff3cd, #ffeaa7);
             border-radius: 10px;
-            border-left: 4px solid #f39c12;
+            border-left: 4px solid #D99A20;
         }
 
         .probability-table {
@@ -317,12 +316,12 @@
         }
 
         .probability-table th {
-            background: #667eea;
+            background: #4F46E5;
             color: white;
         }
 
         .probability-table tr:nth-child(even) {
-            background: #f8f9fa;
+            background: #F8FAFD;
         }
 
         .feature-importance {
@@ -343,7 +342,7 @@
         .importance-progress {
             flex: 1;
             height: 20px;
-            background: #e9ecef;
+            background: #E7EDF5;
             border-radius: 10px;
             overflow: hidden;
             margin: 0 10px;
@@ -351,13 +350,13 @@
 
         .importance-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: linear-gradient(90deg, #4F46E5, #7C6CE7);
             transition: width 0.3s ease;
         }
 
         .importance-value {
             font-weight: 600;
-            color: #667eea;
+            color: #4F46E5;
         }
 
         .error-message {
@@ -366,13 +365,13 @@
             padding: 15px;
             border-radius: 8px;
             margin: 10px 0;
-            border-left: 4px solid #dc3545;
+            border-left: 4px solid #C2415D;
         }
 
         .loading {
             text-align: center;
             padding: 40px;
-            color: #666;
+            color: #6B7890;
         }
 
         .loading::after {
@@ -380,7 +379,7 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 2px solid #667eea;
+            border: 2px solid #4F46E5;
             border-top: 2px solid transparent;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -402,7 +401,7 @@
             height: 12px;
             border-radius: 50%;
             margin: 2px;
-            border: 1px solid #333;
+            border: 1px solid #172033;
         }
 
         .algorithm-explanation {
@@ -410,12 +409,12 @@
             border-radius: 10px;
             padding: 20px;
             margin: 20px 0;
-            border-left: 4px solid #2196f3;
+            border-left: 4px solid #4F46E5;
         }
 
         .explanation-title {
             font-weight: 700;
-            color: #1976d2;
+            color: #4338CA;
             margin-bottom: 10px;
         }
 
@@ -458,12 +457,12 @@
             min-width: 60px;
             text-align: center;
             font-weight: 600;
-            color: #667eea;
+            color: #4F46E5;
         }
 
 
         .calculation-hint {
-            color: #666;
+            color: #6B7890;
             font-style: italic;
             margin-bottom: 15px;
             text-align: center;
@@ -477,7 +476,7 @@
         }
 
         .feature-statistics {
-            background: #f5f5f5;
+            background: #F4F7FB;
             border-radius: 10px;
             padding: 20px;
             margin: 20px 0;
@@ -488,17 +487,17 @@
             border-radius: 8px;
             padding: 15px;
             margin: 10px 0;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #4F46E5;
         }
 
         .calculation-step h5 {
-            color: #667eea;
+            color: #4F46E5;
             margin-bottom: 10px;
         }
 
         .calculation-formula {
             font-family: 'Courier New', monospace;
-            background: #f8f9fa;
+            background: #F8FAFD;
             padding: 10px;
             border-radius: 5px;
             margin: 10px 0;
@@ -506,7 +505,7 @@
 
         .probability-bar {
             height: 30px;
-            background: #e9ecef;
+            background: #E7EDF5;
             border-radius: 15px;
             overflow: hidden;
             margin: 10px 0;
@@ -515,7 +514,7 @@
 
         .probability-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: linear-gradient(90deg, #4F46E5, #7C6CE7);
             transition: width 0.3s ease;
             display: flex;
             align-items: center;
@@ -540,12 +539,12 @@
         }
 
         .class-card.predicted {
-            border-color: #28a745;
+            border-color: #0F9D8A;
             background: #f8fff9;
         }
 
         .class-card h6 {
-            color: #667eea;
+            color: #4F46E5;
             margin-bottom: 10px;
         }
 
@@ -567,12 +566,12 @@
         .stat-value {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #667eea;
+            color: #4F46E5;
         }
 
         .stat-name {
             font-size: 0.9rem;
-            color: #666;
+            color: #6B7890;
             margin-top: 5px;
         }
 
@@ -588,7 +587,7 @@
         }
 
         .algorithm-params h4 {
-            color: #667eea;
+            color: #4F46E5;
             margin: 0 0 15px 0;
             font-size: 1rem;
             border-bottom: 1px solid #e0e3ff;
@@ -607,7 +606,7 @@
             gap: 12px;
             margin-top: auto;
             padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid #DCE4EE;
         }
 
         @media (max-width: 768px) {
@@ -658,6 +657,9 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="/static/css/design-system.css">
+    <script defer src="/static/js/visualization-theme.js"></script>
+    <script defer src="/static/js/ui-shell.js"></script>
 </head>
 <body>
     <div class="container">
@@ -672,12 +674,12 @@
                         <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
                     </filter>
                     <radialGradient id="classGrad1" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stop-color="#3498DB"/>
-                        <stop offset="100%" stop-color="#2E86C1"/>
+                        <stop offset="0%" stop-color="#2B8AC6"/>
+                        <stop offset="100%" stop-color="#2B8AC6"/>
                     </radialGradient>
                     <radialGradient id="classGrad2" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stop-color="#E74C3C"/>
-                        <stop offset="100%" stop-color="#C0392B"/>
+                        <stop offset="0%" stop-color="#C2415D"/>
+                        <stop offset="100%" stop-color="#A9344D"/>
                     </radialGradient>
                     <linearGradient id="boundaryGrad" x1="0" y1="0" x2="1" y2="1">
                         <stop offset="0%" stop-color="#555" stop-opacity="0.7"/>
@@ -1282,7 +1284,7 @@
 
             const datasets = [];
             const classes = [...new Set(data.y)];
-            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#34495e'];
+            const colors = window.VizTheme ? [...VizTheme.palette] : ['#4F46E5', '#0F9D8A', '#E07A3F', '#D64C7F', '#2B8AC6', '#7C6CE7'];
 
             classes.forEach((cls, index) => {
                 const points = data.X.filter((_, i) => data.y[i] === cls);
@@ -1314,7 +1316,7 @@
             const trainData = results.full_data_with_labels.filter(d => d.data_type === 'train');
             const testData = results.full_data_with_labels.filter(d => d.data_type === 'test');
             
-            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#34495e'];
+            const colors = window.VizTheme ? [...VizTheme.palette] : ['#4F46E5', '#0F9D8A', '#E07A3F', '#D64C7F', '#2B8AC6', '#7C6CE7'];
             const classes = [...new Set(results.full_data_with_labels.map(d => d.label))];
 
             // 添加训练数据 - 使用圆形点样式
@@ -1374,8 +1376,8 @@
                 datasets.push({
                     label: '错误分类',
                     data: misclassifiedData,
-                    backgroundColor: '#dc3545' + '70',
-                    borderColor: '#dc3545',
+                    backgroundColor: '#C2415D' + '70',
+                    borderColor: '#C2415D',
                     borderWidth: 3,
                     pointRadius: 7,
                     pointStyle: 'crossRot',
@@ -1434,7 +1436,7 @@
         function updatePriorChart(params) {
             if (!params.class_prior || !priorChart) return;
             
-            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#34495e'];
+            const colors = window.VizTheme ? [...VizTheme.palette] : ['#4F46E5', '#0F9D8A', '#E07A3F', '#D64C7F', '#2B8AC6', '#7C6CE7'];
             const labels = params.class_prior.map((_, idx) => `类别 ${idx}`);
             
             priorChart.data = {
@@ -1489,17 +1491,17 @@
             const prediction = point.prediction;
             const trueLabel = point.label;
             const features = point.features;
-            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#34495e'];
+            const colors = window.VizTheme ? [...VizTheme.palette] : ['#4F46E5', '#0F9D8A', '#E07A3F', '#D64C7F', '#2B8AC6', '#7C6CE7'];
 
             // 显示基本信息
             let analysisHtml = `
                 <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 10px 0;">
-                    <h5 style="margin: 0 0 10px 0; color: #2c3e50;">📍 选中数据点信息</h5>
+                    <h5 style="margin: 0 0 10px 0; color: #172033;">📍 选中数据点信息</h5>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
                         <div><strong>特征值:</strong> [${features.map(f => f.toFixed(3)).join(', ')}]</div>
                         <div><strong>真实类别:</strong> <span style="color: ${colors[trueLabel % colors.length]}">类别 ${trueLabel}</span></div>
                         <div><strong>预测类别:</strong> <span style="color: ${colors[prediction % colors.length]}">类别 ${prediction}</span></div>
-                        <div><strong>预测结果:</strong> <span style="color: ${point.misclassified ? '#dc3545' : '#28a745'}; font-weight: bold;">${point.misclassified ? '❌ 错误' : '✅ 正确'}</span></div>
+                        <div><strong>预测结果:</strong> <span style="color: ${point.misclassified ? '#C2415D' : '#0F9D8A'}; font-weight: bold;">${point.misclassified ? '❌ 错误' : '✅ 正确'}</span></div>
                     </div>
                 </div>
             `;
@@ -1532,19 +1534,19 @@
 
             } catch (error) {
                 console.error('获取详细概率计算失败:', error);
-                container.innerHTML += '<p style="color: #dc3545;">获取详细分析失败，请检查网络连接</p>';
+                container.innerHTML += '<p style="color: #C2415D;">获取详细分析失败，请检查网络连接</p>';
             }
         }
 
         function displayPointDetailedAnalysis(detailedProbs, container) {
-            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#34495e'];
+            const colors = window.VizTheme ? [...VizTheme.palette] : ['#4F46E5', '#0F9D8A', '#E07A3F', '#D64C7F', '#2B8AC6', '#7C6CE7'];
             let analysisHtml = container.innerHTML;
 
             // 贝叶斯公式说明
             analysisHtml += `
-                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #f39c12; margin: 15px 0;">
+                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #D99A20; margin: 15px 0;">
                     <h5 style="margin: 0 0 10px 0; color: #856404;">📐 贝叶斯定理应用</h5>
-                    <div style="font-family: monospace; background: #f8f9fa; padding: 10px; border-radius: 5px; text-align: center; margin: 10px 0;">
+                    <div style="font-family: monospace; background: #F8FAFD; padding: 10px; border-radius: 5px; text-align: center; margin: 10px 0;">
                         P(类别|特征) = P(特征|类别) × P(类别) / P(特征)
                     </div>
                     <p style="margin: 0;">其中 P(特征) 是归一化常数，使所有后验概率之和为1</p>
@@ -1554,7 +1556,7 @@
             // 详细计算过程
             analysisHtml += `
                 <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 15px 0;">
-                    <h5 style="margin: 0 0 15px 0; color: #2c3e50;">🔍 详细概率计算</h5>
+                    <h5 style="margin: 0 0 15px 0; color: #172033;">🔍 详细概率计算</h5>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
             `;
 
@@ -1563,15 +1565,15 @@
                 const color = colors[index % colors.length];
                 
                 analysisHtml += `
-                    <div style="background: ${isPredicted ? '#f8fff9' : '#f8f9fa'}; 
-                                border: 2px solid ${isPredicted ? '#28a745' : '#e1e5e9'}; 
+                    <div style="background: ${isPredicted ? '#f8fff9' : '#F8FAFD'};
+                                border: 2px solid ${isPredicted ? '#0F9D8A' : '#e1e5e9'};
                                 border-radius: 8px; 
                                 padding: 15px;">
                         <h6 style="color: ${color}; margin: 0 0 15px 0;">类别 ${classDetail.class_label} ${isPredicted ? '(预测类别)' : ''}</h6>
                         
                         <div style="margin: 10px 0;">
                             <strong>1. 先验概率:</strong>
-                            <div style="background: #e9ecef; height: 20px; border-radius: 10px; overflow: hidden; margin: 5px 0;">
+                            <div style="background: #E7EDF5; height: 20px; border-radius: 10px; overflow: hidden; margin: 5px 0;">
                                 <div style="height: 100%; background: ${color}; width: ${classDetail.prior_probability * 100}%; 
                                             display: flex; align-items: center; justify-content: center; 
                                             color: white; font-weight: bold; font-size: 11px;">
@@ -1582,14 +1584,14 @@
 
                         <div style="margin: 10px 0;">
                             <strong>2. 似然性:</strong>
-                            <div style="font-family: monospace; background: #f8f9fa; padding: 5px; border-radius: 3px; font-size: 0.9em;">
+                            <div style="font-family: monospace; background: #F8FAFD; padding: 5px; border-radius: 3px; font-size: 0.9em;">
                                 ${classDetail.likelihood.toExponential(3)}
                             </div>
                         </div>
 
                         <div style="margin: 10px 0;">
                             <strong>3. 后验概率:</strong>
-                            <div style="background: #e9ecef; height: 25px; border-radius: 12px; overflow: hidden; margin: 5px 0;">
+                            <div style="background: #E7EDF5; height: 25px; border-radius: 12px; overflow: hidden; margin: 5px 0;">
                                 <div style="height: 100%; background: ${color}; width: ${classDetail.posterior_probability * 100}%; 
                                             display: flex; align-items: center; justify-content: center; 
                                             color: white; font-weight: bold; font-size: 12px;">
@@ -1599,10 +1601,10 @@
                         </div>
 
                         <details style="margin-top: 10px;">
-                            <summary style="cursor: pointer; color: #666;">特征详细计算</summary>
+                            <summary style="cursor: pointer; color: #6B7890;">特征详细计算</summary>
                             <div style="margin-top: 10px; font-size: 0.9rem;">
                                 ${classDetail.feature_likelihoods.map(fl => `
-                                    <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                                    <div style="margin: 8px 0; padding: 8px; background: #F8FAFD; border-radius: 4px;">
                                         <strong>特征 ${fl.feature_index + 1}:</strong><br>
                                         特征值: ${fl.feature_value.toFixed(3)}<br>
                                         均值: ${fl.mean.toFixed(3)}, 方差: ${fl.variance.toFixed(6)}<br>
@@ -1745,13 +1747,13 @@
         }
 
         function displayRealTimePrediction(detailedProbs, features, container) {
-            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#34495e'];
+            const colors = window.VizTheme ? [...VizTheme.palette] : ['#4F46E5', '#0F9D8A', '#E07A3F', '#D64C7F', '#2B8AC6', '#7C6CE7'];
             
             let predictionHtml = `
                 <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 10px 0;">
-                    <h5 style="margin: 0 0 10px 0; color: #2c3e50;">🎯 实时预测结果</h5>
+                    <h5 style="margin: 0 0 10px 0; color: #172033;">🎯 实时预测结果</h5>
                     <p><strong>当前特征值:</strong> [${features.map(f => f.toFixed(3)).join(', ')}]</p>
-                    <p><strong>预测类别:</strong> <span style="color: #28a745; font-weight: bold;">类别 ${detailedProbs.predicted_class}</span></p>
+                    <p><strong>预测类别:</strong> <span style="color: #0F9D8A; font-weight: bold;">类别 ${detailedProbs.predicted_class}</span></p>
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin: 15px 0;">
@@ -1762,12 +1764,12 @@
                 const color = colors[index % colors.length];
                 predictionHtml += `
                     <div style="background: ${isPredicted ? '#f8fff9' : 'white'}; 
-                                border: 2px solid ${isPredicted ? '#28a745' : '#e1e5e9'}; 
+                                border: 2px solid ${isPredicted ? '#0F9D8A' : '#e1e5e9'};
                                 border-radius: 8px; 
                                 padding: 15px;">
                         <h6 style="color: ${color}; margin: 0 0 10px 0;">类别 ${classDetail.class_label} ${isPredicted ? '(预测)' : ''}</h6>
                         
-                        <div style="background: #e9ecef; height: 25px; border-radius: 15px; overflow: hidden; margin: 10px 0;">
+                        <div style="background: #E7EDF5; height: 25px; border-radius: 15px; overflow: hidden; margin: 10px 0;">
                             <div style="height: 100%; background: ${color}; width: ${classDetail.posterior_probability * 100}%; 
                                         display: flex; align-items: center; justify-content: center; 
                                         color: white; font-weight: bold; font-size: 12px;">
@@ -1775,7 +1777,7 @@
                             </div>
                         </div>
                         
-                        <div style="font-size: 0.9rem; color: #666;">
+                        <div style="font-size: 0.9rem; color: #6B7890;">
                             <div>先验: ${(classDetail.prior_probability * 100).toFixed(1)}%</div>
                             <div>似然性: ${classDetail.likelihood.toExponential(2)}</div>
                         </div>
@@ -1861,7 +1863,7 @@
             if (type === 'error') {
                 messageDiv.className = 'error-message';
             } else if (type === 'success') {
-                messageDiv.style.cssText = 'background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #28a745;';
+                messageDiv.style.cssText = 'background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #0F9D8A;';
             } else {
                 messageDiv.style.cssText = 'background: #cce7ff; color: #004085; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #007bff;';
             }

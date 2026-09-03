@@ -9,7 +9,7 @@
             font-family: 'Microsoft YaHei', Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #F4F7FB;
         }
         
         .container {
@@ -22,7 +22,7 @@
         }
         
         h1 {
-            color: #333;
+            color: #172033;
             text-align: center;
             margin-bottom: 30px;
         }
@@ -58,12 +58,12 @@
             background: #f9f9f9;
             padding: 20px;
             border-radius: 8px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #DCE4EE;
         }
         
         .control-group h3 {
             margin: 0 0 15px 0;
-            color: #2c3e50;
+            color: #172033;
             font-size: 1.1rem;
         }
         
@@ -88,7 +88,7 @@
         }
         
         button {
-            background-color: #4CAF50;
+            background-color: #0F9D8A;
             color: white;
             border: none;
             cursor: pointer;
@@ -98,7 +98,7 @@
         }
         
         button:hover {
-            background-color: #45a049;
+            background-color: #0B7F71;
         }
         
         button:disabled {
@@ -107,7 +107,7 @@
         }
         
         .btn-secondary {
-            background-color: #6c757d !important;
+            background-color: #6B7890 !important;
         }
         
         .btn-secondary:hover {
@@ -115,11 +115,11 @@
         }
         
         .btn-danger {
-            background-color: #dc3545 !important;
+            background-color: #C2415D !important;
         }
         
         .btn-danger:hover {
-            background-color: #c82333 !important;
+            background-color: #A9344D !important;
         }
         
         .visualization {
@@ -139,7 +139,7 @@
         
         .canvas-panel h3 {
             margin: 0 0 15px 0;
-            color: #2c3e50;
+            color: #172033;
             text-align: center;
         }
         
@@ -161,16 +161,16 @@
             background: #f9f9f9;
             padding: 20px;
             border-radius: 8px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #DCE4EE;
         }
         
         .info-section h4 {
             margin: 0 0 15px 0;
-            color: #2c3e50;
+            color: #172033;
         }
         
         .equation {
-            background-color: #f5f5f5;
+            background-color: #F4F7FB;
             padding: 15px;
             border-radius: 5px;
             font-family: 'Courier New', monospace;
@@ -199,12 +199,12 @@
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
-            border-left: 4px solid #2196F3;
+            border-left: 4px solid #4F46E5;
         }
         
         .instructions h4 {
             margin: 0 0 10px 0;
-            color: #1976D2;
+            color: #4338CA;
         }
         
         .data-info {
@@ -216,7 +216,7 @@
         
         .data-stat {
             padding: 10px;
-            background: #f8f9fa;
+            background: #F8FAFD;
             border-radius: 4px;
             text-align: center;
         }
@@ -224,12 +224,12 @@
         .data-stat-value {
             font-size: 1.2rem;
             font-weight: bold;
-            color: #2c3e50;
+            color: #172033;
         }
         
         .data-stat-label {
             font-size: 0.9rem;
-            color: #666;
+            color: #6B7890;
         }
         
         .dataset-info {
@@ -265,7 +265,7 @@
         
         .mode-button-group {
             display: inline-flex;
-            background: #f5f5f5;
+            background: #F4F7FB;
             border-radius: 25px;
             padding: 6px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -282,19 +282,19 @@
             cursor: pointer;
             font-size: 13px;
             font-family: "Microsoft YaHei", sans-serif;
-            color: #666;
+            color: #6B7890;
             transition: all 0.3s ease;
             font-weight: 500;
             min-width: 80px;
         }
         
         .mode-btn:hover {
-            color: #2196F3;
+            color: #4F46E5;
             background: rgba(33, 150, 243, 0.1);
         }
         
         .mode-btn.active {
-            background: #2196F3;
+            background: #4F46E5;
             color: white;
             box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
         }
@@ -392,6 +392,9 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="/static/css/design-system.css">
+    <script defer src="/static/js/visualization-theme.js"></script>
+    <script defer src="/static/js/ui-shell.js"></script>
 </head>
 <body>
     <div class="container">
@@ -422,9 +425,9 @@
             <path d="M20,44 Q20.5,43 21,42" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
             <path d="M28,38 Q28.5,37.2 29,36.5" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
             <path d="M36,34 Q36.5,33 37,32.2" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
-            <circle cx="20" cy="44" r="1.8" fill="#2E86C1" filter="url(#shadow)"/>
-            <circle cx="24" cy="41" r="1.6" fill="#3498DB" filter="url(#shadow)"/>
-            <circle cx="28" cy="38" r="1.6" fill="#2980B9" filter="url(#shadow)"/>
+            <circle cx="20" cy="44" r="1.8" fill="#2B8AC6" filter="url(#shadow)"/>
+            <circle cx="24" cy="41" r="1.6" fill="#2B8AC6" filter="url(#shadow)"/>
+            <circle cx="28" cy="38" r="1.6" fill="#236F9F" filter="url(#shadow)"/>
             <circle cx="32" cy="35" r="1.4" fill="#5DADE2" filter="url(#shadow)"/>
             <circle cx="36" cy="34" r="1.4" fill="#5DADE2" filter="url(#shadow)"/>
             <circle cx="40" cy="30" r="1.2" fill="#85C1E9" filter="url(#shadow)"/>
@@ -587,9 +590,9 @@
                     <path d="M20,44 Q20.5,43 21,42" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
                     <path d="M28,38 Q28.5,37.2 29,36.5" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
                     <path d="M36,34 Q36.5,33 37,32.2" stroke="url(#residualGrad)" stroke-width="0.8" fill="none"/>
-                    <circle cx="20" cy="44" r="1.8" fill="#2E86C1" filter="url(#shadow)"/>
-                    <circle cx="24" cy="41" r="1.6" fill="#3498DB" filter="url(#shadow)"/>
-                    <circle cx="28" cy="38" r="1.6" fill="#2980B9" filter="url(#shadow)"/>
+                    <circle cx="20" cy="44" r="1.8" fill="#2B8AC6" filter="url(#shadow)"/>
+                    <circle cx="24" cy="41" r="1.6" fill="#2B8AC6" filter="url(#shadow)"/>
+                    <circle cx="28" cy="38" r="1.6" fill="#236F9F" filter="url(#shadow)"/>
                     <circle cx="32" cy="35" r="1.4" fill="#5DADE2" filter="url(#shadow)"/>
                     <circle cx="36" cy="34" r="1.4" fill="#5DADE2" filter="url(#shadow)"/>
                     <circle cx="40" cy="30" r="1.2" fill="#85C1E9" filter="url(#shadow)"/>
@@ -794,7 +797,7 @@
                 switch (mode) {
                     case 'actual':
                         console.log('1D模式 - 显示真实值');
-                        draw1DDataPoints(X, y, '#2196F3');  // 蓝色显示真实值
+                        draw1DDataPoints(X, y, '#4F46E5');  // 蓝色显示真实值
                         break;
                     case 'predicted':
                         console.log('1D模式 - 显示预测值');
@@ -802,13 +805,13 @@
                             draw1DDataPoints(X, currentPredictions, '#FF5722');  // 红色显示预测值
                         } else {
                             console.warn('1D模式 - 预测值数据不完整，回退到真实值显示');
-                            draw1DDataPoints(X, y, '#2196F3');
+                            draw1DDataPoints(X, y, '#4F46E5');
                         }
                         break;
                     case 'comparison':
                         console.log('1D模式 - 显示对比模式');
                         // 先绘制真实值
-                        draw1DDataPoints(X, y, '#2196F3', 6, '真实值');
+                        draw1DDataPoints(X, y, '#4F46E5', 6, '真实值');
                         // 再绘制预测值（如果有）
                         if (currentPredictions && currentPredictions.length === X.length) {
                             draw1DDataPoints(X, currentPredictions, '#FF5722', 4, '预测值');
@@ -845,19 +848,19 @@
                                         draw1DErrorPoints(X, y, errors, maxError);
                                     } else {
                                         console.warn('1D模式 - 最大误差值无效，回退到真实值显示');
-                                        draw1DDataPoints(X, y, '#2196F3');
+                                        draw1DDataPoints(X, y, '#4F46E5');
                                     }
                                 } else {
                                     console.warn('1D模式 - 没有有效误差值，回退到真实值显示');
-                                    draw1DDataPoints(X, y, '#2196F3');
+                                    draw1DDataPoints(X, y, '#4F46E5');
                                 }
                             } else {
                                 console.warn('1D模式 - 误差数组为空，回退到真实值显示');
-                                draw1DDataPoints(X, y, '#2196F3');
+                                draw1DDataPoints(X, y, '#4F46E5');
                             }
                         } else {
                             console.warn('1D模式 - 没有预测值，无法显示误差分析');
-                            draw1DDataPoints(X, y, '#2196F3');
+                            draw1DDataPoints(X, y, '#4F46E5');
                         }
                         break;
                     default:
@@ -1224,9 +1227,9 @@
                 
                 ctx.beginPath();
                 ctx.arc(canvasX, canvasY, 4, 0, 2 * Math.PI);
-                ctx.fillStyle = '#2196F3';
+                ctx.fillStyle = '#4F46E5';
                 ctx.fill();
-                ctx.strokeStyle = '#1976D2';
+                ctx.strokeStyle = '#4338CA';
                 ctx.lineWidth = 1;
                 ctx.stroke();
             }
@@ -1235,7 +1238,7 @@
         }
         
         // 绘制1D数据点（支持自定义颜色和大小）
-        function draw1DDataPoints(X, y, color = '#2196F3', size = 4, label = '') {
+        function draw1DDataPoints(X, y, color = '#4F46E5', size = 4, label = '') {
             const canvas = document.getElementById('regressionCanvas');
             const ctx = canvas.getContext('2d');
             
@@ -1263,7 +1266,7 @@
                 ctx.fill();
                 
                 // 添加边框
-                const borderColor = color === '#2196F3' ? '#1976D2' : '#D32F2F';
+                const borderColor = color === '#4F46E5' ? '#4338CA' : '#A9344D';
                 ctx.strokeStyle = borderColor;
                 ctx.lineWidth = 1;
                 ctx.stroke();
@@ -1361,7 +1364,7 @@
                 ctx.arc(canvasX, canvasY, size, 0, 2 * Math.PI);
                 ctx.fillStyle = color;
                 ctx.fill();
-                ctx.strokeStyle = '#333';
+                ctx.strokeStyle = '#172033';
                 ctx.lineWidth = 1;
                 ctx.stroke();
                 
@@ -1388,11 +1391,11 @@
             ctx.globalCompositeOperation = 'source-over'; // 重置合成操作
             
             // 设置背景色
-            ctx.fillStyle = '#f8f9fa';
+            ctx.fillStyle = '#F8FAFD';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // 绘制网格
-            ctx.strokeStyle = '#e9ecef';
+            ctx.strokeStyle = '#E7EDF5';
             ctx.lineWidth = 1;
             
             for (let i = 0; i <= canvas.width; i += 20) {
@@ -1769,8 +1772,8 @@
                 const colors = [
                     { r: 227, g: 242, b: 253 },  // #E3F2FD (浅蓝)
                     { r: 144, g: 202, b: 249 },  // #90CAF9 
-                    { r: 33, g: 150, b: 243 },   // #2196F3 (标准蓝)
-                    { r: 25, g: 118, b: 210 },   // #1976D2
+                    { r: 33, g: 150, b: 243 },   // #4F46E5 (标准蓝)
+                    { r: 25, g: 118, b: 210 },   // #4338CA
                     { r: 13, g: 71, b: 161 }     // #0D47A1 (深蓝)
                 ];
                 
@@ -1793,8 +1796,8 @@
                 const colors = [
                     { r: 227, g: 242, b: 253 },  // #E3F2FD (浅蓝)
                     { r: 144, g: 202, b: 249 },  // #90CAF9 
-                    { r: 33, g: 150, b: 243 },   // #2196F3 (标准蓝)
-                    { r: 25, g: 118, b: 210 },   // #1976D2
+                    { r: 33, g: 150, b: 243 },   // #4F46E5 (标准蓝)
+                    { r: 25, g: 118, b: 210 },   // #4338CA
                     { r: 13, g: 71, b: 161 }     // #0D47A1 (深蓝)
                 ];
                 
@@ -1819,7 +1822,7 @@
                     { r: 255, g: 241, b: 118 },  // #FFF176 (黄色，中误差)
                     { r: 255, g: 183, b: 77 },   // #FFB74D (橙色，较高误差)
                     { r: 255, g: 112, b: 67 },   // #FF7043 (橙红，高误差)
-                    { r: 244, g: 67, b: 54 }     // #F44336 (红色，最高误差)
+                    { r: 244, g: 67, b: 54 }     // #C2415D (红色，最高误差)
                 ];
                 
                 const index = scaledValue * (colors.length - 1);
@@ -1863,7 +1866,7 @@
                 top: 10px;
                 right: 10px;
                 background: rgba(255, 255, 255, 0.95);
-                border: 1px solid #E0E0E0;
+                border: 1px solid #DCE4EE;
                 border-radius: 8px;
                 padding: 12px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -1955,7 +1958,7 @@
                 text-align: center;
                 font-size: 11px;
                 font-weight: bold;
-                color: #333;
+                color: #172033;
                 margin-bottom: 8px;
             `;
             
@@ -1976,7 +1979,7 @@
                 top: 30px;
                 left: 30px;
                 font-size: 10px;
-                color: #666;
+                color: #6B7890;
                 white-space: nowrap;
                 background: rgba(255, 255, 255, 0.9);
                 padding: 1px 3px;
@@ -1990,7 +1993,7 @@
                 bottom: 8px;
                 left: 30px;
                 font-size: 10px;
-                color: #666;
+                color: #6B7890;
                 white-space: nowrap;
                 background: rgba(255, 255, 255, 0.9);
                 padding: 1px 3px;
@@ -2014,7 +2017,7 @@
                 text-align: center;
                 font-size: 11px;
                 font-weight: bold;
-                color: #333;
+                color: #172033;
                 margin-bottom: 8px;
             `;
             
@@ -2038,7 +2041,7 @@
             actualTitle.textContent = '真实值';
             actualTitle.style.cssText = `
                 font-size: 9px;
-                color: #2196F3;
+                color: #4F46E5;
                 font-weight: bold;
                 margin-bottom: 4px;
             `;
@@ -2064,7 +2067,7 @@
             predTitle.textContent = '预测值';
             predTitle.style.cssText = `
                 font-size: 9px;
-                color: #D32F2F;
+                color: #A9344D;
                 font-weight: bold;
                 margin-bottom: 4px;
             `;
@@ -2103,7 +2106,7 @@
                 text-align: center;
                 font-size: 11px;
                 font-weight: bold;
-                color: #333;
+                color: #172033;
                 margin-bottom: 8px;
             `;
             
@@ -2197,7 +2200,7 @@
                 top: 25px;
                 right: -35px;
                 font-size: 9px;
-                color: #666;
+                color: #6B7890;
                 background: rgba(255, 255, 255, 0.9);
                 padding: 1px 3px;
                 border-radius: 2px;
@@ -2212,7 +2215,7 @@
                 bottom: 5px;
                 right: -35px;
                 font-size: 9px;
-                color: #666;
+                color: #6B7890;
                 background: rgba(255, 255, 255, 0.9);
                 padding: 1px 3px;
                 border-radius: 2px;
@@ -2226,7 +2229,7 @@
             description.style.cssText = `
                 text-align: center;
                 font-size: 9px;
-                color: #666;
+                color: #6B7890;
                 margin-top: 5px;
                 line-height: 1.2;
             `;
@@ -2507,7 +2510,7 @@
                 width: 180px;
                 height: 150px;
                 background: rgba(255, 255, 255, 0.95);
-                border: 1px solid #E0E0E0;
+                border: 1px solid #DCE4EE;
                 border-radius: 8px;
                 padding: 10px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -2521,7 +2524,7 @@
                 text-align: center;
                 font-size: 11px;
                 font-weight: bold;
-                color: #333;
+                color: #172033;
                 margin-bottom: 8px;
             `;
             
@@ -2553,7 +2556,7 @@
                 left: 50%;
                 transform: translateX(-50%);
                 font-size: 8px;
-                color: #666;
+                color: #6B7890;
                 white-space: nowrap;
                 font-family: "Microsoft YaHei", sans-serif;
             `;
@@ -2568,7 +2571,7 @@
                 transform: translateY(-50%) rotate(-90deg);
                 transform-origin: center center;
                 font-size: 8px;
-                color: #666;
+                color: #6B7890;
                 white-space: nowrap;
                 font-family: "Microsoft YaHei", sans-serif;
             `;
@@ -2585,7 +2588,7 @@
             r2Label.style.cssText = `
                 text-align: center;
                 font-size: 10px;
-                color: #666;
+                color: #6B7890;
                 margin-top: 8px;
             `;
             
@@ -2720,7 +2723,7 @@
             const ctx = canvas.getContext('2d');
             
             // 设置网格样式
-            ctx.strokeStyle = '#E0E0E0'; // 浅灰色网格
+            ctx.strokeStyle = '#DCE4EE'; // 浅灰色网格
             ctx.lineWidth = 0.5;
             
             // 绘制垂直网格线（5条）

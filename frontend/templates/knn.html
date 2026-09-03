@@ -9,7 +9,7 @@
             font-family: 'Microsoft YaHei', Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #F4F7FB;
         }
         
         .container {
@@ -22,7 +22,7 @@
         }
         
         h1 {
-            color: #333;
+            color: #172033;
             text-align: center;
             margin-bottom: 30px;
         }
@@ -52,7 +52,7 @@
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
-            border-left: 4px solid #4CAF50;
+            border-left: 4px solid #0F9D8A;
         }
         
         .instructions h4 {
@@ -69,7 +69,7 @@
             background-color: #f9f9f9;
             padding: 20px;
             border-radius: 8px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #DCE4EE;
         }
         
         .controls .action-buttons {
@@ -99,7 +99,7 @@
         }
         
         button {
-            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
             color: white;
             border: none;
             cursor: pointer;
@@ -109,7 +109,7 @@
         }
         
         button:hover {
-            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+            background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
             transform: translateY(-1px);
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
@@ -122,7 +122,7 @@
         }
         
         .btn-secondary {
-            background: linear-gradient(135deg, #6c757d 0%, #545b62 100%) !important;
+            background: linear-gradient(135deg, #6B7890 0%, #545b62 100%) !important;
         }
         
         .visualization {
@@ -148,9 +148,9 @@
         
         .panel h3 {
             margin: 0 0 15px 0;
-            color: #333;
+            color: #172033;
             font-size: 1.2rem;
-            border-bottom: 2px solid #2196F3;
+            border-bottom: 2px solid #4F46E5;
             padding-bottom: 8px;
         }
         
@@ -176,9 +176,9 @@
             align-items: center;
             gap: 8px;
             padding: 5px 10px;
-            background-color: #f8f9fa;
+            background-color: #F8FAFD;
             border-radius: 4px;
-            border: 1px solid #e9ecef;
+            border: 1px solid #E7EDF5;
         }
         
         .legend-color {
@@ -199,8 +199,8 @@
         .neighbor { background-color: #9c27b0; }
         
         .performance-panel {
-            background-color: #f8f9fa;
-            border: 1px solid #e9ecef;
+            background-color: #F8FAFD;
+            border: 1px solid #E7EDF5;
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 20px;
@@ -208,7 +208,7 @@
         
         .performance-panel h4 {
             margin: 0 0 10px 0;
-            color: #495057;
+            color: #44516A;
             font-size: 1rem;
         }
         
@@ -229,12 +229,12 @@
         
         .metric-label {
             font-weight: 500;
-            color: #6c757d;
+            color: #6B7890;
         }
         
         .metric-value {
             font-weight: bold;
-            color: #495057;
+            color: #44516A;
         }
         
         .nearest-neighbors {
@@ -273,7 +273,7 @@
             background: white;
             padding: 10px;
             border-radius: 4px;
-            border-left: 4px solid #4CAF50;
+            border-left: 4px solid #0F9D8A;
             font-weight: bold;
             color: #2E7D32;
         }
@@ -301,9 +301,12 @@
         
         .dataset-info h4 {
             margin: 0 0 10px 0;
-            color: #1565C0;
+            color: #3730A3;
         }
     </style>
+    <link rel="stylesheet" href="/static/css/design-system.css">
+    <script defer src="/static/js/visualization-theme.js"></script>
+    <script defer src="/static/js/ui-shell.js"></script>
 </head>
 <body>
     <div class="container">
@@ -317,12 +320,12 @@
                     <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#aaa"/>
                 </filter>
                 <radialGradient id="knnGrad1" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stop-color="#3498DB"/>
-                    <stop offset="100%" stop-color="#2E86C1"/>
+                    <stop offset="0%" stop-color="#2B8AC6"/>
+                    <stop offset="100%" stop-color="#2B8AC6"/>
                 </radialGradient>
                 <radialGradient id="knnGrad2" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stop-color="#E74C3C"/>
-                    <stop offset="100%" stop-color="#C0392B"/>
+                    <stop offset="0%" stop-color="#C2415D"/>
+                    <stop offset="100%" stop-color="#A9344D"/>
                 </radialGradient>
             </defs>
             <rect x="2" y="2" width="60" height="60" rx="12" ry="12" fill="url(#bgGrad)" stroke="#CCC" stroke-width="1.2" filter="url(#shadow)"/>
@@ -331,7 +334,7 @@
             <circle cx="44" cy="44" r="2" fill="url(#knnGrad2)" filter="url(#shadow)"/>
             <circle cx="40" cy="40" r="1.6" fill="url(#knnGrad2)" filter="url(#shadow)"/>
             <circle cx="32" cy="32" r="2.2" fill="#F1C40F" filter="url(#shadow)"/>
-            <circle cx="32" cy="32" r="6" fill="none" stroke="#F39C12" stroke-width="1" stroke-dasharray="3,2"/>
+            <circle cx="32" cy="32" r="6" fill="none" stroke="#D99A20" stroke-width="1" stroke-dasharray="3,2"/>
         </svg> K近邻算法可视化工具</h1>
         
         <!-- 连接状态 -->
@@ -471,8 +474,8 @@
         let currentQueryPoint = null;
         let nearestNeighbors = [];
         
-        // 颜色配置 - 使用更鲜明对比的颜色
-        const colors = ['#FF4444', '#44FF44', '#4444FF', '#FF44FF', '#FFAA00', '#00FFAA'];
+        // 全站共享的色盲友好分类色板
+        const colors = window.VizTheme ? [...VizTheme.palette] : ['#4F46E5', '#0F9D8A', '#E07A3F', '#D64C7F', '#2B8AC6', '#7C6CE7'];
         
         // 数据集配置
         const datasetConfig = {
@@ -930,12 +933,12 @@
                 const colorStyle = `background-color: ${colors[neighbor.label % colors.length]}; width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px;`;
                 
                 div.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 5px; border-radius: 4px; background: #f8f9fa; margin: 3px 0;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 5px; border-radius: 4px; background: #F8FAFD; margin: 3px 0;">
                         <div style="display: flex; align-items: center;">
                             <span style="${colorStyle}"></span>
                             <strong>第${index + 1}近邻:</strong> ${className}
                         </div>
-                        <div style="font-family: monospace; color: #666;">
+                        <div style="font-family: monospace; color: #6B7890;">
                             距离: ${neighbor.distance.toFixed(3)}
                         </div>
                     </div>
@@ -965,7 +968,7 @@
             ctx.arc(currentQueryPoint.x, currentQueryPoint.y, 8, 0, Math.PI * 2);
             ctx.fillStyle = '#ffa726';
             ctx.fill();
-            ctx.strokeStyle = '#333';
+            ctx.strokeStyle = '#172033';
             ctx.lineWidth = 3;
             ctx.stroke();
         }
@@ -990,7 +993,7 @@
                 // 绘制连线
                 ctx.beginPath();
                 ctx.setLineDash([5, 5]);
-                ctx.strokeStyle = '#2196F3';
+                ctx.strokeStyle = '#4F46E5';
                 ctx.lineWidth = 2;
                 ctx.moveTo(currentQueryPoint.x, currentQueryPoint.y);
                 ctx.lineTo(x, y);
@@ -998,13 +1001,13 @@
                 ctx.setLineDash([]);
                 
                 // 显示邻居序号
-                ctx.fillStyle = '#2196F3';
+                ctx.fillStyle = '#4F46E5';
                 ctx.font = 'bold 12px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText(index + 1, x, y - 12);
                 
                 // 显示距离
-                ctx.fillStyle = '#666';
+                ctx.fillStyle = '#6B7890';
                 ctx.font = '10px Arial';
                 ctx.fillText(neighbor.distance.toFixed(2), x, y + 20);
                 
@@ -1051,11 +1054,11 @@
         
         // 清空画布
         function clearCanvas() {
-            ctx.fillStyle = '#f8f9fa';
+            ctx.fillStyle = '#F8FAFD';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // 绘制网格
-            ctx.strokeStyle = '#e9ecef';
+            ctx.strokeStyle = '#E7EDF5';
             ctx.lineWidth = 1;
             
             for (let i = 0; i <= canvas.width; i += 25) {

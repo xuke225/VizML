@@ -598,8 +598,12 @@ class MLVisualizer {
      * 清空画布
      */
     clear() {
-        this.ctx.fillStyle = '#f8f9fa';
-        this.ctx.fillRect(0, 0, this.width, this.height);
+        if (window.VizTheme) {
+            VizTheme.clear(this.ctx, this.width, this.height);
+        } else {
+            this.ctx.fillStyle = '#FBFCFE';
+            this.ctx.fillRect(0, 0, this.width, this.height);
+        }
         this.drawGrid();
     }
 
@@ -607,21 +611,17 @@ class MLVisualizer {
      * 绘制网格
      */
     drawGrid() {
-        this.ctx.strokeStyle = '#e9ecef';
-        this.ctx.lineWidth = 1;
-        
-        for (let i = 0; i <= this.width; i += 20) {
-            this.ctx.beginPath();
-            this.ctx.moveTo(i, 0);
-            this.ctx.lineTo(i, this.height);
-            this.ctx.stroke();
+        if (window.VizTheme) {
+            VizTheme.drawGrid(this.ctx, this.width, this.height);
+            return;
         }
-        
-        for (let i = 0; i <= this.height; i += 20) {
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, i);
-            this.ctx.lineTo(this.width, i);
-            this.ctx.stroke();
+        this.ctx.strokeStyle = '#E7EDF5';
+        this.ctx.lineWidth = 1;
+        for (let i = 0; i <= this.width; i += 24) {
+            this.ctx.beginPath(); this.ctx.moveTo(i, 0); this.ctx.lineTo(i, this.height); this.ctx.stroke();
+        }
+        for (let i = 0; i <= this.height; i += 24) {
+            this.ctx.beginPath(); this.ctx.moveTo(0, i); this.ctx.lineTo(this.width, i); this.ctx.stroke();
         }
     }
 
@@ -629,33 +629,32 @@ class MLVisualizer {
      * 绘制数据点
      */
     drawDataPoints(X, y = null, colors = null) {
-        const defaultColors = ['#2196F3', '#f44336', '#4CAF50', '#FF9800', '#9C27B0'];
+        const defaultColors = window.VizTheme ? VizTheme.palette : ['#4F46E5', '#0F9D8A', '#E07A3F', '#D64C7F', '#2B8AC6'];
         
         for (let i = 0; i < X.length; i++) {
             const x = X[i][0] * this.width;
             const yPos = (1 - X[i][1]) * this.height;
             
-            let color = '#2196F3';
+            let color = '#4F46E5';
             if (y && y[i] !== undefined) {
                 color = defaultColors[y[i] % defaultColors.length];
             } else if (colors && colors[i]) {
                 color = colors[i];
             }
             
-            this.ctx.beginPath();
-            this.ctx.arc(x, yPos, 4, 0, 2 * Math.PI);
-            this.ctx.fillStyle = color;
-            this.ctx.fill();
-            this.ctx.strokeStyle = '#ffffff';
-            this.ctx.lineWidth = 1;
-            this.ctx.stroke();
+            if (window.VizTheme) VizTheme.drawPoint(this.ctx, x, yPos, color, 4);
+            else {
+                this.ctx.beginPath(); this.ctx.arc(x, yPos, 4, 0, 2 * Math.PI);
+                this.ctx.fillStyle = color; this.ctx.fill();
+                this.ctx.strokeStyle = '#ffffff'; this.ctx.lineWidth = 1; this.ctx.stroke();
+            }
         }
     }
 
     /**
      * 绘制回归线
      */
-    drawRegressionLine(coefficients, intercept, color = '#f44336') {
+    drawRegressionLine(coefficients, intercept, color = '#4F46E5') {
         if (coefficients.length !== 1) {
             console.warn('只支持单变量线性回归的可视化');
             return;
@@ -681,7 +680,7 @@ class MLVisualizer {
      * 绘制聚类中心
      */
     drawClusterCenters(centers, colors = null) {
-        const defaultColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
+        const defaultColors = window.VizTheme ? VizTheme.palette : ['#4F46E5', '#0F9D8A', '#E07A3F', '#D64C7F', '#2B8AC6'];
         
         centers.forEach((center, i) => {
             const x = center[0] * this.width;
@@ -871,14 +870,14 @@ style.textContent = `
         align-items: center;
         justify-content: center;
         padding: 20px;
-        color: #666;
+        color: #6B7890;
     }
     
     .spinner {
         width: 20px;
         height: 20px;
         border: 2px solid #f3f3f3;
-        border-top: 2px solid #3498db;
+        border-top: 2px solid #2B8AC6;
         border-radius: 50%;
         animation: spin 1s linear infinite;
         margin-right: 10px;
@@ -903,18 +902,18 @@ style.textContent = `
         justify-content: space-between;
         margin-bottom: 8px;
         padding: 5px 10px;
-        background-color: #f8f9fa;
+        background-color: #F8FAFD;
         border-radius: 4px;
     }
     
     .metric-label {
         font-weight: 500;
-        color: #666;
+        color: #6B7890;
     }
     
     .metric-value {
         font-weight: 600;
-        color: #2c3e50;
+        color: #172033;
     }
 `;
 document.head.appendChild(style);

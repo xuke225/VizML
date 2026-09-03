@@ -45,7 +45,7 @@ UMAP 和 XGBoost 分别依赖 `umap-learn` 与 `xgboost`，二者已列入 `requ
 - Matplotlib、Seaborn
 - UMAP、XGBoost
 - 原生 HTML5、CSS3、JavaScript、Fetch API、Canvas
-- Chart.js、D3.js、Plotly.js（部分页面通过 CDN 加载）
+- Chart.js、Plotly.js（固定版本并由 Flask 本地托管）
 
 ## 快速开始
 
@@ -174,8 +174,8 @@ VizML/
 ├── run.sh                         # macOS/Linux 快捷启动脚本
 ├── requirements.txt               # Python 依赖
 ├── README.md                      # 项目使用说明
-├── TECHNICAL_DOCUMENTATION.md     # 补充技术说明
-├── CLAUDE.md                      # AI 编码工具上下文
+├── version.md                     # 当前版本与更新记录
+├── .gitignore                     # Git 忽略规则
 ├── backend/
 │   ├── data_generator.py          # 合成/内置数据集生成与参数推荐
 │   └── algorithms/
@@ -193,7 +193,11 @@ VizML/
 └── frontend/
     ├── templates/                  # 首页与各算法的独立 HTML 页面
     └── static/
-        └── js/api-client.js        # API 客户端和通用可视化工具
+        ├── css/design-system.css   # 全站设计系统与响应式主题
+        ├── js/api-client.js        # API 客户端和通用可视化工具
+        ├── js/ui-shell.js          # 共享品牌栏和页面增强
+        ├── js/visualization-theme.js # 统一图表色板与绘图工具
+        └── vendor/                 # 本地 Chart.js、Plotly 及许可证
 ```
 
 ## 系统工作方式
@@ -377,7 +381,7 @@ curl http://localhost:5432/api/data/get_available_types
 - 不同访问者共享同一个全局状态，`/api/clear_session` 会清除所有当前状态；
 - 当前实现适合本地教学演示，不适合直接部署为多用户生产服务；
 - 前端 API 地址使用 `localhost:5432`，通过其他端口或远程主机访问前需要调整前端配置；
-- 贝叶斯分类和降维页面的部分图表库来自公共 CDN，离线环境中相关图表可能无法加载；
+- Chart.js 与 Plotly 已在项目内本地托管，算法页面无需公共 CDN 即可加载图表；
 - 部分二维可视化只适用于恰好包含两个特征的数据；
 - `run.sh` 与 `python start.py` 均默认监听 5432 端口；
 - `requirements.txt` 使用固定的较旧科学计算栈；如在较新的 Python 版本上安装失败，优先使用 Python 3.8～3.11 的独立虚拟环境。
