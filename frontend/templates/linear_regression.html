@@ -30,177 +30,243 @@
         <section id="guidedModePanel" class="learning-mode-panel" aria-label="线性回归引导学习"></section>
 
         <section id="freeModePanel" class="learning-mode-panel" hidden aria-label="线性回归自由实验">
-            <div class="instructions">
-                <h2>自由实验</h2>
-                <p>生成一组演示数据，或上传 Excel 并选择多个特征列和一个目标列。训练后可查看拟合结果、残差和模型系数。</p>
+            <div class="lr-free-intro">
+                <div>
+                    <span class="lr-eyebrow">自由实验</span>
+                    <h2>从数据到模型，一屏完成</h2>
+                </div>
+                <p>选择数据、配置模型并训练，在右侧直接查看拟合质量与诊断结果。</p>
             </div>
 
-            <div class="lr-source-grid">
-                <section class="control-group">
-                    <h3>合成数据</h3>
-                    <div class="control-item">
-                        <label for="dataShape">数据模式</label>
-                        <select id="dataShape">
-                            <option value="linear">线性关系</option>
-                            <option value="polynomial">多项式关系</option>
-                            <option value="sinusoidal">正弦波形</option>
-                            <option value="exponential">指数关系</option>
-                            <option value="logarithmic">对数关系</option>
-                            <option value="step">阶跃函数</option>
-                        </select>
+            <div class="lr-workbench">
+                <aside class="lr-config-rail" aria-label="实验配置">
+                    <div class="lr-data-summary" id="dataSummaryCard">
+                        <div class="lr-summary-heading">
+                            <span class="lr-summary-dot" aria-hidden="true"></span>
+                            <span id="activeDataSummary">尚未载入数据</span>
+                        </div>
+                        <p id="activeDataMeta" class="lr-summary-meta">选择一种数据来源开始实验</p>
+                        <div class="lr-summary-stats" aria-label="数据摘要">
+                            <span><strong id="dataCount">0</strong> 行</span>
+                            <span><strong id="featureCount">0</strong> 特征</span>
+                            <span><strong id="trainSize">0</strong> 训练</span>
+                        </div>
+                        <button type="button" id="remapExcelBtn" class="lr-inline-action" hidden>重新映射 Excel</button>
                     </div>
-                    <div class="lr-inline-fields">
-                        <div class="control-item">
-                            <label for="numSamples">样本数量</label>
-                            <input type="number" id="numSamples" value="100" min="20" max="500">
+
+                    <section class="lr-config-section">
+                        <div class="lr-section-title">
+                            <span>1</span>
+                            <div><h3>准备数据</h3><p>生成示例或导入自己的文件</p></div>
+                        </div>
+                        <div class="lr-source-tabs" role="tablist" aria-label="数据来源">
+                            <button type="button" id="dataSourceTabSynthetic" class="lr-source-tab active" role="tab" aria-selected="true" aria-controls="syntheticSourcePanel" data-source-mode="synthetic">合成数据</button>
+                            <button type="button" id="dataSourceTabExcel" class="lr-source-tab" role="tab" aria-selected="false" aria-controls="excelSourcePanel" data-source-mode="excel">Excel 文件</button>
+                        </div>
+
+                        <div id="syntheticSourcePanel" class="lr-source-panel" role="tabpanel" aria-labelledby="dataSourceTabSynthetic">
+                            <div class="control-item">
+                                <label for="dataShape">数据模式</label>
+                                <select id="dataShape">
+                                    <option value="linear">线性关系</option>
+                                    <option value="polynomial">多项式关系</option>
+                                    <option value="sinusoidal">正弦波形</option>
+                                    <option value="exponential">指数关系</option>
+                                    <option value="logarithmic">对数关系</option>
+                                    <option value="step">阶跃函数</option>
+                                </select>
+                            </div>
+                            <div class="lr-compact-row">
+                                <div class="control-item">
+                                    <label for="numSamples">样本数</label>
+                                    <input type="number" id="numSamples" value="100" min="20" max="500">
+                                </div>
+                                <div class="control-item">
+                                    <label for="noiseLevel">噪声 <output id="noiseLevelValue">0.10</output></label>
+                                    <input type="range" id="noiseLevel" min="0" max="0.5" step="0.05" value="0.1">
+                                </div>
+                            </div>
+                            <button type="button" id="generateDataBtn" class="lr-secondary-action">生成并载入</button>
+                        </div>
+
+                        <div id="excelSourcePanel" class="lr-source-panel" role="tabpanel" aria-labelledby="dataSourceTabExcel" hidden>
+                            <input type="file" id="excelFile" class="lr-visually-hidden" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                            <div id="excelDropzone" class="lr-dropzone" tabindex="0" role="button" aria-label="选择或拖入 Excel 文件">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+                                <strong id="excelDropzoneTitle">拖入 Excel 文件</strong>
+                                <span id="excelFileName">或点击选择不超过 5 MB 的 .xlsx</span>
+                            </div>
+                            <button type="button" id="previewExcelBtn" class="lr-secondary-action">选择 Excel 文件</button>
+                            <div class="lr-example-actions">
+                                <button type="button" id="useExampleBtn" class="lr-text-button">使用示例</button>
+                                <a href="/static/examples/linear_regression_example.xlsx" download>下载示例</a>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="lr-config-section">
+                        <div class="lr-section-title">
+                            <span>2</span>
+                            <div><h3>选择模型</h3><p>按实验目标调整算法</p></div>
                         </div>
                         <div class="control-item">
-                            <label for="noiseLevel">噪声 <span id="noiseLevelValue">0.10</span></label>
-                            <input type="range" id="noiseLevel" min="0" max="0.5" step="0.05" value="0.1">
+                            <label for="algorithmType">回归算法</label>
+                            <select id="algorithmType">
+                                <option value="linear">线性回归</option>
+                                <option value="ridge">岭回归</option>
+                                <option value="lasso">Lasso 回归</option>
+                                <option value="polynomial">多项式回归</option>
+                            </select>
+                        </div>
+                        <div class="lr-conditional-control" id="polynomialControls" hidden>
+                            <label for="polynomialDegree">多项式次数</label>
+                            <input type="number" id="polynomialDegree" value="2" min="2" max="5">
+                        </div>
+                        <div class="lr-conditional-control" id="regularizationControls" hidden>
+                            <label for="alpha">正则化强度 α</label>
+                            <input type="number" id="alpha" value="1.0" min="0.001" max="10" step="0.1">
+                        </div>
+                        <div class="control-item">
+                            <label for="optimizer">优化方法</label>
+                            <select id="optimizer">
+                                <option value="auto">自动选择</option>
+                                <option value="ols">普通最小二乘法</option>
+                                <option value="sgd">随机梯度下降</option>
+                                <option value="normal_equation">正则方程</option>
+                            </select>
+                        </div>
+                        <div class="lr-conditional-control lr-compact-row" id="sgdControls" hidden>
+                            <div>
+                                <label for="learningRate">学习率</label>
+                                <input type="number" id="learningRate" value="0.01" min="0.001" max="1" step="0.001">
+                            </div>
+                            <div>
+                                <label for="maxIter">迭代次数</label>
+                                <input type="number" id="maxIter" value="1000" min="100" max="10000" step="100">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="lr-config-section">
+                        <div class="lr-section-title">
+                            <span>3</span>
+                            <div><h3>训练设置</h3><p>保留部分数据检验泛化</p></div>
+                        </div>
+                        <div class="control-item lr-range-control">
+                            <label for="testSize">测试集比例 <output id="testSizeValue">20%</output></label>
+                            <input type="range" id="testSize" min="0.1" max="0.5" step="0.05" value="0.2">
+                            <div class="lr-range-labels"><span>10%</span><span>50%</span></div>
+                        </div>
+                    </section>
+
+                    <div class="lr-run-dock">
+                        <button type="button" id="trainModelBtn" disabled>
+                            <span>开始训练</span>
+                            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m0 0-4-4m4 4-4 4"/></svg>
+                        </button>
+                        <div class="lr-utility-actions">
+                            <button type="button" id="resetModelBtn">重置模型</button>
+                            <button type="button" id="clearDataBtn">清空数据</button>
+                            <button type="button" id="clearSessionBtn" class="danger">清除会话</button>
                         </div>
                     </div>
-                    <button type="button" id="generateDataBtn">生成数据</button>
-                </section>
-
-                <section class="control-group">
-                    <h3>上传 Excel</h3>
-                    <p class="lr-help">仅支持不超过 5 MB 的 .xlsx 文件。第一行必须是唯一且非空的列名。</p>
-                    <div class="control-item">
-                        <label for="excelFile">选择文件</label>
-                        <input type="file" id="excelFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-                    </div>
-                    <div class="lr-action-row">
-                        <button type="button" id="previewExcelBtn">预览并选择列</button>
-                        <button type="button" id="useExampleBtn" class="btn-secondary">使用示例数据</button>
-                    </div>
-                    <a class="lr-download-link" href="/static/examples/linear_regression_example.xlsx" download>下载示例 Excel</a>
-                </section>
-            </div>
-
-            <section id="excelConfigPanel" class="lr-excel-panel" hidden>
-                <div class="lr-panel-heading">
-                    <div>
-                        <h3>Excel 数据预览</h3>
-                        <p id="excelFileSummary" class="lr-help"></p>
-                    </div>
-                    <div class="control-item lr-sheet-select">
-                        <label for="excelSheet">工作表</label>
-                        <select id="excelSheet"></select>
-                    </div>
-                </div>
-                <div id="excelPreviewTable" class="lr-table-wrap"></div>
-                <div class="lr-column-picker">
-                    <fieldset>
-                        <legend>特征列（可多选）</legend>
-                        <div id="featureColumnOptions" class="lr-checkbox-grid"></div>
-                    </fieldset>
-                    <div class="control-item">
-                        <label for="targetColumn">目标列</label>
-                        <select id="targetColumn"></select>
-                        <p class="lr-help">空值、无穷值和无法转换为数值的行将在导入时过滤。</p>
-                    </div>
-                </div>
-                <button type="button" id="importExcelBtn">导入所选数据</button>
-            </section>
-
-            <div id="dataNotice" class="lr-notice" hidden role="status" aria-live="polite"></div>
-
-            <div class="controls">
-                <section class="control-group">
-                    <h3>算法配置</h3>
-                    <div class="control-item">
-                        <label for="algorithmType">回归算法</label>
-                        <select id="algorithmType">
-                            <option value="linear">线性回归</option>
-                            <option value="ridge">岭回归</option>
-                            <option value="lasso">Lasso 回归</option>
-                            <option value="polynomial">多项式回归</option>
-                        </select>
-                    </div>
-                    <div class="control-item" id="polynomialControls" hidden>
-                        <label for="polynomialDegree">多项式次数</label>
-                        <input type="number" id="polynomialDegree" value="2" min="2" max="5">
-                    </div>
-                    <div class="control-item" id="regularizationControls" hidden>
-                        <label for="alpha">正则化参数</label>
-                        <input type="number" id="alpha" value="1.0" min="0.001" max="10" step="0.1">
-                    </div>
-                </section>
-
-                <section class="control-group">
-                    <h3>训练配置</h3>
-                    <div class="control-item">
-                        <label for="optimizer">优化方法</label>
-                        <select id="optimizer">
-                            <option value="auto">自动选择</option>
-                            <option value="ols">普通最小二乘法</option>
-                            <option value="sgd">随机梯度下降</option>
-                            <option value="normal_equation">正则方程</option>
-                        </select>
-                    </div>
-                    <div class="control-item" id="sgdControls" hidden>
-                        <label for="learningRate">学习率</label>
-                        <input type="number" id="learningRate" value="0.01" min="0.001" max="1" step="0.001">
-                        <label for="maxIter">最大迭代次数</label>
-                        <input type="number" id="maxIter" value="1000" min="100" max="10000" step="100">
-                    </div>
-                    <div class="control-item">
-                        <label for="testSize">测试集比例 <span id="testSizeValue">20%</span></label>
-                        <input type="range" id="testSize" min="0.1" max="0.5" step="0.05" value="0.2">
-                    </div>
-                    <button type="button" id="trainModelBtn" disabled>开始训练</button>
-                </section>
-
-                <section class="control-group">
-                    <h3>数据状态</h3>
-                    <div class="data-info">
-                        <div class="data-stat"><strong id="dataCount">0</strong><span>有效数据行</span></div>
-                        <div class="data-stat"><strong id="featureCount">0</strong><span>特征数量</span></div>
-                        <div class="data-stat"><strong id="trainSize">0</strong><span>预计训练行</span></div>
-                    </div>
-                    <button type="button" id="resetModelBtn" class="btn-secondary">重置模型</button>
-                    <button type="button" id="clearDataBtn" class="btn-secondary">清空数据</button>
-                    <button type="button" id="clearSessionBtn" class="btn-danger">清除全部会话</button>
-                </section>
-            </div>
-
-            <div class="visualization">
-                <section class="canvas-panel">
-                    <h3 id="primaryChartTitle">数据与拟合结果</h3>
-                    <canvas id="regressionCanvas" width="760" height="430" aria-label="回归数据可视化"></canvas>
-                    <p id="canvasInfo" class="lr-chart-note">请先生成数据或上传 Excel。</p>
-                </section>
-
-                <aside class="info-panel">
-                    <section class="info-section">
-                        <h4>回归方程</h4>
-                        <div class="equation" id="regressionEquation">y = ?</div>
-                    </section>
-                    <section class="info-section">
-                        <h4>性能指标</h4>
-                        <div id="metricsDisplay" class="metrics-grid"><span class="lr-muted">等待训练...</span></div>
-                    </section>
-                    <section class="info-section">
-                        <h4>模型信息</h4>
-                        <dl class="lr-model-info">
-                            <dt>算法</dt><dd id="modelAlgorithm">-</dd>
-                            <dt>状态</dt><dd id="trainingStatus">未开始</dd>
-                            <dt>会话</dt><dd id="sessionKey">-</dd>
-                        </dl>
-                    </section>
                 </aside>
-            </div>
 
-            <div id="diagnosticCharts" class="lr-diagnostic-grid" hidden>
-                <section class="canvas-panel">
-                    <h3>残差诊断</h3>
-                    <canvas id="residualCanvas" width="650" height="360" aria-label="预测值与残差图"></canvas>
-                </section>
-                <section class="canvas-panel">
-                    <h3>模型系数</h3>
-                    <canvas id="coefficientCanvas" width="650" height="360" aria-label="模型系数条形图"></canvas>
-                    <p id="coefficientNote" class="lr-chart-note"></p>
-                </section>
+                <main class="lr-workspace" aria-live="polite">
+                    <div id="dataNotice" class="lr-notice" hidden role="status"></div>
+
+                    <section id="excelConfigPanel" class="lr-excel-task" hidden aria-labelledby="excelTaskTitle">
+                        <header class="lr-task-header">
+                            <div>
+                                <span class="lr-eyebrow">数据映射</span>
+                                <h2 id="excelTaskTitle">确认工作表与字段</h2>
+                                <p id="excelFileSummary"></p>
+                            </div>
+                            <button type="button" id="cancelExcelBtn" class="lr-icon-button" aria-label="取消 Excel 映射并返回结果">
+                                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5 5 15"/></svg>
+                            </button>
+                        </header>
+
+                        <div class="lr-mapping-toolbar">
+                            <div class="control-item">
+                                <label for="excelSheet">工作表</label>
+                                <select id="excelSheet"></select>
+                            </div>
+                            <div class="control-item">
+                                <label for="targetColumn">目标列</label>
+                                <select id="targetColumn"></select>
+                            </div>
+                        </div>
+
+                        <div class="lr-preview-block">
+                            <div class="lr-block-heading">
+                                <h3>数据预览</h3>
+                                <span>显示前 5 行</span>
+                            </div>
+                            <div id="excelPreviewTable" class="lr-table-wrap"></div>
+                        </div>
+
+                        <fieldset class="lr-feature-picker">
+                            <legend>选择特征列 <span>可多选，目标列会自动排除</span></legend>
+                            <div id="featureColumnOptions" class="lr-checkbox-grid"></div>
+                        </fieldset>
+
+                        <footer class="lr-task-footer">
+                            <p>空值、无穷值和无法转换为数值的行会在导入时过滤。</p>
+                            <div>
+                                <button type="button" id="cancelExcelFooterBtn" class="lr-task-secondary">取消</button>
+                                <button type="button" id="importExcelBtn">导入所选数据</button>
+                            </div>
+                        </footer>
+                    </section>
+
+                    <section id="resultsWorkspace" class="lr-results-workspace">
+                        <header class="lr-results-header">
+                            <div>
+                                <span class="lr-eyebrow">实验结果</span>
+                                <h2 id="primaryChartTitle">数据与拟合结果</h2>
+                            </div>
+                            <div class="lr-model-status">
+                                <span id="trainingStatus">未开始</span>
+                                <strong id="modelAlgorithm">等待配置</strong>
+                            </div>
+                        </header>
+
+                        <div class="visualization">
+                            <section class="canvas-panel">
+                                <canvas id="regressionCanvas" width="760" height="430" aria-label="回归数据可视化"></canvas>
+                                <p id="canvasInfo" class="lr-chart-note">请先生成数据或上传 Excel。</p>
+                            </section>
+
+                            <aside class="info-panel">
+                                <section class="info-section">
+                                    <div class="lr-info-heading"><span>回归方程</span><span class="lr-status-chip">MODEL</span></div>
+                                    <div class="equation" id="regressionEquation">y = ?</div>
+                                </section>
+                                <section class="info-section lr-metrics-section">
+                                    <div class="lr-info-heading"><span>性能指标</span><span class="lr-status-chip">METRICS</span></div>
+                                    <div id="metricsDisplay" class="metrics-grid"><span class="lr-muted">等待训练...</span></div>
+                                </section>
+                                <section class="info-section lr-session-section">
+                                    <span>当前会话</span>
+                                    <code id="sessionKey">-</code>
+                                </section>
+                            </aside>
+                        </div>
+
+                        <div id="diagnosticCharts" class="lr-diagnostic-grid" hidden>
+                            <section class="canvas-panel">
+                                <div class="lr-block-heading"><h3>残差诊断</h3><span>预测值 × 残差</span></div>
+                                <canvas id="residualCanvas" width="650" height="360" aria-label="预测值与残差图"></canvas>
+                            </section>
+                            <section class="canvas-panel">
+                                <div class="lr-block-heading"><h3>模型系数</h3><span>方向与相对大小</span></div>
+                                <canvas id="coefficientCanvas" width="650" height="360" aria-label="模型系数条形图"></canvas>
+                                <p id="coefficientNote" class="lr-chart-note"></p>
+                            </section>
+                        </div>
+                    </section>
+                </main>
             </div>
         </section>
     </div>

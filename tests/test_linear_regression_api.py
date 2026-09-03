@@ -45,6 +45,16 @@ class LinearRegressionLearningApiTests(unittest.TestCase):
             'sse', 'mse', 'mean_target', 'tss', 'r2',
         })
 
+    def test_linear_regression_page_exposes_compact_free_experiment_workbench(self):
+        response = self.client.get('/html/linear_regression.html')
+        self.assertEqual(response.status_code, 200)
+        page = response.get_data(as_text=True)
+        self.assertIn('class="lr-config-rail"', page)
+        self.assertIn('role="tablist" aria-label="数据来源"', page)
+        self.assertIn('id="excelDropzone"', page)
+        self.assertIn('id="excelConfigPanel"', page)
+        self.assertIn('id="resultsWorkspace"', page)
+
     def test_legacy_session_key_format_is_unchanged(self):
         generated = self.client.post('/api/generate_data', json={
             'type': 'regression',

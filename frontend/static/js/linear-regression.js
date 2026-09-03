@@ -8,7 +8,9 @@
         currentData: null,
         sessionKey: null,
         modelKey: null,
-        results: null
+        results: null,
+        sourceMode: 'synthetic',
+        workspaceMode: 'results'
     };
 
     document.addEventListener('DOMContentLoaded', init);
@@ -17,6 +19,7 @@
         if (typeof MLApiClient === 'undefined') return;
         state.client = new MLApiClient();
         bindEvents();
+        setSourceMode('synthetic');
         updateControlVisibility();
         updateSliderLabels();
         drawEmptyChart(document.getElementById('regressionCanvas'), '请先准备数据');
@@ -25,11 +28,20 @@
 
     function bindEvents() {
         document.getElementById('generateDataBtn').addEventListener('click', generateSyntheticData);
-        document.getElementById('previewExcelBtn').addEventListener('click', previewSelectedExcel);
+        document.querySelectorAll('[data-source-mode]').forEach((button) => {
+            button.addEventListener('click', () => setSourceMode(button.dataset.sourceMode));
+            button.addEventListener('keydown', handleSourceTabKeydown);
+        });
+        document.getElementById('previewExcelBtn').addEventListener('click', () => {
+            document.getElementById('excelFile').click();
+        });
         document.getElementById('useExampleBtn').addEventListener('click', useExampleData);
         document.getElementById('excelSheet').addEventListener('change', () => renderSelectedSheet(false));
         document.getElementById('targetColumn').addEventListener('change', syncFeatureChoices);
         document.getElementById('importExcelBtn').addEventListener('click', importExcelData);
+        document.getElementById('cancelExcelBtn').addEventListener('click', cancelExcelMapping);
+        document.getElementById('cancelExcelFooterBtn').addEventListener('click', cancelExcelMapping);
+        document.getElementById('remapExcelBtn').addEventListener('click', reopenExcelMapping);
         document.getElementById('algorithmType').addEventListener('change', updateControlVisibility);
         document.getElementById('optimizer').addEventListener('change', updateControlVisibility);
         document.getElementById('noiseLevel').addEventListener('input', updateSliderLabels);
@@ -41,14 +53,98 @@
         document.getElementById('resetModelBtn').addEventListener('click', resetModel);
         document.getElementById('clearDataBtn').addEventListener('click', clearData);
         document.getElementById('clearSessionBtn').addEventListener('click', clearSession);
-        document.getElementById('excelFile').addEventListener('change', (event) => {
-            state.excelFile = event.target.files[0] || null;
-            state.excelPreview = null;
-            document.getElementById('excelConfigPanel').hidden = true;
+        const fileInput = document.getElementById('excelFile');
+        const dropzone = document.getElementById('excelDropzone');
+        fileInput.addEventListener('change', (event) => handleExcelFile(event.target.files[0] || null));
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                fileInput.click();
+            }
+        });
+        ['dragenter', 'dragover'].forEach((eventName) => {
+            dropzone.addEventListener(eventName, (event) => {
+                event.preventDefault();
+                dropzone.classList.add('dragging');
+            });
+        });
+        ['dragleave', 'drop'].forEach((eventName) => {
+            dropzone.addEventListener(eventName, (event) => {
+                event.preventDefault();
+                dropzone.classList.remove('dragging');
+            });
+        });
+        dropzone.addEventListener('drop', (event) => {
+            handleExcelFile(event.dataTransfer.files[0] || null);
         });
         window.addEventListener('resize', () => {
             if (state.currentData) renderVisualizations();
         });
+    }
+
+    function setSourceMode(mode, moveFocus = false) {
+        state.sourceMode = mode;
+        document.querySelectorAll('[data-source-mode]').forEach((button) => {
+            const active = button.dataset.sourceMode === mode;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-selected', String(active));
+            button.tabIndex = active ? 0 : -1;
+        });
+        document.getElementById('syntheticSourcePanel').hidden = mode !== 'synthetic';
+        document.getElementById('excelSourcePanel').hidden = mode !== 'excel';
+        if (moveFocus) {
+            document.querySelector(`[data-source-mode="${mode}"]`).focus();
+        }
+    }
+
+    function handleSourceTabKeydown(event) {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        event.preventDefault();
+        setSourceMode(state.sourceMode === 'synthetic' ? 'excel' : 'synthetic', true);
+    }
+
+    function handleExcelFile(file) {
+        if (!file) return;
+        state.excelFile = file;
+        state.excelPreview = null;
+        setSourceMode('excel');
+        updateExcelDropzone();
+        previewExcel(false);
+    }
+
+    function updateExcelDropzone() {
+        const title = document.getElementById('excelDropzoneTitle');
+        const filename = document.getElementById('excelFileName');
+        if (state.excelFile) {
+            title.textContent = '已选择文件';
+            filename.textContent = state.excelFile.name;
+        } else {
+            title.textContent = '拖入 Excel 文件';
+            filename.textContent = '或点击选择不超过 5 MB 的 .xlsx';
+        }
+    }
+
+    function setWorkspaceMode(mode) {
+        state.workspaceMode = mode;
+        document.getElementById('excelConfigPanel').hidden = mode !== 'excel';
+        document.getElementById('resultsWorkspace').hidden = mode !== 'results';
+    }
+
+    function cancelExcelMapping() {
+        setWorkspaceMode('results');
+        if (state.currentData) renderVisualizations();
+        showNotice(state.currentData ? '已保留当前实验数据与结果。' : '已取消 Excel 数据映射。');
+    }
+
+    function reopenExcelMapping() {
+        setSourceMode('excel');
+        if (state.excelPreview) {
+            setWorkspaceMode('excel');
+            document.getElementById('excelConfigPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            document.getElementById('excelDropzone').focus();
+        }
     }
 
     async function checkConnection() {
@@ -97,16 +193,6 @@
         }
     }
 
-    async function previewSelectedExcel() {
-        const inputFile = document.getElementById('excelFile').files[0];
-        if (inputFile) state.excelFile = inputFile;
-        if (!state.excelFile) {
-            showNotice('请先选择一个 .xlsx 文件。', true);
-            return;
-        }
-        await previewExcel(false);
-    }
-
     async function useExampleData() {
         setBusy('useExampleBtn', true, '正在载入...');
         try {
@@ -116,6 +202,8 @@
             state.excelFile = new File([blob], 'linear_regression_example.xlsx', {
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             });
+            setSourceMode('excel');
+            updateExcelDropzone();
             await previewExcel(true);
         } catch (error) {
             showNotice(error.message || '无法载入示例数据', true);
@@ -144,10 +232,10 @@
                 option.textContent = sheet.name;
                 return option;
             }));
-            document.getElementById('excelConfigPanel').hidden = false;
             document.getElementById('excelFileSummary').textContent =
                 `${state.excelPreview.filename} · ${state.excelPreview.sheets.length} 个工作表`;
             renderSelectedSheet(isExample);
+            setWorkspaceMode('excel');
             showNotice('文件解析完成，请确认工作表、特征列和目标列。');
             document.getElementById('excelConfigPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
         } catch (error) {
@@ -255,6 +343,7 @@
         document.getElementById('trainModelBtn').disabled = false;
         resetResultDisplay();
         updateDataStats();
+        setWorkspaceMode('results');
         renderVisualizations();
         showNotice(message);
     }
@@ -266,6 +355,32 @@
         document.getElementById('dataCount').textContent = count;
         document.getElementById('featureCount').textContent = featureCount;
         document.getElementById('trainSize').textContent = Math.floor(count * (1 - testSize));
+        const summaryCard = document.getElementById('dataSummaryCard');
+        const summaryText = document.getElementById('activeDataSummary');
+        const summaryMeta = document.getElementById('activeDataMeta');
+        const remapButton = document.getElementById('remapExcelBtn');
+        summaryCard.classList.toggle('ready', count > 0);
+        if (!state.currentData) {
+            summaryText.textContent = '尚未载入数据';
+            summaryMeta.textContent = '选择一种数据来源开始实验';
+            remapButton.hidden = true;
+            return;
+        }
+        const featureInfo = state.currentData.feature_info;
+        const isExcel = featureInfo && featureInfo.source_type === 'excel';
+        if (isExcel) {
+            summaryText.textContent = featureInfo.dataset_name || 'Excel 数据';
+            const imported = state.currentData.import_summary;
+            const filtered = imported && imported.dropped_rows
+                ? ` · 已过滤 ${imported.dropped_rows} 行`
+                : '';
+            summaryMeta.textContent = `${featureInfo.description || 'Excel 数据'}${filtered}`;
+        } else {
+            const select = document.getElementById('dataShape');
+            summaryText.textContent = select.options[select.selectedIndex].textContent;
+            summaryMeta.textContent = '合成回归数据';
+        }
+        remapButton.hidden = !isExcel;
     }
 
     async function trainModel() {
@@ -597,6 +712,7 @@
         document.getElementById('trainingStatus').textContent = '未开始';
         document.getElementById('trainModelBtn').disabled = true;
         document.getElementById('diagnosticCharts').hidden = true;
+        setWorkspaceMode('results');
         resetResultDisplay();
         updateDataStats();
         drawEmptyChart(document.getElementById('regressionCanvas'), '请先准备数据');
@@ -604,6 +720,7 @@
     }
 
     async function clearSession() {
+        if (!window.confirm('这会清除当前进程中的全部数据和模型会话，确定继续吗？')) return;
         try {
             await state.client.clearSession();
             clearData();
@@ -616,18 +733,18 @@
     function resetResultDisplay() {
         document.getElementById('regressionEquation').textContent = 'y = ?';
         document.getElementById('metricsDisplay').innerHTML = '<span class="lr-muted">等待训练...</span>';
-        document.getElementById('modelAlgorithm').textContent = '-';
+        document.getElementById('modelAlgorithm').textContent = '等待配置';
     }
 
     function setBusy(buttonId, busy, busyText) {
         const button = document.getElementById(buttonId);
         if (!button) return;
         if (busy) {
-            button.dataset.originalText = button.textContent;
+            button.dataset.originalHtml = button.innerHTML;
             button.textContent = busyText;
             button.disabled = true;
         } else {
-            button.textContent = button.dataset.originalText || button.textContent;
+            button.innerHTML = button.dataset.originalHtml || button.innerHTML;
             button.disabled = false;
         }
     }
