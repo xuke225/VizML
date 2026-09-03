@@ -285,6 +285,40 @@ class MLApiClient {
     }
 
     /**
+     * 预览线性回归 Excel 文件
+     */
+    async previewLinearRegressionExcel(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        return this.request('/api/linear_regression/excel/preview', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            body: formData
+        });
+    }
+
+    /**
+     * 将 Excel 中选择的列导入为线性回归数据集
+     */
+    async importLinearRegressionExcel(file, sheetName, featureColumns, targetColumn) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('sheet_name', sheetName);
+        featureColumns.forEach((column) => formData.append('feature_columns', column));
+        formData.append('target_column', targetColumn);
+
+        const result = await this.request('/api/linear_regression/excel/import', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            body: formData
+        });
+        if (result.status === 'success') {
+            this.sessionData.set(result.session_key, result.data);
+        }
+        return result;
+    }
+
+    /**
      * 训练线性回归模型
      */
     async trainLinearRegression(config) {

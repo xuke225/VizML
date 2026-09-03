@@ -16,6 +16,10 @@ import logging
 import os
 import uuid
 import time
+from datetime import date, datetime
+from io import BytesIO
+
+from openpyxl import load_workbook
 
 # 导入数据生成模块
 from backend.data_generator import DataGenerator
@@ -48,6 +52,9 @@ session_data = {
     'scalers': {},
     'training_history': {}
 }
+
+MAX_EXCEL_FILE_SIZE = 5 * 1024 * 1024
+EXCEL_PREVIEW_ROWS = 5
 
 # 初始化算法模块
 data_gen = DataGenerator()
@@ -90,7 +97,6 @@ def generate_data():
         n_classes = config.get('n_classes', 2)
         noise = config.get('noise', 0.1)
         random_state = config.get('random_state', 42)
-        feature_info = None
         
         # 映射HTML传递的shape值到数据生成器期望的值
         shape_mapping = {
@@ -112,11 +118,6 @@ def generate_data():
             'exponential': 'exponential',
             'logarithmic': 'logarithmic',
             
-            # 真实回归数据集映射
-            'california_housing': 'california_housing',
-            'diabetes_regression': 'diabetes_regression',
-            'boston_housing': 'boston_housing',
-            
             # 聚类数据映射
             'blobs': 'blobs',
             'circles': 'circles',
@@ -134,8 +135,7 @@ def generate_data():
             '高斯分布': 'gaussian',
             'XOR模式': 'xor',
             
-            # 保持真实数据集名称不变，在后续处理中单独处理
-            # 'iris', 'wine', 'breast_cancer', 'digits' 保持原值
+            # sklearn 内置分类数据集名称保持原值
         }
         
         # 应用映射
@@ -143,7 +143,7 @@ def generate_data():
         
         logger.info(f"生成数据: type={dataset_type}, shape={data_shape}->{mapped_shape}, samples={n_samples}")
         
-        # 处理真实数据集
+        # 处理 sklearn 内置分类数据集
         if data_shape in ['iris', 'wine', 'breast_cancer', 'digits', 'digits_2d']:
             from sklearn.datasets import load_iris, load_wine, load_breast_cancer, load_digits
             
@@ -176,19 +176,12 @@ def generate_data():
                 random_state=random_state
             )
         elif dataset_type == 'regression':
-            result_data = data_gen.generate_regression_data(
+            X, y = data_gen.generate_regression_data(
                 shape=mapped_shape,
                 n_samples=n_samples,
                 noise=noise,
                 random_state=random_state
             )
-            
-            # 检查是否返回了特征信息（真实数据集）
-            if isinstance(result_data, tuple) and len(result_data) == 3:
-                X, y, feature_info = result_data
-            else:
-                X, y = result_data
-                feature_info = None
         elif dataset_type == 'clustering':
             # 检查是否为自定义手绘数据
             if config.get('custom', False) and 'data' in config:
@@ -207,17 +200,23 @@ def generate_data():
             raise ValueError(f"不支持的数据类型: {dataset_type}")
         
         # 存储数据
+        # 可选命名空间用于隔离同一页面内的多个实验状态，例如线性回归的
+        # “引导学习”和“自由实验”。未传入时保持原有会话键格式兼容旧客户端。
+        session_namespace = config.get('session_namespace')
         session_key = f"{dataset_type}_{data_shape}"
+        if session_namespace:
+            safe_namespace = ''.join(
+                character for character in str(session_namespace)
+                if character.isalnum() or character in ('_', '-')
+            )[:40]
+            if safe_namespace:
+                session_key = f"{session_key}_{safe_namespace}"
         stored_data = {
             'X': X.tolist() if X is not None else None,
             'y': y.tolist() if y is not None else None,
             'config': config
         }
         
-        # 如果有特征信息，也存储起来
-        if feature_info is not None:
-            stored_data['feature_info'] = feature_info
-            
         session_data['datasets'][session_key] = stored_data
         
         # 构造返回结果
@@ -228,10 +227,6 @@ def generate_data():
             'n_features': X.shape[1] if X is not None else 0,
             'n_classes': len(np.unique(y)) if y is not None else 0
         }
-        
-        # 如果有特征信息，添加到返回结果中
-        if feature_info is not None:
-            result_data['feature_info'] = feature_info
         
         result = {
             'status': 'success',
@@ -965,6 +960,200 @@ def get_bayesian_probabilities():
 
 # ================== 线性回归算法API ==================
 
+
+def _json_safe_excel_value(value):
+    """Convert worksheet values into JSON-safe preview values."""
+    if value is None:
+        return None
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if isinstance(value, (str, int, float, bool)):
+        return value
+    return str(value)
+
+
+def _read_excel_upload(upload):
+    """Validate and parse an uploaded .xlsx workbook without writing it to disk."""
+    if upload is None or not upload.filename:
+        raise ValueError('请选择要上传的 Excel 文件')
+    if not upload.filename.lower().endswith('.xlsx'):
+        raise ValueError('仅支持 .xlsx 格式的 Excel 文件')
+
+    content = upload.stream.read(MAX_EXCEL_FILE_SIZE + 1)
+    if len(content) > MAX_EXCEL_FILE_SIZE:
+        raise ValueError('Excel 文件不能超过 5 MB')
+    if not content:
+        raise ValueError('上传的 Excel 文件为空')
+
+    try:
+        workbook = load_workbook(BytesIO(content), read_only=True, data_only=True)
+    except Exception as error:
+        raise ValueError('无法解析 Excel 文件，请确认文件未损坏且未加密') from error
+
+    sheets = {}
+    try:
+        for worksheet in workbook.worksheets:
+            rows = worksheet.iter_rows(values_only=True)
+            raw_header = next(rows, None)
+            if raw_header is None:
+                sheets[worksheet.title] = pd.DataFrame()
+                continue
+
+            header = list(raw_header)
+            while header and header[-1] is None:
+                header.pop()
+            columns = [str(value).strip() if value is not None else '' for value in header]
+            if not columns:
+                sheets[worksheet.title] = pd.DataFrame()
+                continue
+            if any(not column for column in columns):
+                raise ValueError(f'工作表“{worksheet.title}”包含空列名')
+            if len(set(columns)) != len(columns):
+                raise ValueError(f'工作表“{worksheet.title}”包含重复列名')
+
+            values = []
+            for row in rows:
+                normalized = list(row[:len(columns)])
+                normalized.extend([None] * (len(columns) - len(normalized)))
+                if any(value is not None and value != '' for value in normalized):
+                    values.append(normalized)
+            sheets[worksheet.title] = pd.DataFrame(values, columns=columns)
+    finally:
+        workbook.close()
+
+    if not sheets or all(frame.empty for frame in sheets.values()):
+        raise ValueError('Excel 文件中没有可用的数据行')
+    return upload.filename, sheets
+
+
+def _excel_sheet_metadata(name, frame):
+    numeric_columns = []
+    invalid_counts = {}
+    for column in frame.columns:
+        converted = pd.to_numeric(frame[column], errors='coerce')
+        non_empty = frame[column].notna() & frame[column].astype(str).str.strip().ne('')
+        convertible = converted.notna()
+        if convertible.any():
+            numeric_columns.append(column)
+        invalid_counts[column] = int((non_empty & ~convertible).sum())
+
+    preview = [
+        {column: _json_safe_excel_value(value) for column, value in row.items()}
+        for row in frame.head(EXCEL_PREVIEW_ROWS).to_dict(orient='records')
+    ]
+    return {
+        'name': name,
+        'columns': list(frame.columns),
+        'numeric_columns': numeric_columns,
+        'invalid_counts': invalid_counts,
+        'total_rows': int(len(frame)),
+        'preview': preview,
+    }
+
+
+@app.route('/api/linear_regression/excel/preview', methods=['POST'])
+def preview_linear_regression_excel():
+    """Return worksheet and column metadata for an uploaded Excel workbook."""
+    try:
+        filename, sheets = _read_excel_upload(request.files.get('file'))
+        return jsonify({
+            'status': 'success',
+            'filename': filename,
+            'sheets': [
+                _excel_sheet_metadata(name, frame)
+                for name, frame in sheets.items()
+            ],
+        })
+    except ValueError as error:
+        return jsonify({'status': 'error', 'message': str(error)}), 400
+    except Exception as error:
+        logger.exception('Excel 预览错误')
+        return jsonify({'status': 'error', 'message': f'Excel 预览失败: {error}'}), 400
+
+
+@app.route('/api/linear_regression/excel/import', methods=['POST'])
+def import_linear_regression_excel():
+    """Create a regression dataset from selected columns in an Excel workbook."""
+    try:
+        filename, sheets = _read_excel_upload(request.files.get('file'))
+        sheet_name = request.form.get('sheet_name', '')
+        target_column = request.form.get('target_column', '')
+        feature_columns = request.form.getlist('feature_columns')
+
+        if sheet_name not in sheets:
+            raise ValueError('所选工作表不存在')
+        frame = sheets[sheet_name]
+        if frame.empty:
+            raise ValueError('所选工作表没有可用的数据行')
+        if not feature_columns:
+            raise ValueError('请至少选择一个特征列')
+        if not target_column:
+            raise ValueError('请选择目标列')
+        if len(set(feature_columns)) != len(feature_columns):
+            raise ValueError('特征列不能重复')
+        if target_column in feature_columns:
+            raise ValueError('目标列不能同时作为特征列')
+
+        selected_columns = feature_columns + [target_column]
+        missing_columns = [column for column in selected_columns if column not in frame.columns]
+        if missing_columns:
+            raise ValueError(f'列不存在: {"、".join(missing_columns)}')
+
+        numeric_frame = frame[selected_columns].apply(pd.to_numeric, errors='coerce')
+        numeric_frame = numeric_frame.replace([np.inf, -np.inf], np.nan)
+        valid_rows = numeric_frame.notna().all(axis=1)
+        cleaned = numeric_frame.loc[valid_rows]
+        dropped_rows = int(len(frame) - len(cleaned))
+        if len(cleaned) < 10:
+            raise ValueError('清洗后至少需要 10 行完整数值数据')
+
+        X = cleaned[feature_columns].to_numpy(dtype=float)
+        y = cleaned[target_column].to_numpy(dtype=float)
+        session_key = f'regression_excel_{uuid.uuid4().hex}'
+        feature_info = {
+            'dataset_name': filename,
+            'description': f'来自工作表“{sheet_name}”的 Excel 数据',
+            'target': target_column,
+            'features_used': feature_columns,
+            'total_features': len(feature_columns),
+            'source_type': 'excel',
+        }
+        session_data['datasets'][session_key] = {
+            'X': X.tolist(),
+            'y': y.tolist(),
+            'feature_info': feature_info,
+            'config': {
+                'type': 'regression',
+                'shape': 'excel',
+                'filename': filename,
+                'sheet_name': sheet_name,
+                'feature_columns': feature_columns,
+                'target_column': target_column,
+            },
+        }
+
+        return jsonify({
+            'status': 'success',
+            'session_key': session_key,
+            'data': {
+                'X': X.tolist(),
+                'y': y.tolist(),
+                'n_samples': int(len(X)),
+                'n_features': int(X.shape[1]),
+                'feature_info': feature_info,
+                'import_summary': {
+                    'original_rows': int(len(frame)),
+                    'valid_rows': int(len(cleaned)),
+                    'dropped_rows': dropped_rows,
+                },
+            },
+        })
+    except ValueError as error:
+        return jsonify({'status': 'error', 'message': str(error)}), 400
+    except Exception as error:
+        logger.exception('Excel 导入错误')
+        return jsonify({'status': 'error', 'message': f'Excel 导入失败: {error}'}), 400
+
 @app.route('/api/linear_regression/train', methods=['POST'])
 def train_linear_regression():
     """训练线性回归模型"""
@@ -1021,6 +1210,8 @@ def train_linear_regression():
                 'training_info': result['training_info'],
                 'prediction_curve': result['prediction_curve'],
                 'residuals': result['residuals'],
+                'point_results': result['point_results'],
+                'loss_summary': result['loss_summary'],
                 'model_equation': result['model_equation'],
                 'data_info': result['data_info']
             }

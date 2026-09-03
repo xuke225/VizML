@@ -8,8 +8,7 @@ import pandas as pd
 from sklearn.datasets import (
     make_blobs, make_circles, make_moons, make_classification,
     make_regression, make_gaussian_quantiles, make_s_curve,
-    load_iris, load_wine, load_breast_cancer, load_digits, load_diabetes,
-    fetch_california_housing
+    load_iris, load_wine, load_breast_cancer, load_digits, load_diabetes
 )
 from sklearn.preprocessing import StandardScaler
 import logging
@@ -393,7 +392,6 @@ class DataGenerator:
                 - 不连续函数: 'step_function', 'sawtooth', 'piecewise_linear'
                 - 特殊情况: 'heteroscedastic', 'outliers'
                 - 其他: 'exponential', 'logarithmic'
-                - 真实数据集: 'california_housing', 'diabetes_regression', 'boston_housing'
             n_samples: 样本数量  
             noise: 噪声水平
             random_state: 随机种子
@@ -401,13 +399,10 @@ class DataGenerator:
         Returns:
             X: 特征矩阵
             y: 目标值向量
-            feature_info: 特征信息字典（仅真实数据集）
         """
         logger.info(f"生成回归数据: {shape}, samples={n_samples}, noise={noise}")
         
         np.random.seed(random_state)
-        feature_info = None
-        
         # 合成数据集
         if shape == 'linear':
             X, y = make_regression(
@@ -513,104 +508,10 @@ class DataGenerator:
                         np.where(X.ravel() < 0, 0,
                                 np.where(X.ravel() < 1, 1, 2))) + np.random.normal(0, noise, n_samples)
         
-        # 真实数据集
-        elif shape == 'california_housing':
-            # 加州房价数据集
-            housing = fetch_california_housing()
-            X_full = housing.data
-            y_full = housing.target
-            feature_names = housing.feature_names
-            
-            # 选择最相关的特征用于2D可视化: MedInc (收入中位数) 和 HouseAge (房龄)
-            selected_features = [0, 1]  # MedInc, HouseAge
-            X = X_full[:, selected_features]
-            y = y_full
-            
-            # 如果需要子采样
-            if len(X) > n_samples:
-                indices = np.random.choice(len(X), n_samples, replace=False)
-                X = X[indices]
-                y = y[indices]
-            
-            feature_info = {
-                'dataset_name': '加州房价数据集',
-                'description': '1990年加州人口普查的房价数据，包含地理和房屋特征',
-                'target': '房价中位数（万美元）',
-                'features_used': ['收入中位数', '房龄'],
-                'feature_names_en': [feature_names[i] for i in selected_features],
-                'total_features': len(feature_names),
-                'all_features': list(feature_names)
-            }
-            
-        elif shape == 'diabetes_regression':
-            # 糖尿病数据集（保持回归目标）
-            diabetes = load_diabetes()
-            X_full = diabetes.data
-            y_full = diabetes.target
-            feature_names = diabetes.feature_names
-            
-            # 选择最相关的特征: bmi (体重指数) 和 bp (血压)
-            selected_features = [2, 3]  # bmi, bp  
-            X = X_full[:, selected_features]
-            y = y_full
-            
-            # 如果需要子采样
-            if len(X) > n_samples:
-                indices = np.random.choice(len(X), n_samples, replace=False)
-                X = X[indices]
-                y = y[indices]
-            
-            feature_info = {
-                'dataset_name': '糖尿病进展数据集',
-                'description': '糖尿病患者一年后疾病进展的定量测量',
-                'target': '疾病进展指标',
-                'features_used': ['体重指数', '血压'],
-                'feature_names_en': [feature_names[i] for i in selected_features],
-                'total_features': len(feature_names),
-                'all_features': list(feature_names)
-            }
-            
-        elif shape == 'boston_housing':
-            # 尝试使用波士顿房价数据集（可能已被弃用）
-            try:
-                from sklearn.datasets import load_boston
-                boston = load_boston()
-                X_full = boston.data
-                y_full = boston.target
-                feature_names = boston.feature_names
-                
-                # 选择最相关的特征: RM (房间数) 和 LSTAT (低收入人群比例)
-                selected_features = [5, 12]  # RM, LSTAT
-                X = X_full[:, selected_features]
-                y = y_full
-                
-                # 如果需要子采样
-                if len(X) > n_samples:
-                    indices = np.random.choice(len(X), n_samples, replace=False)
-                    X = X[indices]
-                    y = y[indices]
-                
-                feature_info = {
-                    'dataset_name': '波士顿房价数据集',
-                    'description': '波士顿地区房价数据，包含社区和房屋特征',
-                    'target': '房价（千美元）',
-                    'features_used': ['平均房间数', '低收入人群比例'],
-                    'feature_names_en': [feature_names[i] for i in selected_features],
-                    'total_features': len(feature_names),
-                    'all_features': list(feature_names)
-                }
-            except ImportError:
-                logger.warning("波士顿房价数据集不可用，使用加州房价数据集替代")
-                # 退回到加州房价数据集
-                return self.generate_regression_data('california_housing', n_samples, noise, random_state)
-            
         else:
             raise ValueError(f"不支持的数据形状: {shape}")
-        
-        if feature_info:
-            return X, y, feature_info
-        else:
-            return X, y
+
+        return X, y
     
     def generate_clustering_data(self, shape='blobs', n_samples=200, noise=0.1, random_state=42):
         """
@@ -893,8 +794,7 @@ class DataGenerator:
                 'complex': ['composite', 'spiral', 'multimodal'],
                 'discontinuous': ['step_function', 'sawtooth', 'piecewise_linear'],
                 'special': ['heteroscedastic', 'outliers'],
-                'other': ['exponential', 'logarithmic'],
-                'real_datasets': ['california_housing', 'diabetes_regression']
+                'other': ['exponential', 'logarithmic']
             },
             'classification': {
                 'basic': ['blobs', 'circles', 'moons'],

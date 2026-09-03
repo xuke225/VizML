@@ -16,6 +16,8 @@ VizML 是一个面向机器学习教学与交互演示的 Web 应用。项目使
 - 生成分类、回归、聚类和高维演示数据；
 - 使用交互式控件配置模型与训练参数；
 - 展示训练集/测试集指标、预测结果和混淆矩阵；
+- 线性回归提供“引导学习 / 自由实验”双模式，可分步探索斜率与截距、残差、损失地形、梯度下降和泛化；
+- 线性回归自由实验支持上传 `.xlsx`、预览工作表、自定义选择多个特征和目标列；
 - 可视化二维分类决策边界、支持向量、近邻和决策路径；
 - 单步观察 K-Means、DBSCAN、神经网络与 SGD 的训练过程；
 - 比较聚类、降维和 SGD 优化器；
@@ -135,6 +137,12 @@ python app.py
 5. 在支持交互预测的页面点击画布或输入新样本；
 6. 使用重置功能重新生成数据并比较其他参数。
 
+线性回归页面默认进入“引导学习”，包含四个连续实验和即时理解检查；需要直接配置数据集、回归算法和优化器时，可切换到“自由实验”。自由实验支持不超过 5 MB 的 `.xlsx` 文件：第一行作为列名，上传后选择工作表、一个或多个数值特征列以及一个目标列即可导入。页面同时提供可下载的房价示例文件。
+
+### Excel 多元回归示例
+
+示例文件位于 [`frontend/static/examples/linear_regression_example.xlsx`](frontend/static/examples/linear_regression_example.xlsx)，包含“房屋面积、房龄、距市中心距离、房价”四列。在自由实验页面点击“使用示例数据”，确认前三列为特征、房价为目标，导入后点击“开始训练”，即可查看真实值与预测值、残差和模型系数。
+
 所有算法页面也可以直接访问：
 
 | 页面 | 地址 |
@@ -159,11 +167,9 @@ python app.py
 - 分类数据：`blobs`、`circles`、`moons`、`gaussian`、`s_curve`、`xor`、`spiral`、`checkerboard`、`multi_cluster`、`imbalanced`、`linear_separable`、`classification`、`random`；
 - 分类内置数据：Iris、Wine、Breast Cancer、Digits、Diabetes（根据页面需要截取、降维或转换标签）；
 - 回归数据：线性、二次、三次、多项式、正弦/余弦、衰减正弦、复合函数、螺旋、多峰、阶跃、锯齿、分段线性、异方差、异常值、指数和对数数据；
-- 回归真实数据：California Housing、Diabetes；
+- 回归自定义数据：可上传 `.xlsx`，无效数值行会在导入时过滤并提示；
 - 聚类数据：`blobs`、`circles`、`moons`、`anisotropic`、`varied`、`smiley`、`petals`，也支持前端手绘点；
 - 高维数据：Iris、Wine、Breast Cancer、Digits，以及可配置的合成高维分类数据。
-
-首次使用 California Housing 时，scikit-learn 可能需要联网下载数据。
 
 ## 项目结构
 
@@ -310,6 +316,8 @@ curl -X POST http://localhost:5432/api/svm/predict \
 | 分类 | `POST /api/bayesian_classification/train` | 高斯朴素贝叶斯训练 |
 | 分类 | `POST /api/bayesian_classification/probabilities` | 查询详细后验概率 |
 | 回归 | `POST /api/linear_regression/train`、`POST /api/linear_regression/predict` | 回归训练与预测 |
+| 回归 | `POST /api/linear_regression/excel/preview` | 预览 Excel 工作表、列与样例数据 |
+| 回归 | `POST /api/linear_regression/excel/import` | 从 Excel 选择特征列和目标列并创建数据会话 |
 | SGD | `POST /api/sgd/train`、`POST /api/sgd/predict` | SGD 模型训练与预测 |
 | SGD | `POST /api/sgd/start_training_session` | 初始化分步训练 |
 | SGD | `POST /api/sgd/train_step`、`POST /api/sgd/get_training_state` | 单步训练与状态查询 |

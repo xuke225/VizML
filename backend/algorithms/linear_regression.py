@@ -7,6 +7,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+from sklearn.model_selection import train_test_split
 from itertools import combinations_with_replacement
 import logging
 
@@ -42,6 +43,15 @@ class LinearRegressionAlgorithm(BaseRegressionAlgorithm):
             result: 训练结果字典
         """
         logger.info(f"训练线性回归模型: algorithm={algorithm}, polynomial_degree={polynomial_degree}")
+
+        input_feature_names = None
+        if feature_info and feature_info.get('features_used'):
+            candidate_names = list(feature_info['features_used'])
+            if len(candidate_names) == X.shape[1]:
+                input_feature_names = candidate_names
+        if input_feature_names is None:
+            input_feature_names = [f'x{i + 1}' for i in range(X.shape[1])]
+        processed_feature_names = input_feature_names
         
         # 多项式特征变换
         X_processed = X
@@ -53,6 +63,9 @@ class LinearRegressionAlgorithm(BaseRegressionAlgorithm):
                     interaction_only=False
                 )
                 X_processed = self.polynomial_transformer.fit_transform(X)
+                processed_feature_names = self.polynomial_transformer.get_feature_names_out(
+                    input_feature_names
+                ).tolist()
                 logger.info(f"应用多项式特征变换，次数={polynomial_degree}，原特征: {X.shape[1]}，新特征: {X_processed.shape[1]}")
                 
                 # 检查特征数量是否合理
@@ -70,8 +83,13 @@ class LinearRegressionAlgorithm(BaseRegressionAlgorithm):
         
         # 数据分割
         test_size = kwargs.get('test_size', 0.2)
-        X_train, X_test, y_train, y_test = self.split_data(
-            X_processed, y, test_size=test_size
+        original_indices = np.arange(len(X_processed))
+        X_train, X_test, y_train, y_test, train_indices, test_indices = train_test_split(
+            X_processed,
+            y,
+            original_indices,
+            test_size=test_size,
+            random_state=42
         )
         
         # 数据标准化（如果需要）
@@ -131,6 +149,41 @@ class LinearRegressionAlgorithm(BaseRegressionAlgorithm):
         # 预测和评估
         y_pred_train = model.predict(X_train)
         y_pred_test = model.predict(X_test)
+
+        # 生成与原始数据顺序严格对齐的逐点结果。此前前端只能拿到被
+        # train_test_split 打乱后的训练集预测，无法可靠地将误差画回原数据点。
+        X_all_for_prediction = X_processed
+        if scale_features and hasattr(self, 'scaler') and self.scaler is not None:
+            X_all_for_prediction = self.scaler.transform(X_processed)
+        y_pred_all = model.predict(X_all_for_prediction)
+        residuals_all = y - y_pred_all
+
+        split_by_index = np.full(len(X), 'test', dtype=object)
+        split_by_index[train_indices] = 'train'
+        point_results = [
+            {
+                'index': int(index),
+                'features': np.asarray(X[index]).astype(float).tolist(),
+                'actual': float(y[index]),
+                'predicted': float(y_pred_all[index]),
+                'residual': float(residuals_all[index]),
+                'squared_error': float(residuals_all[index] ** 2),
+                'split': str(split_by_index[index])
+            }
+            for index in range(len(X))
+        ]
+
+        full_sse = float(np.sum(residuals_all ** 2))
+        full_mse = float(np.mean(residuals_all ** 2))
+        mean_target = float(np.mean(y))
+        total_sum_squares = float(np.sum((y - mean_target) ** 2))
+        loss_summary = {
+            'sse': full_sse,
+            'mse': full_mse,
+            'mean_target': mean_target,
+            'tss': total_sum_squares,
+            'r2': float(r2_score(y, y_pred_all))
+        }
         
         # 计算评估指标
         train_metrics = self.evaluate_regression(y_train, y_pred_train)
@@ -156,7 +209,9 @@ class LinearRegressionAlgorithm(BaseRegressionAlgorithm):
             'coefficients': model.coef_.tolist() if hasattr(model, 'coef_') else [],
             'intercept': float(model.intercept_) if hasattr(model, 'intercept_') else 0.0,
             'algorithm': algorithm,
-            'optimizer': optimizer
+            'optimizer': optimizer,
+            'input_feature_names': input_feature_names,
+            'feature_names': processed_feature_names,
         }
         
         # 处理SGD模型的特殊情况
@@ -187,7 +242,7 @@ class LinearRegressionAlgorithm(BaseRegressionAlgorithm):
             training_info['learning_rate'] = kwargs.get('learning_rate', 'invscaling')
             training_info['eta0'] = kwargs.get('eta0', 0.01)
         
-        # 生成预测曲线（支持1D和2D输入）
+        # 单特征数据可直接生成拟合曲线；多特征结果由前端使用诊断图展示。
         prediction_curve = None
         try:
             if X.shape[1] == 1:
@@ -215,45 +270,6 @@ class LinearRegressionAlgorithm(BaseRegressionAlgorithm):
                 }
                 logger.info(f"生成1D预测曲线，点数: {len(y_curve)}")
                 
-            elif X.shape[1] == 2:
-                # 2D数据：固定第二个特征在均值，显示第一个特征的回归关系
-                feature1_min, feature1_max = X[:, 0].min(), X[:, 0].max()
-                feature2_mean = X[:, 1].mean()
-                
-                # 生成第一个特征的范围，第二个特征固定在均值
-                x1_range = np.linspace(feature1_min - 0.1 * (feature1_max - feature1_min), 
-                                     feature1_max + 0.1 * (feature1_max - feature1_min), 100)
-                x2_fixed = np.full(100, feature2_mean)
-                x_range = np.column_stack([x1_range, x2_fixed])
-                
-                # 应用相同的变换
-                if self.polynomial_transformer is not None:
-                    x_range_poly = self.polynomial_transformer.transform(x_range)
-                else:
-                    x_range_poly = x_range
-                
-                if scale_features and hasattr(self, 'scaler') and self.scaler is not None:
-                    x_range_scaled = self.scaler.transform(x_range_poly)
-                else:
-                    x_range_scaled = x_range_poly
-                
-                y_curve = model.predict(x_range_scaled)
-                prediction_curve = {
-                    'x': x1_range.tolist(),
-                    'y': y_curve.tolist(),
-                    'curve_type': '2d_partial',
-                    'fixed_feature': {
-                        'index': 1,
-                        'value': float(feature2_mean),
-                        'name': feature_info['features_used'][1] if feature_info and 'features_used' in feature_info else '第二个特征'
-                    },
-                    'main_feature': {
-                        'index': 0,
-                        'name': feature_info['features_used'][0] if feature_info and 'features_used' in feature_info else '第一个特征'
-                    }
-                }
-                logger.info(f"生成2D部分预测曲线，固定特征2={feature2_mean:.3f}，点数: {len(y_curve)}")
-                
         except Exception as e:
             logger.error(f"预测曲线生成失败: {e}")
             prediction_curve = None
@@ -262,28 +278,8 @@ class LinearRegressionAlgorithm(BaseRegressionAlgorithm):
         residuals_data = self.calculate_residuals(model, X_train, y_train)
         
         # 获取模型方程
-        feature_names = None
+        feature_names = processed_feature_names
         try:
-            if polynomial_degree > 1 or algorithm == 'polynomial':
-                # 为多项式特征生成正确的特征名称
-                if X.shape[1] == 1:  # 单变量多项式
-                    # 根据实际的系数数量生成特征名称
-                    if hasattr(model, 'coef_') and model.coef_ is not None:
-                        coef_count = len(model.coef_) if hasattr(model.coef_, '__len__') else 1
-                        feature_names = []
-                        for i in range(coef_count):
-                            power = i + 1
-                            if power == 1:
-                                feature_names.append('x')
-                            else:
-                                feature_names.append(f'x^{power}')
-                else:  # 多变量情况，PolynomialFeatures会生成更复杂的特征
-                    if self.polynomial_transformer is not None:
-                        try:
-                            feature_names = self.polynomial_transformer.get_feature_names_out(['x' + str(i) for i in range(X.shape[1])])
-                        except:
-                            feature_names = None
-            
             model_equation = self.get_model_equation(
                 model, feature_names, algorithm, degree=polynomial_degree
             )
@@ -302,6 +298,8 @@ class LinearRegressionAlgorithm(BaseRegressionAlgorithm):
             'training_info': training_info,
             'prediction_curve': prediction_curve,
             'residuals': residuals_data,
+            'point_results': point_results,
+            'loss_summary': loss_summary,
             'model_equation': model_equation,
             'data_info': {
                 'train_size': len(X_train),

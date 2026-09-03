@@ -27,6 +27,15 @@
             <path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
         </svg>`;
 
+    const decorativeEmojiPrefix = /^\s*[\p{Extended_Pictographic}\uFE0F\u200D]+\s*/u;
+
+    function cleanLabel(text) {
+        return (text || '')
+            .replace(decorativeEmojiPrefix, '')
+            .replace(/\s*[:：]\s*$/, '')
+            .trim();
+    }
+
     function pageKey() {
         const name = location.pathname.split('/').pop() || '';
         return name.replace(/\.html$/, '');
@@ -52,24 +61,62 @@
 
     function enhanceHelp() {
         const candidates = document.querySelectorAll('.instructions, .algorithm-explanation');
-        candidates.forEach((panel) => {
+        candidates.forEach((panel, index) => {
             if (panel.classList.contains('viz-help')) return;
             const text = panel.textContent || '';
             if (!text.includes('使用说明')) return;
+
+            const title = Array.from(panel.children).find((element) =>
+                element.matches('h1, h2, h3, h4, h5, h6, .explanation-title, strong') &&
+                (element.textContent || '').includes('使用说明')
+            );
+            if (!title) return;
+
+            let contentId = `viz-help-content-${index + 1}`;
+            let suffix = index + 1;
+            while (document.getElementById(contentId)) {
+                suffix += 1;
+                contentId = `viz-help-content-${suffix}`;
+            }
+
+            const heading = document.createElement('h4');
+            heading.className = 'viz-help-heading';
+
             panel.classList.add('viz-help', 'viz-help--collapsed');
             const button = document.createElement('button');
             button.type = 'button';
             button.className = 'viz-help-toggle';
             button.setAttribute('aria-expanded', 'false');
+            button.setAttribute('aria-controls', contentId);
             button.setAttribute('aria-label', '展开使用说明');
-            button.textContent = '＋';
+
+            const label = document.createElement('span');
+            label.className = 'viz-help-toggle__label';
+            label.textContent = cleanLabel(title.textContent) || '使用说明';
+
+            const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            icon.setAttribute('class', 'viz-help-toggle__icon');
+            icon.setAttribute('viewBox', '0 0 20 20');
+            icon.setAttribute('aria-hidden', 'true');
+            icon.innerHTML = '<path d="m5.5 7.5 4.5 4.5 4.5-4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+            button.append(label, icon);
+            heading.appendChild(button);
+
+            const content = document.createElement('div');
+            content.className = 'viz-help-content';
+            content.id = contentId;
+            Array.from(panel.childNodes).forEach((node) => {
+                if (node !== title) content.appendChild(node);
+            });
+            content.hidden = true;
+            panel.replaceChildren(heading, content);
+
             button.addEventListener('click', () => {
                 const collapsed = panel.classList.toggle('viz-help--collapsed');
-                button.textContent = collapsed ? '＋' : '−';
+                content.hidden = collapsed;
                 button.setAttribute('aria-expanded', String(!collapsed));
                 button.setAttribute('aria-label', collapsed ? '展开使用说明' : '收起使用说明');
             });
-            panel.appendChild(button);
         });
     }
 
@@ -85,11 +132,10 @@
     }
 
     function removeDecorativeEmoji() {
-        const emojiPrefix = /^\s*[\p{Extended_Pictographic}\uFE0F\u200D]+\s*/u;
         document.querySelectorAll('button, h3, h4, .explanation-title').forEach((element) => {
             element.childNodes.forEach((node) => {
-                if (node.nodeType === Node.TEXT_NODE && emojiPrefix.test(node.textContent || '')) {
-                    node.textContent = (node.textContent || '').replace(emojiPrefix, '');
+                if (node.nodeType === Node.TEXT_NODE && decorativeEmojiPrefix.test(node.textContent || '')) {
+                    node.textContent = (node.textContent || '').replace(decorativeEmojiPrefix, '');
                 }
             });
         });

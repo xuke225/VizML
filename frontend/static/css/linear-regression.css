@@ -1,0 +1,381 @@
+.lr-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.lr-title-mark {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    color: #fff;
+    background: linear-gradient(145deg, #4f46e5, #0f9d8a);
+    border-radius: 11px;
+}
+
+.status-banner {
+    padding: 9px 14px;
+    color: #6b7890;
+    border: 1px solid #dce4ee;
+    border-radius: 9px;
+    background: #f8fafd;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.status-banner.connected {
+    color: #0b7f71;
+    border-color: #bce9dd;
+    background: #ecfdf8;
+}
+
+.status-banner.disconnected {
+    color: #a9344d;
+    border-color: #f3c5cf;
+    background: #fff0f3;
+}
+
+.instructions {
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    border: 1px solid #c7d2fe;
+    border-left: 4px solid #4f46e5;
+    border-radius: 12px;
+    background: #eef2ff;
+}
+
+.instructions h2,
+.instructions p,
+.control-group h3,
+.lr-excel-panel h3,
+.canvas-panel h3 {
+    margin-top: 0;
+}
+
+.instructions h2 {
+    margin-bottom: 4px;
+    font-size: 18px;
+}
+
+.instructions p {
+    margin-bottom: 0;
+    color: #526078;
+}
+
+.lr-source-grid,
+.controls,
+.lr-diagnostic-grid {
+    display: grid;
+    gap: 18px;
+}
+
+.lr-source-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 18px;
+}
+
+.controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 20px 0;
+}
+
+.control-group,
+.lr-excel-panel,
+.canvas-panel,
+.info-section {
+    padding: 20px;
+    border: 1px solid #dce4ee;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.control-group {
+    background: #f8fafd;
+}
+
+.control-item {
+    margin-bottom: 14px;
+}
+
+.control-item label,
+.lr-column-picker legend {
+    display: block;
+    margin-bottom: 6px;
+    color: #44516a;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.lr-inline-fields,
+.lr-action-row,
+.lr-panel-heading,
+.lr-column-picker {
+    display: flex;
+    gap: 14px;
+}
+
+.lr-inline-fields > *,
+.lr-column-picker > * {
+    flex: 1;
+}
+
+.lr-action-row button {
+    margin: 0;
+}
+
+.lr-help,
+.lr-chart-note,
+.lr-muted {
+    color: #6b7890;
+    font-size: 13px;
+}
+
+.lr-download-link {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.lr-excel-panel {
+    margin-bottom: 18px;
+    border-color: #bce9dd;
+    background: #fbfffe;
+}
+
+.lr-panel-heading {
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.lr-sheet-select {
+    width: min(260px, 100%);
+}
+
+.lr-table-wrap {
+    max-width: 100%;
+    margin: 14px 0 18px;
+    overflow-x: auto;
+    border: 1px solid #dce4ee;
+    border-radius: 9px;
+}
+
+.lr-table-wrap table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.lr-table-wrap th,
+.lr-table-wrap td {
+    min-width: 110px;
+    padding: 9px 11px;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 1px solid #e7edf5;
+}
+
+.lr-table-wrap th {
+    color: #44516a;
+    background: #f4f7fb;
+}
+
+.lr-column-picker fieldset {
+    padding: 0;
+    border: 0;
+}
+
+.lr-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px;
+}
+
+.lr-checkbox-grid label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 10px;
+    border: 1px solid #dce4ee;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+}
+
+.lr-checkbox-grid input {
+    width: auto !important;
+    margin: 0;
+}
+
+.lr-notice {
+    padding: 12px 15px;
+    margin-bottom: 16px;
+    color: #0b7f71;
+    border: 1px solid #bce9dd;
+    border-radius: 9px;
+    background: #ecfdf8;
+}
+
+.lr-notice.error {
+    color: #a9344d;
+    border-color: #f3c5cf;
+    background: #fff0f3;
+}
+
+.data-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.data-stat {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 6px;
+    text-align: center;
+    border-radius: 8px;
+    background: #eef2ff;
+}
+
+.data-stat strong {
+    color: #4338ca;
+    font-size: 19px;
+}
+
+.data-stat span {
+    color: #6b7890;
+    font-size: 11px;
+}
+
+.visualization {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(270px, .8fr);
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.canvas-panel {
+    min-width: 0;
+}
+
+.canvas-panel h3 {
+    margin-bottom: 12px;
+    color: #172033;
+    font-size: 16px;
+    text-align: center;
+}
+
+.canvas-panel canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid #dce4ee;
+    border-radius: 9px;
+    background: #fff;
+}
+
+.lr-chart-note {
+    margin: 9px 0 0;
+    text-align: center;
+}
+
+.info-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.info-section h4 {
+    margin: 0 0 12px;
+}
+
+.equation {
+    max-height: 170px;
+    padding: 13px;
+    overflow: auto;
+    color: #172033;
+    border: 1px solid #dce4ee;
+    border-radius: 8px;
+    background: #f4f7fb;
+    font: 600 13px/1.6 "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.lr-metric {
+    padding: 9px;
+    border-radius: 8px;
+    background: #f4f7fb;
+}
+
+.lr-metric span,
+.lr-metric strong {
+    display: block;
+}
+
+.lr-metric span {
+    color: #6b7890;
+    font-size: 11px;
+}
+
+.lr-metric strong {
+    color: #172033;
+    font-size: 15px;
+}
+
+.lr-model-info {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 7px 12px;
+    margin: 0;
+    font-size: 13px;
+}
+
+.lr-model-info dt {
+    color: #6b7890;
+}
+
+.lr-model-info dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.lr-diagnostic-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 24px;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 1050px) {
+    .controls,
+    .lr-source-grid,
+    .visualization,
+    .lr-diagnostic-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 680px) {
+    .lr-inline-fields,
+    .lr-action-row,
+    .lr-panel-heading,
+    .lr-column-picker {
+        flex-direction: column;
+    }
+
+    .lr-sheet-select {
+        width: 100%;
+    }
+}

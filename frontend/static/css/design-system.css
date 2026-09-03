@@ -376,9 +376,9 @@ body.viz-algorithm-page :is(.status-banner.connected, #connectionStatus.connecte
 body.viz-algorithm-page :is(.status-banner.disconnected, #connectionStatus.disconnected) { color: var(--viz-danger) !important; border-color: #f0c6d0 !important; background: var(--viz-danger-soft) !important; }
 
 body.viz-algorithm-page :is(.instructions, .algorithm-explanation).viz-help {
-    position: relative;
+    overflow: hidden;
     margin: 0 0 20px !important;
-    padding: 17px 52px 17px 18px !important;
+    padding: 0 !important;
     color: var(--viz-text-soft) !important;
     border: 1px solid var(--viz-border) !important;
     border-left: 3px solid var(--viz-primary) !important;
@@ -387,21 +387,57 @@ body.viz-algorithm-page :is(.instructions, .algorithm-explanation).viz-help {
     box-shadow: none !important;
 }
 
-.viz-help-toggle {
-    position: absolute !important;
-    top: 12px;
-    right: 12px;
-    width: 32px;
-    min-height: 32px !important;
+body.viz-algorithm-page .viz-help .viz-help-heading {
+    margin: 0 !important;
     padding: 0 !important;
-    color: var(--viz-primary) !important;
-    border: 1px solid #cfd3fa !important;
-    background: rgba(255,255,255,.82) !important;
-    box-shadow: none !important;
+    border: 0 !important;
 }
 
-.viz-help.viz-help--collapsed > :not(:first-child):not(.viz-help-toggle) { display: none !important; }
-.viz-help.viz-help--collapsed { min-height: 56px; }
+body.viz-algorithm-page .viz-help-toggle {
+    display: flex;
+    width: 100%;
+    min-height: 52px !important;
+    margin: 0 !important;
+    padding: 14px 16px !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    color: var(--viz-primary) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 14px !important;
+    text-align: left;
+    transform: none !important;
+}
+
+body.viz-algorithm-page .viz-help-toggle:hover:not(:disabled) {
+    color: var(--viz-primary-hover) !important;
+    background: rgba(79, 70, 229, .055) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.viz-help-toggle__label { min-width: 0; }
+
+.viz-help-toggle__icon {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    transition: transform var(--viz-duration);
+}
+
+.viz-help-toggle[aria-expanded="true"] .viz-help-toggle__icon { transform: rotate(180deg); }
+
+.viz-help-content {
+    padding: 0 18px 16px;
+    border-top: 1px solid rgba(220, 228, 238, .72);
+}
+
+.viz-help-content > :first-child { margin-top: 14px; }
+.viz-help-content > :last-child { margin-bottom: 0; }
+.viz-help-content[hidden] { display: none !important; }
 
 body.viz-algorithm-page :is(.success-message, .training-status.success) { color: var(--viz-success) !important; border-color: #bce3d8 !important; background: var(--viz-success-soft) !important; }
 body.viz-algorithm-page :is(.error-message, .training-status.error) { color: var(--viz-danger) !important; border-color: #f0c6d0 !important; background: var(--viz-danger-soft) !important; }
