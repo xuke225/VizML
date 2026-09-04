@@ -505,176 +505,98 @@
         }
         
         .play-controls {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            padding: 16px 20px;
-            background: linear-gradient(135deg, #F8FAFD 0%, #E7EDF5 100%);
+            display: grid;
+            grid-template-columns: repeat(4, minmax(112px, 1fr));
+            gap: 10px;
+            align-items: stretch;
+            flex: 1 1 560px;
+            padding: 10px;
+            background: #F8FAFD;
+            border: 1px solid #DCE4EE;
             border-radius: 12px;
-            border: 1px solid #dee2e6;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            position: relative;
-            overflow: hidden;
-            min-height: 48px;
         }
-        
-        .play-controls::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.6s ease;
-        }
-        
-        .play-controls:hover::before {
-            left: 100%;
-        }
-        
+
         .play-btn {
-            width: 45px;
-            height: 45px;
-            border-radius: 10px;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            background: linear-gradient(135deg, #ffffff 0%, #F8FAFD 100%);
-            color: #44516A;
-            border: 1px solid #dee2e6;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            gap: 8px;
+            min-width: 0;
+            min-height: 44px;
+            padding: 10px 12px;
+            white-space: nowrap;
         }
-        
-        .play-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-            transition: left 0.5s ease;
+
+        .play-btn svg {
+            width: 18px;
+            height: 18px;
+            flex: 0 0 auto;
         }
-        
-        .play-btn:hover::before {
-            left: 100%;
+
+        body.viz-algorithm-page[data-viz-page="sgd"] .play-btn.play {
+            color: #fff !important;
+            border-color: #4F46E5 !important;
+            background: #4F46E5 !important;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, .18) !important;
         }
-        
-        .play-btn:hover {
-            background: linear-gradient(135deg, #4F46E5 0%, #7C6CE7 100%);
-            border-color: #4F46E5;
-            color: white;
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+
+        body.viz-algorithm-page[data-viz-page="sgd"] .play-btn.pause,
+        body.viz-algorithm-page[data-viz-page="sgd"] .play-btn.step {
+            color: #44516A !important;
+            border-color: #CBD6E4 !important;
+            background: #fff !important;
+            box-shadow: 0 1px 2px rgba(22, 32, 51, .04) !important;
         }
-        
-        .play-btn:active {
-            transform: translateY(-1px) scale(1.02);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+
+        body.viz-algorithm-page[data-viz-page="sgd"] .play-btn.reset {
+            color: #C2415D !important;
+            border-color: #EAB9C5 !important;
+            background: #FFF7F9 !important;
+            box-shadow: none !important;
         }
-        
-        .play-btn.playing {
-            background: linear-gradient(135deg, #0F9D8A 0%, #2ecc71 100%);
-            border-color: #0F9D8A;
-            color: white;
-            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
-            animation: pulse-playing 2s infinite;
+
+        body.viz-algorithm-page[data-viz-page="sgd"] .play-btn.play:hover:not(:disabled) {
+            border-color: #4338CA !important;
+            background: #4338CA !important;
+            box-shadow: 0 7px 16px rgba(79, 70, 229, .24) !important;
         }
-        
-        .play-btn.playing:hover {
-            background: linear-gradient(135deg, #229954 0%, #0F9D8A 100%);
-            border-color: #229954;
-            color: white;
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 10px 30px rgba(39, 174, 96, 0.5);
+
+        body.viz-algorithm-page[data-viz-page="sgd"] .play-btn:is(.pause, .step):hover:not(:disabled) {
+            color: #4F46E5 !important;
+            border-color: #BFC4F7 !important;
+            background: #EEF0FF !important;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, .1) !important;
         }
-        
-        /* 特定按钮样式 */
-        .play-btn.play {
-            background: linear-gradient(135deg, #0F9D8A 0%, #2ecc71 100%);
-            border-color: #0F9D8A;
-            color: white;
+
+        body.viz-algorithm-page[data-viz-page="sgd"] .play-btn.reset:hover:not(:disabled) {
+            color: #A9344D !important;
+            border-color: #D98A9D !important;
+            background: #FFF0F3 !important;
+            box-shadow: 0 4px 10px rgba(194, 65, 93, .1) !important;
         }
-        
-        .play-btn.play:hover {
-            background: linear-gradient(135deg, #229954 0%, #0F9D8A 100%);
-            border-color: #229954;
-            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+
+        body.viz-algorithm-page[data-viz-page="sgd"] .play-btn.is-active {
+            outline: 3px solid rgba(79, 70, 229, .16) !important;
+            outline-offset: 2px;
         }
-        
-        .play-btn.pause {
-            background: linear-gradient(135deg, #D99A20 0%, #e67e22 100%);
-            border-color: #D99A20;
-            color: white;
+
+        body.viz-algorithm-page[data-viz-page="sgd"] .play-btn:disabled {
+            color: #8B96A9 !important;
+            border-color: #DCE4EE !important;
+            background: #EDF1F6 !important;
+            box-shadow: none !important;
         }
-        
-        .play-btn.pause:hover {
-            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
-            border-color: #e67e22;
-            box-shadow: 0 8px 25px rgba(243, 156, 18, 0.4);
+
+        body.viz-algorithm-page[data-viz-page="sgd"] .play-btn.play.is-active:disabled {
+            color: #fff !important;
+            border-color: #4F46E5 !important;
+            background: #4F46E5 !important;
         }
-        
-        .play-btn.step {
-            background: linear-gradient(135deg, #2B8AC6 0%, #236F9F 100%);
-            border-color: #2B8AC6;
-            color: white;
-        }
-        
-        .play-btn.step:hover {
-            background: linear-gradient(135deg, #236F9F 0%, #1f618d 100%);
-            border-color: #236F9F;
-            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
-        }
-        
-        .play-btn.reset {
-            background: linear-gradient(135deg, #C2415D 0%, #A9344D 100%);
-            border-color: #C2415D;
-            color: white;
-        }
-        
-        .play-btn.reset:hover {
-            background: linear-gradient(135deg, #A9344D 0%, #a93226 100%);
-            border-color: #A9344D;
-            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
-        }
-        
-        @keyframes pulse-playing {
-            0% { 
-                box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4), 0 0 0 0 rgba(39, 174, 96, 0.7); 
-            }
-            70% { 
-                box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4), 0 0 0 10px rgba(39, 174, 96, 0); 
-            }
-            100% { 
-                box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4), 0 0 0 0 rgba(39, 174, 96, 0); 
-            }
-        }
-        
-        /* 按钮点击波纹效果 */
-        .play-btn::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-        
-        .play-btn:active::after {
-            width: 300px;
-            height: 300px;
+
+        body.viz-algorithm-page[data-viz-page="sgd"] .play-btn.pause.is-active:disabled {
+            color: #4F46E5 !important;
+            border-color: #BFC4F7 !important;
+            background: #EEF0FF !important;
         }
         
         .speed-control {
@@ -730,6 +652,10 @@
                 gap: 15px;
                 align-items: flex-start;
             }
+
+            .speed-control {
+                margin-left: 0;
+            }
             
             .action-buttons {
                 width: auto;
@@ -771,8 +697,8 @@
             }
             
             .play-controls {
-                justify-content: center;
                 width: 100%;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
             
             .speed-control {
@@ -1030,13 +956,25 @@
                         <div class="training-controls">
                             <div class="action-buttons">
                                 <button id="compareBtn" class="btn-secondary">比较优化器</button>
-                                <button id="startTrainingBtn" class="btn-primary" disabled>单步训练展示</button>
+                                <button id="startTrainingBtn" class="btn-primary" disabled>启动训练</button>
                             </div>
-                            <div class="play-controls">
-                                <button id="playBtn" class="play-btn play">▶</button>
-                                <button id="pauseBtn" class="play-btn pause">⏸</button>
-                                <button id="stepBtn" class="play-btn step">⏭</button>
-                                <button id="resetBtn" class="play-btn reset">🔄</button>
+                            <div class="play-controls" role="group" aria-label="训练过程控制">
+                                <button type="button" id="playBtn" class="play-btn play" title="从当前轮次继续自动训练" aria-label="继续自动训练" aria-pressed="false" disabled>
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 5 11 7-11 7V5Z" fill="currentColor"/></svg>
+                                    <span>继续训练</span>
+                                </button>
+                                <button type="button" id="pauseBtn" class="play-btn pause" title="暂停自动训练，保留当前进度" aria-label="暂停自动训练" aria-pressed="false" disabled>
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5h4v14H7V5Zm6 0h4v14h-4V5Z" fill="currentColor"/></svg>
+                                    <span>暂停训练</span>
+                                </button>
+                                <button type="button" id="stepBtn" class="play-btn step" title="只执行一次迭代并更新可视化" aria-label="执行一次训练迭代" disabled>
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 5 10 7L5 19V5Zm11 0h3v14h-3V5Z" fill="currentColor"/></svg>
+                                    <span>单步迭代</span>
+                                </button>
+                                <button type="button" id="resetBtn" class="play-btn reset" title="清除本次训练进度，保留数据和参数" aria-label="重置训练进度" disabled>
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5.4 8A8 8 0 1 1 4 12.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 4v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    <span>重置训练</span>
+                                </button>
                             </div>
                             <div class="speed-control">
                                 <label>速度:</label>
@@ -1181,6 +1119,9 @@
                 this.selectedOptimizers = ['sgd'];
                 this.trainingTimer = null;
                 this.animationTimer = null;
+                this.controlState = 'idle';
+                this.isStepPending = false;
+                this.trainingRevision = 0;
                 
                 // 画布和上下文
                 this.canvases = {
@@ -1229,6 +1170,7 @@
                 
                 // 设置事件监听器
                 this.setupEventListeners();
+                this.updateTrainingControlState('idle');
                 
                 // 初始化画布
                 this.initializeCanvases();
@@ -1556,7 +1498,7 @@
                         this.currentData = result.data;
                         
                         this.visualizeData();
-                        document.getElementById('startTrainingBtn').disabled = false;
+                        this.updateTrainingControlState(this.trainingSession ? this.controlState : 'idle');
                         
                         this.updateStatus(`✅ 数据生成完成，共 ${this.currentData.n_samples} 个样本`);
                     } else {
@@ -1636,6 +1578,7 @@
                 }
                 
                 try {
+                    this.updateTrainingControlState('starting');
                     this.updateStatus('正在启动训练会话...');
                     
                     // 获取模型配置
@@ -1702,9 +1645,12 @@
                         this.currentEpoch = 0;
                         this.startTime = Date.now();
                         this.trainingHistory = {};
+                        this.trainingRevision += 1;
+                        this.isTraining = false;
+                        this.isStepPending = false;
                         
                         this.updateStatus('✅ 训练会话已启动，正在开始训练...');
-                        this.enableTrainingControls(true);
+                        this.updateTrainingControlState('paused');
                         
                         // 自动开始训练
                         setTimeout(() => {
@@ -1716,19 +1662,59 @@
                     
                 } catch (error) {
                     console.error('启动训练会话失败:', error);
+                    this.updateTrainingControlState('idle');
                     this.updateStatus('❌ 启动训练失败: ' + error.message);
                 }
             }
             
-            enableTrainingControls(enabled) {
-                const controls = ['playBtn', 'pauseBtn', 'stepBtn', 'resetBtn'];
-                controls.forEach(id => {
-                    document.getElementById(id).disabled = !enabled;
+            updateTrainingControlState(state) {
+                this.controlState = state;
+
+                const buttons = {
+                    play: document.getElementById('playBtn'),
+                    pause: document.getElementById('pauseBtn'),
+                    step: document.getElementById('stepBtn'),
+                    reset: document.getElementById('resetBtn')
+                };
+                const enabledByState = {
+                    idle: [],
+                    starting: [],
+                    running: ['pause', 'reset'],
+                    paused: ['play', 'step', 'reset'],
+                    stepping: [],
+                    completed: ['reset']
+                };
+                const enabledControls = new Set(enabledByState[state] || []);
+
+                Object.entries(buttons).forEach(([name, button]) => {
+                    button.disabled = !enabledControls.has(name);
+                    button.classList.toggle('is-active',
+                        (name === 'play' && state === 'running') ||
+                        (name === 'pause' && state === 'paused'));
                 });
+
+                buttons.play.setAttribute('aria-pressed', String(state === 'running'));
+                buttons.pause.setAttribute('aria-pressed', String(state === 'paused'));
+
+                const controls = document.querySelector('.play-controls');
+                controls.dataset.state = state;
+
+                const statusLabels = {
+                    idle: '待开始',
+                    starting: '准备中',
+                    running: '训练中',
+                    paused: '已暂停',
+                    stepping: '单步执行中',
+                    completed: '训练完成'
+                };
+                document.getElementById('overallStatus').textContent = statusLabels[state] || '待开始';
+
+                const startButton = document.getElementById('startTrainingBtn');
+                startButton.disabled = !this.currentSessionKey || state !== 'idle';
             }
             
             playTraining() {
-                if (!this.trainingSession || this.isTraining) return;
+                if (!this.trainingSession || this.isTraining || this.controlState === 'completed') return;
                 
                 this.isTraining = true;
                 const speed = parseFloat(document.getElementById('speedSlider').value);
@@ -1738,30 +1724,31 @@
                     this.stepTraining();
                 }, interval);
                 
-                // 更新按钮状态
-                document.getElementById('playBtn').classList.add('playing');
-                document.getElementById('pauseBtn').classList.remove('playing');
-                
+                this.updateTrainingControlState('running');
                 this.updateStatus('🔄 训练进行中...');
             }
             
             pauseTraining() {
+                if (!this.trainingSession || this.controlState === 'completed') return;
+
                 this.isTraining = false;
                 if (this.trainingTimer) {
                     clearInterval(this.trainingTimer);
                     this.trainingTimer = null;
                 }
                 
-                // 更新按钮状态
-                document.getElementById('playBtn').classList.remove('playing');
-                document.getElementById('pauseBtn').classList.add('playing');
-                
+                this.updateTrainingControlState('paused');
                 this.updateStatus('⏸ 训练已暂停');
             }
             
             async stepTraining() {
-                if (!this.trainingSession) return;
-                
+                if (!this.trainingSession || this.isStepPending || this.controlState === 'completed') return;
+
+                const wasRunning = this.isTraining;
+                const requestRevision = this.trainingRevision;
+                this.isStepPending = true;
+                if (!wasRunning) this.updateTrainingControlState('stepping');
+
                 try {
                     const batchSize = document.getElementById('batchSize').value || null;
                     const config = {
@@ -1776,6 +1763,7 @@
                     });
                     
                     const result = await response.json();
+                    if (requestRevision !== this.trainingRevision || !this.trainingSession) return;
                     
                     if (result.status === 'success') {
                         this.currentEpoch = result.step_result.epoch;
@@ -1795,17 +1783,37 @@
                         // 检查是否完成训练
                         const maxIter = parseInt(document.getElementById('maxIterations').value);
                         if (this.currentEpoch >= maxIter) {
-                            this.pauseTraining();
+                            this.isTraining = false;
+                            if (this.trainingTimer) {
+                                clearInterval(this.trainingTimer);
+                                this.trainingTimer = null;
+                            }
+                            this.updateTrainingControlState('completed');
                             this.showTrainingCompletedSummary();
+                        } else if (!wasRunning) {
+                            this.updateTrainingControlState('paused');
                         }
                     } else {
                         throw new Error(result.message);
                     }
                     
                 } catch (error) {
+                    if (requestRevision !== this.trainingRevision) return;
                     console.error('训练步骤失败:', error);
-                    this.pauseTraining();
+                    this.isTraining = false;
+                    if (this.trainingTimer) {
+                        clearInterval(this.trainingTimer);
+                        this.trainingTimer = null;
+                    }
+                    this.updateTrainingControlState('paused');
                     this.updateStatus('❌ 训练步骤失败: ' + error.message);
+                } finally {
+                    if (requestRevision === this.trainingRevision) {
+                        this.isStepPending = false;
+                        if (this.controlState === 'stepping') {
+                            this.updateTrainingControlState('paused');
+                        }
+                    }
                 }
             }
             
@@ -2361,8 +2369,14 @@
             }
             
             resetTraining() {
-                this.pauseTraining();
-                
+                this.trainingRevision += 1;
+                this.isTraining = false;
+                this.isStepPending = false;
+                if (this.trainingTimer) {
+                    clearInterval(this.trainingTimer);
+                    this.trainingTimer = null;
+                }
+
                 this.trainingSession = null;
                 this.currentEpoch = 0;
                 this.trainingHistory = {};
@@ -2383,7 +2397,7 @@
                 const panel = document.getElementById('optimizersStatusPanel');
                 panel.innerHTML = '';
                 
-                this.enableTrainingControls(false);
+                this.updateTrainingControlState('idle');
                 this.updateStatus('🔄 训练状态已重置');
             }
             
