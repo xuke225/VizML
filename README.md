@@ -54,7 +54,7 @@ UMAP 和 XGBoost 分别依赖 `umap-learn` 与 `xgboost`，二者已列入 `requ
 ### 1. 获取代码
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/xuke225/VizML.git
 cd VizML
 ```
 
@@ -427,4 +427,4 @@ Flask 应用监听 `0.0.0.0`，同一局域网中的设备可能访问该服务�
 
 ## 许可证
 
-仓库当前未提供 `LICENSE` 文件。在公开分发、复用或接受外部贡献前，请由项目维护者补充明确的开源许可证。
+本项目采用 [MIT License](LICENSE) 开源。
