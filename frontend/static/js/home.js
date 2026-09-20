@@ -34,7 +34,7 @@
         const status = document.getElementById('filterStatus');
         if (!buttons.length || !cards.length) return;
 
-        const labels = { all: '全部', supervised: '监督学习', unsupervised: '无监督学习', advanced: '进阶模型' };
+        const labels = { all: '全部', supervised: '监督学习', unsupervised: '无监督学习', advanced: '进阶模型', rl: '强化学习' };
         buttons.forEach((button) => {
             button.addEventListener('click', () => {
                 const category = button.dataset.category;

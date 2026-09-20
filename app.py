@@ -34,6 +34,7 @@ from backend.algorithms.knn import KNNAlgorithm
 from backend.algorithms.bayesian_classification import BayesianClassificationAlgorithm
 from backend.algorithms.linear_regression import LinearRegressionAlgorithm
 from backend.algorithms.sgd import SGDAlgorithm
+from backend.algorithms.reinforcement_learning import ReinforcementLearningAlgorithm, build_environment
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -70,6 +71,7 @@ knn_alg = KNNAlgorithm()
 bayesian_alg = BayesianClassificationAlgorithm()
 linear_regression_alg = LinearRegressionAlgorithm()
 sgd_alg = SGDAlgorithm()
+rl_alg = ReinforcementLearningAlgorithm()
 
 
 @app.route('/')
@@ -2423,6 +2425,68 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({'status': 'error', 'message': '服务器内部错误'}), 500
+
+
+
+# ================== 强化学习 API (Q-Learning 网格世界) ==================
+
+@app.route('/api/rl/info', methods=['GET'])
+def rl_info():
+    """返回可用的强化学习环境列表"""
+    try:
+        environments = rl_alg.available_environments()
+        for key, item in environments.items():
+            item['grid'] = rl_alg.serialize_grid(build_environment(key))
+        return jsonify({
+            'status': 'success',
+            'environments': environments
+        })
+    except Exception as e:
+        logger.error(f"RL info error: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+
+
+@app.route('/api/rl/train', methods=['POST'])
+def rl_train():
+    """训练 Q-Learning 智能体并返回可视化所需全部数据"""
+    try:
+        config = request.json or {}
+        env_name = config.get('env', 'grid_world')
+        params = config.get('params', {})
+
+        episodes = int(params.get('episodes', 500))
+        alpha = float(params.get('alpha', 0.1))
+        gamma = float(params.get('gamma', 0.95))
+        epsilon = float(params.get('epsilon', 1.0))
+        epsilon_decay = float(params.get('epsilon_decay', 0.995))
+        epsilon_min = float(params.get('epsilon_min', 0.01))
+        random_state = int(params.get('random_state', 42))
+
+        # 参数合法性约束
+        episodes = max(50, min(episodes, 3000))
+        alpha = max(0.01, min(alpha, 1.0))
+        gamma = max(0.0, min(gamma, 0.99))
+        epsilon = max(0.0, min(epsilon, 1.0))
+        epsilon_decay = max(0.9, min(epsilon_decay, 1.0))
+        epsilon_min = max(0.0, min(epsilon_min, 0.5))
+
+        logger.info(f"RL training: env={env_name}, episodes={episodes}, alpha={alpha}, gamma={gamma}")
+        result = rl_alg.train(
+            env_name=env_name,
+            episodes=episodes,
+            alpha=alpha,
+            gamma=gamma,
+            epsilon=epsilon,
+            epsilon_decay=epsilon_decay,
+            epsilon_min=epsilon_min,
+            random_state=random_state,
+        )
+
+        return jsonify({'status': 'success', 'results': result})
+
+    except Exception as e:
+        logger.error(f"RL training error: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 400
 
 
 if __name__ == '__main__':

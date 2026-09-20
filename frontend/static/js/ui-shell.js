@@ -12,7 +12,8 @@
         clustering: ['无监督学习', '聚类算法'],
         neural_network: ['模型训练', '神经网络'],
         ensemble: ['集成学习', '集成模型'],
-        dimensionality_reduction: ['无监督学习', '降维算法']
+        dimensionality_reduction: ['无监督学习', '降维算法'],
+        reinforcement_learning: ['强化学习', 'Q-Learning 网格世界']
     };
 
     const logo = `
