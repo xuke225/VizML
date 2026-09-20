@@ -35,6 +35,7 @@ VizML 是一个面向机器学习教学与交互演示的 Web 应用。项目使
 | 集成学习 | 随机森林、AdaBoost、梯度提升、Voting、Stacking、Bagging、XGBoost |
 | 降维 | PCA、t-SNE、LDA、UMAP |
 | 优化器 | SGD、Momentum、AdaGrad、RMSprop、Adam、Nesterov |
+| 强化学习 | Q-Learning：空房间网格、悬崖漫步、小迷宫、有风网格世界；支持逐阶段策略、价值热力和轨迹回放 |
 
 UMAP 和 XGBoost 分别依赖 `umap-learn` 与 `xgboost`，二者已列入 `requirements.txt`。UMAP 未成功安装时，其余降维算法仍可使用。
 

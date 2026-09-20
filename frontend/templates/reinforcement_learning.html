@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>强化学习实验室 · VizML</title>
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <link rel="stylesheet" href="/static/css/reinforcement-learning.css">
+  <script defer src="/static/vendor/chart.umd.min.js"></script>
+  <script defer src="/static/js/ui-shell.js"></script>
+  <script defer src="/static/js/reinforcement-learning.js"></script>
+</head>
+<body class="viz-algorithm-page rl-page">
+  <main class="rl-layout">
+    <header class="rl-hero">
+      <div class="rl-hero__content">
+        <span class="rl-eyebrow"><span class="rl-eyebrow__dot"></span> INTERACTIVE LEARNING LAB / 11</span>
+        <h1>让智能体<span>学会选择。</span></h1>
+        <p>在网格世界中训练 Q-Learning 智能体，沿时间线观察奖励、状态价值与行动策略如何变化。</p>
+      </div>
+      <div class="rl-hero__diagram" aria-hidden="true">
+        <div class="rl-node"><span>01</span>探索环境</div><i></i>
+        <div class="rl-node"><span>02</span>获得奖励</div><i></i>
+        <div class="rl-node"><span>03</span>更新策略</div>
+      </div>
+    </header>
+
+    <div class="rl-workbench">
+      <aside class="rl-controls" aria-label="实验设置">
+        <section class="rl-panel rl-settings">
+          <div class="rl-panel__heading"><div><span class="rl-kicker">SETUP / 01</span><h2>实验设置</h2></div><span class="rl-panel__glyph">⌘</span></div>
+          <label class="rl-field-label" for="envSel">训练场景</label>
+          <select id="envSel" class="rl-select" disabled><option>正在载入场景…</option></select>
+          <p class="rl-env-desc" id="envDesc">选择场景后，可先查看地图布局。</p>
+          <div class="rl-divider"></div>
+          <div class="rl-group-title">训练参数 <span>调整后重新训练生效</span></div>
+          <div class="rl-control"><div class="rl-control__head"><label for="episodes">训练回合</label><output id="episodesVal" for="episodes">500</output></div><input type="range" id="episodes" min="50" max="2000" step="50" value="500"><p>智能体与环境交互的轮数</p></div>
+          <div class="rl-control"><div class="rl-control__head"><label for="alpha">学习率 <em>α</em></label><output id="alphaVal" for="alpha">0.10</output></div><input type="range" id="alpha" min="0.01" max="1" step="0.01" value="0.1"><p>每次更新吸收新经验的幅度</p></div>
+          <div class="rl-control"><div class="rl-control__head"><label for="gamma">折扣因子 <em>γ</em></label><output id="gammaVal" for="gamma">0.95</output></div><input type="range" id="gamma" min="0.5" max="0.99" step="0.01" value="0.95"><p>对未来奖励的重视程度</p></div>
+          <details class="rl-advanced"><summary>探索参数 <span>ε-greedy</span></summary>
+            <div class="rl-control"><div class="rl-control__head"><label for="epsilon">初始探索率 <em>ε</em></label><output id="epsilonVal" for="epsilon">1.00</output></div><input type="range" id="epsilon" min="0.1" max="1" step="0.05" value="1"></div>
+            <div class="rl-control"><div class="rl-control__head"><label for="decay">每轮衰减</label><output id="decayVal" for="decay">0.995</output></div><input type="range" id="decay" min="0.98" max="0.999" step="0.001" value="0.995"></div>
+          </details>
+          <button type="button" id="trainBtn" class="rl-train" disabled><span>开始训练</span><span aria-hidden="true">↗</span></button>
+          <div class="rl-status" id="statusBar" role="status" aria-live="polite">正在连接训练服务…</div>
+        </section>
+        <div class="rl-note"><span class="rl-note__icon">i</span><p>同一组参数使用固定随机种子，便于比较结果。训练结果保留在当前页面。</p></div>
+      </aside>
+
+      <div class="rl-results">
+        <section class="rl-panel rl-map-panel" aria-labelledby="mapTitle">
+          <div class="rl-panel__heading rl-panel__heading--wide">
+            <div><span class="rl-kicker">ENVIRONMENT / 02</span><h2 id="mapTitle">网格世界</h2><p id="mapSubtitle">先选择一个场景，观察起点、目标与障碍。</p></div>
+            <div class="rl-view-switch" role="group" aria-label="网格着色方式">
+              <button type="button" class="is-active" data-view="value" aria-pressed="true">价值热力</button>
+              <button type="button" data-view="plain" aria-pressed="false">清晰网格</button>
+            </div>
+          </div>
+          <div class="rl-map-surface"><canvas id="gridCanvas" aria-label="强化学习网格地图"></canvas></div>
+          <div class="rl-map-legend">
+            <span><i class="rl-legend-dot rl-legend-dot--start"></i>起点</span>
+            <span><i class="rl-legend-dot rl-legend-dot--goal"></i>目标</span>
+            <span><i class="rl-legend-dot rl-legend-dot--wall"></i>墙体</span>
+            <span><i class="rl-legend-dot rl-legend-dot--cliff"></i>悬崖</span>
+            <span><i class="rl-legend-dot rl-legend-dot--unseen"></i>未探索</span>
+            <span id="windLegend" hidden><i class="rl-legend-wind">↑</i>列风力</span>
+            <span><i class="rl-legend-line"></i>当前轨迹</span>
+            <span><i class="rl-legend-arrow">↗</i>贪心动作</span>
+          </div>
+          <div class="rl-scale" id="valueScale"><span id="scaleLow">低 Q</span><span class="rl-scale__bar"></span><span id="scaleHigh">高 Q</span></div>
+        </section>
+
+        <section class="rl-panel rl-timeline" aria-labelledby="timelineTitle">
+          <div class="rl-panel__heading rl-panel__heading--wide"><div><span class="rl-kicker">TIME MACHINE / 03</span><h2 id="timelineTitle">学习过程</h2></div><span class="rl-episode" id="episodeLabel">等待训练</span></div>
+          <div class="rl-timeline__track"><input type="range" id="ckptSlider" min="0" max="0" value="0" disabled aria-label="选择训练检查点"><div class="rl-track-ends"><span>初次尝试</span><span>最终回合</span></div></div>
+          <div class="rl-timeline__actions">
+            <button type="button" id="playLearnBtn" class="rl-action" disabled>▶ <span>播放学习过程</span></button>
+            <button type="button" id="playPathBtn" class="rl-action rl-action--quiet" disabled>↗ <span>播放当前轨迹</span></button>
+            <div class="rl-route-switch" role="group" aria-label="轨迹类型">
+              <button type="button" data-route="demo" class="is-active" aria-pressed="true">探索轨迹</button>
+              <button type="button" data-route="greedy" aria-pressed="false">贪心路径</button>
+            </div>
+          </div>
+          <div class="rl-insight" id="stageCaption" aria-live="polite"><span class="rl-insight__badge">观察重点</span><p>训练后拖动时间线，查看每个阶段的价值热力、贪心动作和智能体轨迹。</p></div>
+        </section>
+
+        <div class="rl-analysis-grid">
+          <section class="rl-panel rl-chart-panel" aria-labelledby="rewardTitle">
+            <div class="rl-panel__heading rl-panel__heading--wide"><div><span class="rl-kicker">TRAINING SIGNAL / 04</span><h2 id="rewardTitle">回合奖励</h2><p>浅色为单轮奖励，深色为 25 回合移动平均。</p></div><span id="chartEpisode" class="rl-chart-episode">—</span></div>
+            <div class="rl-chart-wrap"><canvas id="rewardChart" aria-label="回合奖励随训练轮数变化的折线图"></canvas><div id="chartEmpty" class="rl-chart-empty">完成训练后显示奖励曲线</div></div>
+            <p class="rl-chart-footnote">奖励越高通常表示表现更好；探索仍会造成波动。</p>
+          </section>
+          <section class="rl-panel rl-metrics" aria-labelledby="metricsTitle">
+            <div class="rl-panel__heading"><div><span class="rl-kicker">CHECKPOINT / 05</span><h2 id="metricsTitle">当前阶段</h2></div></div>
+            <div class="rl-metric-grid">
+              <div class="rl-metric rl-metric--accent"><span>近 50 回合成功率</span><strong id="stSuccess">—</strong><small>达到终点的比例</small></div>
+              <div class="rl-metric"><span>近 50 回合平均奖励</span><strong id="stReward">—</strong><small>平滑训练表现</small></div>
+              <div class="rl-metric"><span>当前探索率 ε</span><strong id="stEps">—</strong><small>随机行动概率</small></div>
+              <div class="rl-metric"><span>贪心路径</span><strong id="stPath">—</strong><small id="pathDetail">从起点尝试抵达目标</small></div>
+            </div>
+          </section>
+        </div>
+        <footer class="rl-method"><span class="rl-method__label">算法原理</span><p>每走一步，Q-Learning 根据即时奖励与下一状态的最佳估计更新动作价值：<code>Q(s,a) ← Q(s,a) + α [r + γ max Q(s′,a′) − Q(s,a)]</code>。热力图只显示已尝试动作的价值；箭头表示已验证的贪心动作，演示轨迹包含 ε 概率的随机探索。</p></footer>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
