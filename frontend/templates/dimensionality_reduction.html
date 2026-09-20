@@ -985,6 +985,7 @@
                         config.noise = 0.1;
                         config.random_state = 42;
                     }
+                    this._lastDataConfig = config;
                     
                     const response = await this.apiClient.loadDimensionalityReductionData(config);
                     
@@ -1078,6 +1079,20 @@
                     
                     if (response.status === 'success') {
                         this.currentResultKey = response.result_key;
+
+                        try {
+                            this.apiClient.saveHistory({
+                                module: 'dimensionality_reduction',
+                                label: '降维分析',
+                                dataset: this.currentSessionKey,
+                                params: params,
+                                metrics: (response.data && response.data.metrics) || {},
+                                replay: {
+                                    data: this._lastDataConfig || {},
+                                    train: { algorithm: this.currentAlgorithm, params: params }
+                                }
+                            }).catch(() => {});
+                        } catch (e) {}
                         
                         this.showMessage(`${this.currentAlgorithm.toUpperCase()} 降维完成！`, 'success');
                         
