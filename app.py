@@ -34,6 +34,7 @@ from backend.algorithms.knn import KNNAlgorithm
 from backend.algorithms.bayesian_classification import BayesianClassificationAlgorithm
 from backend.algorithms.linear_regression import LinearRegressionAlgorithm
 from backend.algorithms.sgd import SGDAlgorithm
+from backend import history as history_store
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -70,6 +71,9 @@ knn_alg = KNNAlgorithm()
 bayesian_alg = BayesianClassificationAlgorithm()
 linear_regression_alg = LinearRegressionAlgorithm()
 sgd_alg = SGDAlgorithm()
+
+# 初始化历史记录存储（SQLite）
+history_store.init_db()
 
 
 @app.route('/')
@@ -2410,6 +2414,94 @@ def clear_session():
         
     except Exception as e:
         logger.error(f"清除会话错误: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+
+
+# ================== 历史记录API ==================
+
+@app.route('/api/history/save', methods=['POST'])
+def history_save():
+    """保存一条历史运行记录"""
+    try:
+        config = request.json or {}
+        user_id = config.get('user_id') or request.headers.get('X-User-Id', '')
+        if not user_id:
+            return jsonify({'status': 'error', 'message': '缺少用户标识'}), 400
+
+        record_id = history_store.save_record(
+            user_id=user_id,
+            username=config.get('username') or request.headers.get('X-Username', ''),
+            module=config.get('module', ''),
+            label=config.get('label', ''),
+            dataset=config.get('dataset', ''),
+            params=config.get('params'),
+            metrics=config.get('metrics'),
+            replay=config.get('replay'),
+        )
+        return jsonify({'status': 'success', 'id': record_id})
+    except Exception as e:
+        logger.error(f"保存历史记录错误: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+
+
+@app.route('/api/history/list', methods=['GET'])
+def history_list():
+    """查询当前用户的历史记录"""
+    try:
+        user_id = request.args.get('user_id') or request.headers.get('X-User-Id', '')
+        if not user_id:
+            return jsonify({'status': 'error', 'message': '缺少用户标识'}), 400
+        records = history_store.list_records(user_id)
+        return jsonify({'status': 'success', 'records': records, 'user_id': user_id})
+    except Exception as e:
+        logger.error(f"查询历史记录错误: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+
+
+@app.route('/api/history/delete', methods=['POST'])
+def history_delete():
+    """删除单条历史记录"""
+    try:
+        config = request.json or {}
+        user_id = config.get('user_id') or request.headers.get('X-User-Id', '')
+        record_id = config.get('id')
+        if not user_id or record_id is None:
+            return jsonify({'status': 'error', 'message': '参数缺失'}), 400
+        history_store.delete_record(record_id, user_id)
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        logger.error(f"删除历史记录错误: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+
+
+@app.route('/api/history/clear', methods=['POST'])
+def history_clear():
+    """清空当前用户的全部历史记录"""
+    try:
+        config = request.json or {}
+        user_id = config.get('user_id') or request.headers.get('X-User-Id', '')
+        if not user_id:
+            return jsonify({'status': 'error', 'message': '缺少用户标识'}), 400
+        history_store.clear_records(user_id)
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        logger.error(f"清空历史记录错误: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+
+
+@app.route('/api/history/username', methods=['POST'])
+def history_username():
+    """更新当前用户的昵称并同步到已有记录"""
+    try:
+        config = request.json or {}
+        user_id = config.get('user_id') or request.headers.get('X-User-Id', '')
+        username = config.get('username', '')
+        if not user_id:
+            return jsonify({'status': 'error', 'message': '缺少用户标识'}), 400
+        history_store.update_username(user_id, username)
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        logger.error(f"更新昵称错误: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)}), 400
 
 

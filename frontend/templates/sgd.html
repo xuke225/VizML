@@ -1631,6 +1631,19 @@
                             ...modelConfig  // 将模型配置也传递到session level
                         }
                     };
+
+                    // 保存复现快照，训练完成后写入历史记录
+                    this._replay = {
+                        data: {
+                            shape: document.getElementById('dataType').value,
+                            n_samples: parseInt(document.getElementById('sampleSize').value),
+                            noise: parseFloat(document.getElementById('noiseLevel').value)
+                        },
+                        model: modelConfig,
+                        optimizers: this.selectedOptimizers.slice(),
+                        optimizers_config: optimizersConfig,
+                        max_iter: parseInt(document.getElementById('maxIterations').value)
+                    };
                     
                     const response = await fetch('http://localhost:5432/api/sgd/start_training_session', {
                         method: 'POST',
@@ -2366,6 +2379,42 @@
                 
                 // 可选：显示详细总结（可以添加模态框或者其他UI组件）
                 console.log('训练完成总结:', summary);
+
+                this._recordHistory('优化器训练');
+            }
+
+            _recordHistory(label) {
+                if (!this._replay) return;
+                try {
+                    const cfg = this._replay;
+                    const metrics = {};
+                    (cfg.optimizers || []).forEach((opt) => {
+                        const history = this.trainingHistory[opt];
+                        const last = history && history.length ? history[history.length - 1] : null;
+                        if (last && typeof last.r2 === 'number') metrics[opt + '_r2'] = last.r2;
+                        if (last && typeof last.loss === 'number') metrics[opt + '_loss'] = last.loss;
+                    });
+                    this.apiClient.saveHistory({
+                        module: 'sgd',
+                        label: label,
+                        dataset: this.currentSessionKey,
+                        params: {
+                            model_type: cfg.model ? cfg.model.model_type : null,
+                            optimizers: cfg.optimizers,
+                            max_iter: cfg.max_iter
+                        },
+                        metrics: metrics,
+                        replay: {
+                            data: cfg.data,
+                            train: {
+                                model: cfg.model,
+                                optimizers: cfg.optimizers,
+                                optimizers_config: cfg.optimizers_config,
+                                max_iter: cfg.max_iter
+                            }
+                        }
+                    }).catch(() => {});
+                } catch (e) {}
             }
             
             resetTraining() {
@@ -2452,6 +2501,18 @@
                             ...modelConfig  // 将模型配置也传递到session level
                         }
                     };
+
+                    this._replay = {
+                        data: {
+                            shape: document.getElementById('dataType').value,
+                            n_samples: parseInt(document.getElementById('sampleSize').value),
+                            noise: parseFloat(document.getElementById('noiseLevel').value)
+                        },
+                        model: modelConfig,
+                        optimizers: this.selectedOptimizers.slice(),
+                        optimizers_config: optimizersConfig,
+                        max_iter: parseInt(document.getElementById('maxIterations').value)
+                    };
                     
                     const response = await fetch('http://localhost:5432/api/sgd/compare_optimizers', {
                         method: 'POST',
@@ -2464,6 +2525,7 @@
                     if (result.status === 'success') {
                         this.displayComparisonResults(result.comparison_result);
                         this.updateStatus('✅ 优化器性能比较完成');
+                        this._recordHistory('优化器对比');
                     } else {
                         throw new Error(result.message);
                     }

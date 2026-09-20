@@ -3,10 +3,46 @@
  * 封装与后端Flask服务的通信
  */
 
+/**
+ * 用户身份管理：为每个浏览器自动分配唯一 ID，可自愿填写昵称/学号
+ */
+const VizHistory = (function () {
+    const USER_KEY = 'vizml_user_id';
+    const NAME_KEY = 'vizml_username';
+
+    function getUserId() {
+        let id = null;
+        try { id = localStorage.getItem(USER_KEY); } catch (e) {}
+        if (!id) {
+            id = (window.crypto && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : 'u-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+            try { localStorage.setItem(USER_KEY, id); } catch (e) {}
+        }
+        return id;
+    }
+
+    function getUsername() {
+        try { return localStorage.getItem(NAME_KEY) || ''; } catch (e) { return ''; }
+    }
+
+    function setUsername(name) {
+        try { localStorage.setItem(NAME_KEY, name || ''); } catch (e) {}
+    }
+
+    function headers() {
+        return { 'X-User-Id': getUserId(), 'X-Username': getUsername() };
+    }
+
+    return { getUserId, getUsername, setUsername, headers };
+})();
+window.VizHistory = VizHistory;
+
 class MLApiClient {
     constructor(baseUrl = 'http://localhost:5432') {
         this.baseUrl = baseUrl;
         this.sessionData = new Map(); // 存储会话数据
+        this._lastDataConfig = null;  // 最近一次数据生成配置（用于历史复现）
     }
 
     /**
@@ -17,11 +53,13 @@ class MLApiClient {
         
         const config = {
             method: 'GET',
+            ...options,
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            ...options
+                'Accept': 'application/json',
+                ...VizHistory.headers(),
+                ...(options.headers || {})
+            }
         };
 
         try {
@@ -32,11 +70,53 @@ class MLApiClient {
                 throw new Error(data.message || `HTTP ${response.status}`);
             }
             
+            // 缓存最近一次数据生成配置（用于历史复现）
+            if (config.method === 'POST' && (endpoint === '/api/generate_data' || endpoint === '/api/generate_full_dimensional_data')) {
+                try { this._lastDataConfig = config.body ? JSON.parse(config.body) : {}; } catch (e) {}
+            }
+            
+            // 训练类请求成功后自动记录历史
+            this._maybeRecordHistory(endpoint, config, data);
+            
             return data;
         } catch (error) {
             console.error(`API请求失败 (${endpoint}):`, error);
             throw error;
         }
+    }
+
+    /**
+     * 识别训练/对比请求，成功后自动保存一条历史记录（失败不抛错）
+     */
+    _maybeRecordHistory(endpoint, config, data) {
+        if (config.method !== 'POST') return;
+        if (endpoint.indexOf('/api/history/') !== -1) return;
+        if (!data || data.status !== 'success') return;
+
+        const match = endpoint.match(/^\/api\/([a-z_]+)\/(train|compare)$/);
+        if (!match) return;
+
+        const module = match[1];
+        const action = match[2];
+
+        let body = {};
+        try { body = config.body ? JSON.parse(config.body) : {}; } catch (e) { body = {}; }
+
+        const metrics = (data.results && data.results.metrics) || data.metrics || {};
+        const params = body.params || {};
+        const datasetKey = body.session_key || data.session_key || '';
+
+        this.saveHistory({
+            module,
+            label: action === 'compare' ? '算法对比' : '模型训练',
+            dataset: datasetKey,
+            params,
+            metrics,
+            replay: {
+                data: this._lastDataConfig || {},
+                train: body
+            }
+        }).catch(() => {});
     }
 
     /**
@@ -582,6 +662,58 @@ class MLApiClient {
      */
     getSessionData(sessionKey) {
         return this.sessionData.get(sessionKey);
+    }
+
+    /**
+     * 保存一条历史运行记录
+     */
+    async saveHistory(record) {
+        return this.request('/api/history/save', {
+            method: 'POST',
+            body: JSON.stringify({
+                ...record,
+                user_id: VizHistory.getUserId(),
+                username: VizHistory.getUsername()
+            })
+        });
+    }
+
+    /**
+     * 查询当前用户的历史记录
+     */
+    async listHistory() {
+        return this.request(`/api/history/list?user_id=${encodeURIComponent(VizHistory.getUserId())}`);
+    }
+
+    /**
+     * 删除单条历史记录
+     */
+    async deleteHistory(recordId) {
+        return this.request('/api/history/delete', {
+            method: 'POST',
+            body: JSON.stringify({ id: recordId, user_id: VizHistory.getUserId() })
+        });
+    }
+
+    /**
+     * 清空当前用户的全部历史记录
+     */
+    async clearHistory() {
+        return this.request('/api/history/clear', {
+            method: 'POST',
+            body: JSON.stringify({ user_id: VizHistory.getUserId() })
+        });
+    }
+
+    /**
+     * 更新昵称并同步到已有记录
+     */
+    async updateUsername(username) {
+        VizHistory.setUsername(username);
+        return this.request('/api/history/username', {
+            method: 'POST',
+            body: JSON.stringify({ user_id: VizHistory.getUserId(), username })
+        });
     }
 
     /**

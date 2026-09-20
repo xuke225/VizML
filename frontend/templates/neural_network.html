@@ -2236,6 +2236,24 @@
                             this.stopRealtimeTraining();
                             this.showExportOptions(); // 显示导出选项
                             this.updateStatus('实时训练完成');
+                            // 保存历史记录（用于一键复现）
+                            this.apiClient.saveHistory({
+                                module: 'neural_network',
+                                label: '模型训练',
+                                dataset: this.currentSessionKey,
+                                params: params,
+                                metrics: result.metrics || {},
+                                replay: {
+                                    data: {
+                                        type: this.datasetConfig.type,
+                                        shape: this.datasetConfig.type === 'custom' ? this.datasetConfig.customShape : this.datasetConfig.type,
+                                        n_samples: this.datasetConfig.n_samples,
+                                        noise: this.datasetConfig.noise,
+                                        n_classes: this.datasetConfig.customClassCount
+                                    },
+                                    train: { params: params }
+                                }
+                            }).catch(() => {});
                         } else {
                             // 继续下一步
                             this.realtimeStep++;

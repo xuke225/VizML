@@ -660,6 +660,7 @@
     <link rel="stylesheet" href="/static/css/design-system.css">
     <script defer src="/static/js/visualization-theme.js"></script>
     <script defer src="/static/js/ui-shell.js"></script>
+    <script src="/static/js/api-client.js"></script>
 </head>
 <body>
     <div class="container">
@@ -1204,6 +1205,7 @@
                 
                 if (result.status === 'success') {
                     currentData = result;
+                    window.__bayesianDataConfig = config;
                     updateScatterPlot(result.data);
                     
                     // 启用训练按钮
@@ -1263,6 +1265,16 @@
                     updateProbabilityAnalysis(result.results);
                     hideLoading();
                     showMessage('高斯贝叶斯模型训练成功！', 'success');
+                    try {
+                        new MLApiClient().saveHistory({
+                            module: 'bayesian_classification',
+                            label: '模型训练',
+                            dataset: currentData.session_key,
+                            params: params,
+                            metrics: result.results.metrics || {},
+                            replay: { data: window.__bayesianDataConfig || {}, train: config }
+                        }).catch(() => {});
+                    } catch (e) {}
                 } else {
                     throw new Error(result.message || '模型训练失败');
                 }
