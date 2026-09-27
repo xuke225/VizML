@@ -29,3 +29,6 @@ htmlcov/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Local Windows launcher (conda-compatible start.py is tracked; .bat is local-only)
+start.bat

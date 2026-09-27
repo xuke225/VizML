@@ -1,0 +1,40 @@
+/* VizML 中英文切换按钮（悬浮，不参与文档流，不影响现有布局） */
+
+.vizml-lang-toggle {
+    position: fixed;
+    top: 12px;
+    right: 16px;
+    z-index: 9999;
+    min-width: 44px;
+    height: 30px;
+    padding: 0 12px;
+    border: 1px solid rgba(26, 27, 28, 0.16);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #1a1b1c;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.vizml-lang-toggle:hover,
+.vizml-lang-toggle:focus-visible {
+    border-color: rgba(26, 27, 28, 0.4);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.16);
+    background: #ffffff;
+    outline: none;
+}
+
+@media (max-width: 480px) {
+    .vizml-lang-toggle {
+        top: 10px;
+        right: 10px;
+        height: 32px;
+    }
+}

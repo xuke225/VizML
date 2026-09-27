@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <link rel="stylesheet" href="/static/css/i18n.css">
+    <script src="/static/js/i18n.js?v=2"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>降维算法可视化工具</title>
@@ -418,8 +421,8 @@
         }
     </style>
     <link rel="stylesheet" href="/static/css/design-system.css">
-    <script defer src="/static/js/visualization-theme.js"></script>
-    <script defer src="/static/js/ui-shell.js"></script>
+    <script defer src="/static/js/visualization-theme.js?v=2"></script>
+    <script defer src="/static/js/ui-shell.js?v=2"></script>
 </head>
 <body>
     <div class="container">
@@ -778,7 +781,7 @@
 
     <!-- 引入图表库 -->
     <script src="/static/vendor/plotly-2.26.0.min.js"></script>
-    <script src="/static/js/api-client.js"></script>
+    <script src="/static/js/api-client.js?v=2"></script>
     <script>
         class DimensionalityReductionTool {
             constructor() {
@@ -805,7 +808,7 @@
                     }
                 } catch (error) {
                     this.updateConnectionStatus(false);
-                    console.error('连接失败:', error);
+                    console.error(VizMLI18n.t('连接失败:'), error);
                 }
             }
             
@@ -813,10 +816,10 @@
                 const statusBanner = document.getElementById('connectionStatus');
                 if (connected) {
                     statusBanner.className = 'status-banner connected';
-                    statusBanner.textContent = '✅ 后端服务器连接成功';
+                    statusBanner.textContent = VizMLI18n.t('✅ 后端服务器连接成功');
                 } else {
                     statusBanner.className = 'status-banner disconnected';
-                    statusBanner.textContent = '❌ 后端服务器连接失败，请检查服务器状态';
+                    statusBanner.textContent = VizMLI18n.t('❌ 后端服务器连接失败，请检查服务器状态');
                 }
             }
             
@@ -970,7 +973,7 @@
                 const loadBtn = document.getElementById('loadDataBtn');
                 const originalText = loadBtn.textContent;
                 loadBtn.disabled = true;
-                loadBtn.textContent = '⏳ 加载中...';
+                loadBtn.textContent = VizMLI18n.t('⏳ 加载中...');
                 
                 try {
                     const dataType = document.getElementById('dataType').value;
@@ -993,7 +996,7 @@
                         this.dataLoaded = true;
                         this.originalData = response.data;
                         
-                        this.showMessage(`数据加载成功！样本数：${response.data.n_samples}，特征数：${response.data.n_features}`, 'success');
+                        this.showMessage(VizMLI18n.t('数据加载成功！样本数：') + (response.data.n_samples) + VizMLI18n.t('，特征数：') + (response.data.n_features), 'success');
                         
                         // 启用算法按钮
                         document.getElementById('applyAlgorithmBtn').disabled = false;
@@ -1013,10 +1016,10 @@
                         // 重置显示
                         this.resetDisplay();
                     } else {
-                        this.showMessage(`数据加载失败：${response.message}`, 'error');
+                        this.showMessage(VizMLI18n.t('数据加载失败：') + (response.message), 'error');
                     }
                 } catch (error) {
-                    this.showMessage(`数据加载失败：${error.message}`, 'error');
+                    this.showMessage(VizMLI18n.t('数据加载失败：') + (error.message), 'error');
                 } finally {
                     loadBtn.disabled = false;
                     loadBtn.textContent = originalText;
@@ -1026,12 +1029,7 @@
             resetDisplay() {
                 // 清空图表
                 const chartContainer = document.getElementById('chartContainer');
-                chartContainer.innerHTML = `
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #999;">
-                        <p>📊 数据已加载</p>
-                        <p style="font-size: 14px;">请选择算法并点击"应用算法"</p>
-                    </div>
-                `;
+                chartContainer.innerHTML = '\n                    ' + '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #999;">' + '\n                        ' + '<p>' + VizMLI18n.t('📊 数据已加载') + '</p>' + '\n                        ' + '<p style="font-size: 14px;">' + VizMLI18n.t('请选择算法并点击"应用算法"') + '</p>' + '\n                    ' + '</div>' + '\n                ';
                 
                 // 重置指标
                 document.getElementById('varianceExplained').textContent = '-';
@@ -1045,23 +1043,23 @@
                 
                 // 重置特征重要性
                 document.getElementById('featureImportance').innerHTML = 
-                    '<p style="text-align: center; color: #6B7890; font-style: italic;">PCA和LDA算法支持特征重要性分析</p>';
+                    VizMLI18n.t('<p style="text-align: center; color: #6B7890; font-style: italic;">PCA和LDA算法支持特征重要性分析</p>');
                 
                 // 重置结果信息
                 document.getElementById('metricsDisplay').innerHTML = 
-                    '<p style="text-align: center; color: #6B7890; font-style: italic;">请先应用算法查看结果</p>';
+                    VizMLI18n.t('<p style="text-align: center; color: #6B7890; font-style: italic;">请先应用算法查看结果</p>');
             }
             
             async applyAlgorithm() {
                 if (!this.dataLoaded) {
-                    this.showMessage('请先加载数据', 'error');
+                    this.showMessage(VizMLI18n.t('请先加载数据'), 'error');
                     return;
                 }
                 
                 const applyBtn = document.getElementById('applyAlgorithmBtn');
                 const originalText = applyBtn.textContent;
                 applyBtn.disabled = true;
-                applyBtn.textContent = '⏳ 计算中...';
+                applyBtn.textContent = VizMLI18n.t('⏳ 计算中...');
                 
                 const loadingIndicator = document.getElementById('loadingIndicator');
                 loadingIndicator.style.display = 'block';
@@ -1079,7 +1077,7 @@
                     if (response.status === 'success') {
                         this.currentResultKey = response.result_key;
                         
-                        this.showMessage(`${this.currentAlgorithm.toUpperCase()} 降维完成！`, 'success');
+                        this.showMessage((this.currentAlgorithm.toUpperCase()) + VizMLI18n.t(' 降维完成！'), 'success');
                         
                         // 绘制散点图
                         await this.plotScatterChart(response.data);
@@ -1095,17 +1093,17 @@
                             this.updateFeatureImportance(response.data.feature_importance);
                         } else {
                             document.getElementById('featureImportance').innerHTML = 
-                                '<p style="text-align: center; color: #6B7890; font-style: italic;">当前算法不支持特征重要性分析</p>';
+                                VizMLI18n.t('<p style="text-align: center; color: #6B7890; font-style: italic;">当前算法不支持特征重要性分析</p>');
                         }
                         
                         // 更新算法说明
                         this.updateAlgorithmDescription(response.data.algorithm);
                         
                     } else {
-                        this.showMessage(`算法应用失败：${response.message}`, 'error');
+                        this.showMessage(VizMLI18n.t('算法应用失败：') + (response.message), 'error');
                     }
                 } catch (error) {
-                    this.showMessage(`算法应用失败：${error.message}`, 'error');
+                    this.showMessage(VizMLI18n.t('算法应用失败：') + (error.message), 'error');
                 } finally {
                     applyBtn.disabled = false;
                     applyBtn.textContent = originalText;
@@ -1156,13 +1154,13 @@
                 const labels = hasLabels ? this.originalData.y : null;
                 
                 // 调试信息
-                console.log('绘制散点图 - 调试信息:');
+                console.log(VizMLI18n.t('绘制散点图 - 调试信息:'));
                 console.log('originalData:', this.originalData);
                 console.log('hasLabels:', hasLabels);
                 console.log('labels:', labels);
                 if (hasLabels) {
-                    console.log('唯一标签数量:', [...new Set(labels)].length);
-                    console.log('标签分布:', [...new Set(labels)].sort((a, b) => a - b));
+                    console.log(VizMLI18n.t('唯一标签数量:'), [...new Set(labels)].length);
+                    console.log(VizMLI18n.t('标签分布:'), [...new Set(labels)].sort((a, b) => a - b));
                 }
                 
                 // 与 Canvas 和其他图表共享同一分类色板
@@ -1170,7 +1168,7 @@
                 const colorPalette = sharedColors.map((color, index) => ({
                     fill: window.VizTheme ? VizTheme.withAlpha(color, .76) : color,
                     border: color,
-                    name: `序列 ${index + 1}`
+                    name: VizMLI18n.t('序列 ') + (index + 1)
                 }));
                 
                 let traces = [];
@@ -1198,9 +1196,9 @@
                                     },
                                     opacity: 0.85
                                 },
-                                name: `类别 ${label} (${colorInfo.name})`,
-                                hovertemplate: `<b>类别 ${label}</b><br>` +
-                                             `样本数: ${indices.length}<br>` +
+                                name: VizMLI18n.t('类别 ') + (label) + ' (' + (colorInfo.name) + ')',
+                                hovertemplate: '<b>' + VizMLI18n.t('类别 ') + (label) + '</b>' + '<br>' +
+                                             VizMLI18n.t('样本数: ') + (indices.length) + '<br>' +
                                              `X: %{x:.3f}<br>Y: %{y:.3f}<br>Z: %{z:.3f}<extra></extra>`
                             };
                             traces.push(trace);
@@ -1223,21 +1221,21 @@
                                 },
                                 opacity: 0.85
                             },
-                            name: `${algorithm.toUpperCase()} 降维结果`,
-                            hovertemplate: '<b>降维数据点</b><br>X: %{x:.3f}<br>Y: %{y:.3f}<br>Z: %{z:.3f}<extra></extra>'
+                            name: (algorithm.toUpperCase()) + VizMLI18n.t(' 降维结果'),
+                            hovertemplate: VizMLI18n.t('<b>降维数据点</b><br>X: %{x:.3f}<br>Y: %{y:.3f}<br>Z: %{z:.3f}<extra></extra>')
                         };
                         traces.push(trace);
                     }
                     
                     const layout = {
                         title: {
-                            text: `${algorithm.toUpperCase()} 3D降维结果${hasLabels ? ' (按类别着色)' : ' (无类别信息)'}`,
+                            text: (algorithm.toUpperCase()) + VizMLI18n.t(' 3D降维结果') + (hasLabels ? VizMLI18n.t(' (按类别着色)') : VizMLI18n.t(' (无类别信息)')),
                             font: { size: 16 }
                         },
                         scene: {
-                            xaxis: { title: '第一维' },
-                            yaxis: { title: '第二维' },
-                            zaxis: { title: '第三维' },
+                            xaxis: { title: VizMLI18n.t('第一维') },
+                            yaxis: { title: VizMLI18n.t('第二维') },
+                            zaxis: { title: VizMLI18n.t('第三维') },
                             camera: {
                                 eye: { x: 1.5, y: 1.5, z: 1.5 }
                             }
@@ -1287,9 +1285,9 @@
                                     },
                                     opacity: 0.8
                                 },
-                                name: `类别 ${label} (${colorInfo.name})`,
-                                hovertemplate: `<b>类别 ${label}</b><br>` +
-                                             `样本数: ${indices.length}<br>` +
+                                name: VizMLI18n.t('类别 ') + (label) + ' (' + (colorInfo.name) + ')',
+                                hovertemplate: '<b>' + VizMLI18n.t('类别 ') + (label) + '</b>' + '<br>' +
+                                             VizMLI18n.t('样本数: ') + (indices.length) + '<br>' +
                                              `X: %{x:.3f}<br>Y: %{y:.3f}<extra></extra>`
                             };
                             traces.push(trace);
@@ -1311,24 +1309,24 @@
                                 },
                                 opacity: 0.8
                             },
-                            name: `${algorithm.toUpperCase()} 降维结果`,
-                            hovertemplate: '<b>降维数据点</b><br>X: %{x:.3f}<br>Y: %{y:.3f}<extra></extra>'
+                            name: (algorithm.toUpperCase()) + VizMLI18n.t(' 降维结果'),
+                            hovertemplate: VizMLI18n.t('<b>降维数据点</b><br>X: %{x:.3f}<br>Y: %{y:.3f}<extra></extra>')
                         };
                         traces.push(trace);
                     }
                     
                     const layout = {
                         title: {
-                            text: `${algorithm.toUpperCase()} 2D降维结果${hasLabels ? ' (按类别着色)' : ' (无类别信息)'}`,
+                            text: (algorithm.toUpperCase()) + VizMLI18n.t(' 2D降维结果') + (hasLabels ? VizMLI18n.t(' (按类别着色)') : VizMLI18n.t(' (无类别信息)')),
                             font: { size: 16 }
                         },
                         xaxis: { 
-                            title: '第一维',
+                            title: VizMLI18n.t('第一维'),
                             showgrid: true,
                             gridcolor: 'rgba(200, 200, 200, 0.5)'
                         },
                         yaxis: { 
-                            title: '第二维',
+                            title: VizMLI18n.t('第二维'),
                             showgrid: true,
                             gridcolor: 'rgba(200, 200, 200, 0.5)'
                         },
@@ -1359,9 +1357,9 @@
                 // 显示着色信息提示
                 if (hasLabels) {
                     const uniqueLabels = [...new Set(labels)];
-                    console.log(`✅ 成功应用类别着色，共 ${uniqueLabels.length} 个类别`);
+                    console.log(VizMLI18n.t('✅ 成功应用类别着色，共 ') + (uniqueLabels.length) + VizMLI18n.t(' 个类别'));
                 } else {
-                    console.log('ℹ️ 当前数据集无类别标签，使用单一颜色显示');
+                    console.log(VizMLI18n.t('ℹ️ 当前数据集无类别标签，使用单一颜色显示'));
                 }
             }
             
@@ -1398,29 +1396,14 @@
                 // 更新结果信息
                 let metricsHtml = '<div class="metrics-grid">';
                 
-                metricsHtml += `
-                    <div class="metric-item">
-                        <div class="metric-value">${data.n_components}</div>
-                        <div class="metric-label">降维后维度</div>
-                    </div>
-                `;
+                metricsHtml += '\n                    ' + '<div class="metric-item">' + '\n                        ' + '<div class="metric-value">' + (data.n_components) + '</div>' + '\n                        ' + '<div class="metric-label">' + VizMLI18n.t('降维后维度') + '</div>' + '\n                    ' + '</div>' + '\n                ';
                 
                 if (data.kl_divergence !== undefined) {
-                    metricsHtml += `
-                        <div class="metric-item">
-                            <div class="metric-value">${data.kl_divergence.toFixed(2)}</div>
-                            <div class="metric-label">KL散度</div>
-                        </div>
-                    `;
+                    metricsHtml += '\n                        ' + '<div class="metric-item">' + '\n                            ' + '<div class="metric-value">' + (data.kl_divergence.toFixed(2)) + '</div>' + '\n                            ' + '<div class="metric-label">' + VizMLI18n.t('KL散度') + '</div>' + '\n                        ' + '</div>' + '\n                    ';
                 }
                 
                 if (data.n_iter_final !== undefined) {
-                    metricsHtml += `
-                        <div class="metric-item">
-                            <div class="metric-value">${data.n_iter_final}</div>
-                            <div class="metric-label">实际迭代次数</div>
-                        </div>
-                    `;
+                    metricsHtml += '\n                        ' + '<div class="metric-item">' + '\n                            ' + '<div class="metric-value">' + (data.n_iter_final) + '</div>' + '\n                            ' + '<div class="metric-label">' + VizMLI18n.t('实际迭代次数') + '</div>' + '\n                        ' + '</div>' + '\n                    ';
                 }
                 
                 metricsHtml += '</div>';
@@ -1432,13 +1415,13 @@
                 
                 const data = this.originalData;
                 let infoHtml = '<div style="background: linear-gradient(135deg, #F8FAFD 0%, #E7EDF5 100%); padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #dee2e6;">';
-                infoHtml += '<h6 style="margin: 0 0 12px 0; color: #172033; font-size: 14px; font-weight: 600;">📊 数据集详细信息</h6>';
+                infoHtml += VizMLI18n.t('<h6 style="margin: 0 0 12px 0; color: #172033; font-size: 14px; font-weight: 600;">📊 数据集详细信息</h6>');
                 infoHtml += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px;">';
-                infoHtml += `<div style="background: white; padding: 8px; border-radius: 4px;"><strong>样本数量:</strong> <span style="color: #007bff;">${data.n_samples.toLocaleString()}</span></div>`;
-                infoHtml += `<div style="background: white; padding: 8px; border-radius: 4px;"><strong>原始特征数:</strong> <span style="color: #0F9D8A;">${data.n_features}</span></div>`;
+                infoHtml += '<div style="background: white; padding: 8px; border-radius: 4px;">' + '<strong>' + VizMLI18n.t('样本数量:') + '</strong>' + ' ' + '<span style="color: #007bff;">' + (data.n_samples.toLocaleString()) + '</span>' + '</div>';
+                infoHtml += '<div style="background: white; padding: 8px; border-radius: 4px;">' + '<strong>' + VizMLI18n.t('原始特征数:') + '</strong>' + ' ' + '<span style="color: #0F9D8A;">' + (data.n_features) + '</span>' + '</div>';
                 
                 if (data.n_classes !== null) {
-                    infoHtml += `<div style="background: white; padding: 8px; border-radius: 4px;"><strong>类别数量:</strong> <span style="color: #C2415D;">${data.n_classes}</span></div>`;
+                    infoHtml += '<div style="background: white; padding: 8px; border-radius: 4px;">' + '<strong>' + VizMLI18n.t('类别数量:') + '</strong>' + ' ' + '<span style="color: #C2415D;">' + (data.n_classes) + '</span>' + '</div>';
                     
                     if (data.y) {
                         const classCounts = {};
@@ -1452,31 +1435,31 @@
                         const minCount = Math.min(...counts);
                         const balanceRatio = (minCount / maxCount * 100).toFixed(1);
                         
-                        infoHtml += `<div style="background: white; padding: 8px; border-radius: 4px;"><strong>数据平衡度:</strong> <span style="color: ${balanceRatio > 80 ? '#0F9D8A' : balanceRatio > 60 ? '#ffc107' : '#C2415D'};">${balanceRatio}%</span></div>`;
+                        infoHtml += '<div style="background: white; padding: 8px; border-radius: 4px;">' + '<strong>' + VizMLI18n.t('数据平衡度:') + '</strong>' + ' <span style="color: ' + (balanceRatio > 80 ? '#0F9D8A' : balanceRatio > 60 ? '#ffc107' : '#C2415D') + ';">' + (balanceRatio) + '%' + '</span>' + '</div>';
                         
                         const balanceInfo = Object.entries(classCounts)
                             .sort(([a], [b]) => parseInt(a) - parseInt(b))
-                            .map(([cls, count]) => `类别${cls}: ${count}个 (${(count/data.n_samples*100).toFixed(1)}%)`)
+                            .map(([cls, count]) => VizMLI18n.t('类别') + (cls) + ': ' + (count) + VizMLI18n.t('个 (') + ((count/data.n_samples*100).toFixed(1)) + '%)')
                             .join(', ');
-                        infoHtml += `<div style="grid-column: 1 / -1; background: white; padding: 8px; border-radius: 4px;"><strong>类别分布:</strong><br><span style="font-size: 12px; color: #6B7890;">${balanceInfo}</span></div>`;
+                        infoHtml += '<div style="grid-column: 1 / -1; background: white; padding: 8px; border-radius: 4px;">' + '<strong>' + VizMLI18n.t('类别分布:') + '</strong>' + '<br>' + '<span style="font-size: 12px; color: #6B7890;">' + (balanceInfo) + '</span>' + '</div>';
                     }
                 } else {
-                    infoHtml += '<div style="background: white; padding: 8px; border-radius: 4px;"><strong>数据类型:</strong> <span style="color: #6B7890;">无监督数据</span></div>';
-                    infoHtml += '<div style="background: white; padding: 8px; border-radius: 4px;"><strong>标签信息:</strong> <span style="color: #6B7890;">无分类标签</span></div>';
+                    infoHtml += VizMLI18n.t('<div style="background: white; padding: 8px; border-radius: 4px;"><strong>数据类型:</strong> <span style="color: #6B7890;">无监督数据</span></div>');
+                    infoHtml += VizMLI18n.t('<div style="background: white; padding: 8px; border-radius: 4px;"><strong>标签信息:</strong> <span style="color: #6B7890;">无分类标签</span></div>');
                 }
                 
                 infoHtml += '</div></div>';
                 
                 // 添加到结果信息区域
                 const metricsDisplay = document.getElementById('metricsDisplay');
-                if (!metricsDisplay.innerHTML.includes('数据集详细信息')) {
+                if (!metricsDisplay.innerHTML.includes(VizMLI18n.t('数据集详细信息'))) {
                     metricsDisplay.innerHTML += infoHtml;
                 }
             }
             
             exportResults() {
                 if (!this.currentResultKey || !this.currentSessionKey) {
-                    this.showMessage('请先应用算法获取结果', 'error');
+                    this.showMessage(VizMLI18n.t('请先应用算法获取结果'), 'error');
                     return;
                 }
                 
@@ -1502,7 +1485,7 @@
                     document.body.removeChild(link);
                     URL.revokeObjectURL(url);
                     
-                    this.showMessage('结果数据导出成功！', 'success');
+                    this.showMessage(VizMLI18n.t('结果数据导出成功！'), 'success');
                     
                     // 导出可视化图片
                     const chartContainer = document.getElementById('chartContainer');
@@ -1513,15 +1496,15 @@
                             height: 600,
                             filename: `dimensionality_reduction_chart_${new Date().toISOString().slice(0, 10)}`
                         }).then(() => {
-                            this.showMessage('图表导出成功！', 'success');
+                            this.showMessage(VizMLI18n.t('图表导出成功！'), 'success');
                         }).catch(error => {
-                            console.error('图表导出失败:', error);
+                            console.error(VizMLI18n.t('图表导出失败:'), error);
                         });
                     }
                     
                 } catch (error) {
-                    console.error('导出失败:', error);
-                    this.showMessage('导出失败，请重试', 'error');
+                    console.error(VizMLI18n.t('导出失败:'), error);
+                    this.showMessage(VizMLI18n.t('导出失败，请重试'), 'error');
                 }
             }
             
@@ -1529,12 +1512,12 @@
                 const container = document.getElementById('featureImportance');
                 
                 if (!importanceData || !importanceData.importance) {
-                    container.innerHTML = '<p style="text-align: center; color: #6B7890; font-style: italic;">当前算法不支持特征重要性分析</p>';
+                    container.innerHTML = VizMLI18n.t('<p style="text-align: center; color: #6B7890; font-style: italic;">当前算法不支持特征重要性分析</p>');
                     return;
                 }
                 
                 const importance = importanceData.importance;
-                const featureNames = importanceData.feature_names || importance.map((_, i) => `特征 ${i+1}`);
+                const featureNames = importanceData.feature_names || importance.map((_, i) => VizMLI18n.t('特征 ') + (i+1));
                 const components = importanceData.components;
                 
                 // 创建特征重要性排序列表
@@ -1542,7 +1525,7 @@
                     .sort((a, b) => b.value - a.value);
                 
                 let html = '<div style="margin-bottom: 15px;">';
-                html += '<h5 style="margin: 0 0 10px 0; color: #172033;">特征重要性排序</h5>';
+                html += VizMLI18n.t('<h5 style="margin: 0 0 10px 0; color: #172033;">特征重要性排序</h5>');
                 html += '<div class="feature-importance">';
                 
                 sortedIndices.slice(0, 10).forEach((item, rank) => {
@@ -1566,11 +1549,11 @@
                 // 如果是PCA，显示主成分贡献分析
                 if (components && importanceData.explained_variance_ratio) {
                     html += '<div style="margin-top: 15px;">';
-                    html += '<h5 style="margin: 0 0 10px 0; color: #172033;">主成分分析</h5>';
+                    html += VizMLI18n.t('<h5 style="margin: 0 0 10px 0; color: #172033;">主成分分析</h5>');
                     
                     importanceData.explained_variance_ratio.forEach((ratio, componentIndex) => {
                         html += `<div style="margin-bottom: 8px; padding: 8px; background: #F8FAFD; border-radius: 4px;">`;
-                        html += `<strong>PC${componentIndex + 1}</strong> (方差解释率: ${(ratio * 100).toFixed(2)}%)`;
+                        html += '<strong>' + 'PC' + (componentIndex + 1) + '</strong>' + VizMLI18n.t(' (方差解释率: ') + ((ratio * 100).toFixed(2)) + '%)';
                         
                         if (components[componentIndex]) {
                             const topFeatures = components[componentIndex]
@@ -1579,7 +1562,7 @@
                                 .slice(0, 3);
                             
                             html += '<div style="font-size: 12px; color: #6B7890; margin-top: 4px;">';
-                            html += '主要贡献特征: ';
+                            html += VizMLI18n.t('主要贡献特征: ');
                             html += topFeatures.map(f => `${f.name} (${f.originalCoef >= 0 ? '+' : ''}${f.originalCoef.toFixed(3)})`).join(', ');
                             html += '</div>';
                         }
@@ -1595,53 +1578,13 @@
                 const container = document.getElementById('algorithmDescription');
                 
                 const descriptions = {
-                    pca: `
-                        <p><strong>主成分分析 (PCA)</strong>是一种经典的线性降维方法，通过寻找数据方差最大的方向来保留最重要的信息。</p>
-                        <p><strong>核心思想：</strong></p>
-                        <ul>
-                            <li>将数据投影到方差最大的方向（主成分）</li>
-                            <li>保留前k个主成分，去除后面的成分</li>
-                            <li>实现数据的线性降维</li>
-                        </ul>
-                        <p><strong>适用场景：</strong>数据存在线性相关性，需要去除冗余信息，适合预处理和特征提取。</p>
-                        <p><strong>优点：</strong>计算简单、效果稳定、有明确的数学意义。</p>
-                    `,
-                    tsne: `
-                        <p><strong>t-SNE</strong>是一种非线性降维方法，特别适合高维数据的可视化，能够保持数据的局部结构。</p>
-                        <p><strong>核心思想：</strong></p>
-                        <ul>
-                            <li>在高维空间中计算点对之间的相似性</li>
-                            <li>在低维空间中保持这种相似性关系</li>
-                            <li>使用概率分布建模点之间的关系</li>
-                        </ul>
-                        <p><strong>适用场景：</strong>高维数据可视化、发现数据中的聚类结构、探索性数据分析。</p>
-                        <p><strong>特点：</strong>能揭示非线性结构，但计算复杂度高，结果可能不稳定。</p>
-                    `,
-                    lda: `
-                        <p><strong>线性判别分析 (LDA)</strong>是一种监督降维方法，在降维的同时最大化类别间的可分性。</p>
-                        <p><strong>核心思想：</strong></p>
-                        <ul>
-                            <li>最大化类间方差，同时最小化类内方差</li>
-                            <li>寻找最佳的线性判别方向</li>
-                            <li>同时实现降维和分类</li>
-                        </ul>
-                        <p><strong>适用场景：</strong>有标签的分类数据，需要降维后保持分类效果。</p>
-                        <p><strong>限制：</strong>降维后维度最多为类别数-1，假设数据符合高斯分布。</p>
-                    `,
-                    umap: `
-                        <p><strong>UMAP (Uniform Manifold Approximation and Projection)</strong>是一种现代的非线性降维算法，在保持数据全局和局部结构方面表现优异。</p>
-                        <p><strong>核心思想：</strong></p>
-                        <ul>
-                            <li>基于拓扑数据分析和黎曼几何理论</li>
-                            <li>构建高维数据的拓扑表示，然后在低维空间中优化相似的拓扑结构</li>
-                            <li>平衡局部邻域保持和全局结构保持</li>
-                        </ul>
-                        <p><strong>适用场景：</strong>大规模数据可视化、聚类分析、发现数据流形结构。</p>
-                        <p><strong>优点：</strong>速度快、保持更多全局结构、结果稳定、支持多种距离度量。</p>
-                    `
+                    pca: '\n                        ' + '<p>' + '<strong>' + VizMLI18n.t('主成分分析 (PCA)') + '</strong>' + VizMLI18n.t('是一种经典的线性降维方法，通过寻找数据方差最大的方向来保留最重要的信息。') + '</p>' + '\n                        ' + '<p>' + '<strong>' + VizMLI18n.t('核心思想：') + '</strong>' + '</p>' + '\n                        ' + '<ul>' + '\n                            ' + '<li>' + VizMLI18n.t('将数据投影到方差最大的方向（主成分）') + '</li>' + '\n                            ' + '<li>' + VizMLI18n.t('保留前k个主成分，去除后面的成分') + '</li>' + '\n                            ' + '<li>' + VizMLI18n.t('实现数据的线性降维') + '</li>' + '\n                        ' + '</ul>' + '\n                        ' + '<p>' + '<strong>' + VizMLI18n.t('适用场景：') + '</strong>' + VizMLI18n.t('数据存在线性相关性，需要去除冗余信息，适合预处理和特征提取。') + '</p>' + '\n                        ' + '<p>' + '<strong>' + VizMLI18n.t('优点：') + '</strong>' + VizMLI18n.t('计算简单、效果稳定、有明确的数学意义。') + '</p>' + '\n                    ',
+                    tsne: '\n                        ' + '<p>' + '<strong>' + 't-SNE' + '</strong>' + VizMLI18n.t('是一种非线性降维方法，特别适合高维数据的可视化，能够保持数据的局部结构。') + '</p>' + '\n                        ' + '<p>' + '<strong>' + VizMLI18n.t('核心思想：') + '</strong>' + '</p>' + '\n                        ' + '<ul>' + '\n                            ' + '<li>' + VizMLI18n.t('在高维空间中计算点对之间的相似性') + '</li>' + '\n                            ' + '<li>' + VizMLI18n.t('在低维空间中保持这种相似性关系') + '</li>' + '\n                            ' + '<li>' + VizMLI18n.t('使用概率分布建模点之间的关系') + '</li>' + '\n                        ' + '</ul>' + '\n                        ' + '<p>' + '<strong>' + VizMLI18n.t('适用场景：') + '</strong>' + VizMLI18n.t('高维数据可视化、发现数据中的聚类结构、探索性数据分析。') + '</p>' + '\n                        ' + '<p>' + '<strong>' + VizMLI18n.t('特点：') + '</strong>' + VizMLI18n.t('能揭示非线性结构，但计算复杂度高，结果可能不稳定。') + '</p>' + '\n                    ',
+                    lda: '\n                        ' + '<p>' + '<strong>' + VizMLI18n.t('线性判别分析 (LDA)') + '</strong>' + VizMLI18n.t('是一种监督降维方法，在降维的同时最大化类别间的可分性。') + '</p>' + '\n                        ' + '<p>' + '<strong>' + VizMLI18n.t('核心思想：') + '</strong>' + '</p>' + '\n                        ' + '<ul>' + '\n                            ' + '<li>' + VizMLI18n.t('最大化类间方差，同时最小化类内方差') + '</li>' + '\n                            ' + '<li>' + VizMLI18n.t('寻找最佳的线性判别方向') + '</li>' + '\n                            ' + '<li>' + VizMLI18n.t('同时实现降维和分类') + '</li>' + '\n                        ' + '</ul>' + '\n                        ' + '<p>' + '<strong>' + VizMLI18n.t('适用场景：') + '</strong>' + VizMLI18n.t('有标签的分类数据，需要降维后保持分类效果。') + '</p>' + '\n                        ' + '<p>' + '<strong>' + VizMLI18n.t('限制：') + '</strong>' + VizMLI18n.t('降维后维度最多为类别数-1，假设数据符合高斯分布。') + '</p>' + '\n                    ',
+                    umap: '\n                        ' + '<p>' + '<strong>' + 'UMAP (Uniform Manifold Approximation and Projection)' + '</strong>' + VizMLI18n.t('是一种现代的非线性降维算法，在保持数据全局和局部结构方面表现优异。') + '</p>' + '\n                        ' + '<p>' + '<strong>' + VizMLI18n.t('核心思想：') + '</strong>' + '</p>' + '\n                        ' + '<ul>' + '\n                            ' + '<li>' + VizMLI18n.t('基于拓扑数据分析和黎曼几何理论') + '</li>' + '\n                            ' + '<li>' + VizMLI18n.t('构建高维数据的拓扑表示，然后在低维空间中优化相似的拓扑结构') + '</li>' + '\n                            ' + '<li>' + VizMLI18n.t('平衡局部邻域保持和全局结构保持') + '</li>' + '\n                        ' + '</ul>' + '\n                        ' + '<p>' + '<strong>' + VizMLI18n.t('适用场景：') + '</strong>' + VizMLI18n.t('大规模数据可视化、聚类分析、发现数据流形结构。') + '</p>' + '\n                        ' + '<p>' + '<strong>' + VizMLI18n.t('优点：') + '</strong>' + VizMLI18n.t('速度快、保持更多全局结构、结果稳定、支持多种距离度量。') + '</p>' + '\n                    '
                 };
                 
-                container.innerHTML = descriptions[algorithm] || '<p style="text-align: center; color: #6B7890; font-style: italic;">选择算法后显示详细说明</p>';
+                container.innerHTML = descriptions[algorithm] || VizMLI18n.t('<p style="text-align: center; color: #6B7890; font-style: italic;">选择算法后显示详细说明</p>');
             }
             
         }

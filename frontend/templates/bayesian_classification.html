@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <link rel="stylesheet" href="/static/css/i18n.css">
+    <script src="/static/js/i18n.js?v=2"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>贝叶斯分类算法可视化</title>
@@ -658,8 +661,8 @@
         }
     </style>
     <link rel="stylesheet" href="/static/css/design-system.css">
-    <script defer src="/static/js/visualization-theme.js"></script>
-    <script defer src="/static/js/ui-shell.js"></script>
+    <script defer src="/static/js/visualization-theme.js?v=2"></script>
+    <script defer src="/static/js/ui-shell.js?v=2"></script>
 </head>
 <body>
     <div class="container">
@@ -1038,13 +1041,13 @@
                     x: {
                         title: {
                             display: true,
-                            text: '特征 1'
+                            text: VizMLI18n.t('特征 1')
                         }
                     },
                     y: {
                         title: {
                             display: true,
-                            text: '特征 2'
+                            text: VizMLI18n.t('特征 2')
                         }
                     }
                 },
@@ -1085,10 +1088,10 @@
                             },
                             label: function(context) {
                                 const point = context.parsed;
-                                return `坐标: (${point.x.toFixed(3)}, ${point.y.toFixed(3)})`;
+                                return VizMLI18n.t('坐标: (') + (point.x.toFixed(3)) + ', ' + (point.y.toFixed(3)) + ')';
                             },
                             afterLabel: function(context) {
-                                return '点击查看详细分析';
+                                return VizMLI18n.t('点击查看详细分析');
                             }
                         }
                     }
@@ -1109,7 +1112,7 @@
             setupEventListeners();
             
             // 显示初始提示
-            showMessage('欢迎使用贝叶斯分类可视化！请先生成数据开始探索。', 'info');
+            showMessage(VizMLI18n.t('欢迎使用贝叶斯分类可视化！请先生成数据开始探索。'), 'info');
         });
 
         function initializeCharts() {
@@ -1132,13 +1135,13 @@
                         x: {
                             title: {
                                 display: true,
-                                text: '类别'
+                                text: VizMLI18n.t('类别')
                             }
                         },
                         y: {
                             title: {
                                 display: true,
-                                text: '先验概率'
+                                text: VizMLI18n.t('先验概率')
                             },
                             beginAtZero: true,
                             max: 1
@@ -1178,7 +1181,7 @@
 
         async function generateData() {
             try {
-                showLoading('正在生成数据...');
+                showLoading(VizMLI18n.t('正在生成数据...'));
                 
                 const config = {
                     type: 'classification',
@@ -1211,25 +1214,25 @@
                     trainBtn.disabled = false;
                     
                     hideLoading();
-                    showMessage('数据生成成功！可以开始训练模型。', 'success');
+                    showMessage(VizMLI18n.t('数据生成成功！可以开始训练模型。'), 'success');
                 } else {
-                    throw new Error(result.message || '数据生成失败');
+                    throw new Error(result.message || VizMLI18n.t('数据生成失败'));
                 }
             } catch (error) {
                 hideLoading();
-                showMessage('数据生成失败: ' + error.message, 'error');
+                showMessage(VizMLI18n.t('数据生成失败: ') + error.message, 'error');
                 console.error('Generate data error:', error);
             }
         }
 
         async function trainModel() {
             if (!currentData) {
-                showMessage('请先生成数据！', 'error');
+                showMessage(VizMLI18n.t('请先生成数据！'), 'error');
                 return;
             }
 
             try {
-                showLoading('正在训练贝叶斯模型...');
+                showLoading(VizMLI18n.t('正在训练贝叶斯模型...'));
 
                 const params = {
                     test_size: parseFloat(document.getElementById('testSize').value),
@@ -1262,13 +1265,13 @@
                     updateMetrics(result.results.metrics);
                     updateProbabilityAnalysis(result.results);
                     hideLoading();
-                    showMessage('高斯贝叶斯模型训练成功！', 'success');
+                    showMessage(VizMLI18n.t('高斯贝叶斯模型训练成功！'), 'success');
                 } else {
-                    throw new Error(result.message || '模型训练失败');
+                    throw new Error(result.message || VizMLI18n.t('模型训练失败'));
                 }
             } catch (error) {
                 hideLoading();
-                showMessage('模型训练失败: ' + error.message, 'error');
+                showMessage(VizMLI18n.t('模型训练失败: ') + error.message, 'error');
                 console.error('Train model error:', error);
             }
         }
@@ -1294,7 +1297,7 @@
                 }));
 
                 datasets.push({
-                    label: `类别 ${cls}`,
+                    label: VizMLI18n.t('类别 ') + (cls),
                     data: pointData,
                     backgroundColor: colors[index % colors.length] + '70',
                     borderColor: colors[index % colors.length],
@@ -1330,7 +1333,7 @@
                     }));
 
                     datasets.push({
-                        label: `类别 ${cls} (训练)`,
+                        label: VizMLI18n.t('类别 ') + (cls) + VizMLI18n.t(' (训练)'),
                         data: pointData,
                         backgroundColor: colors[index % colors.length] + '80',
                         borderColor: colors[index % colors.length],
@@ -1353,7 +1356,7 @@
                     }));
 
                     datasets.push({
-                        label: `类别 ${cls} (测试)`,
+                        label: VizMLI18n.t('类别 ') + (cls) + VizMLI18n.t(' (测试)'),
                         data: pointData,
                         backgroundColor: colors[index % colors.length] + '60',
                         borderColor: colors[index % colors.length],
@@ -1374,7 +1377,7 @@
                 }));
 
                 datasets.push({
-                    label: '错误分类',
+                    label: VizMLI18n.t('错误分类'),
                     data: misclassifiedData,
                     backgroundColor: '#C2415D' + '70',
                     borderColor: '#C2415D',
@@ -1393,28 +1396,7 @@
             const metricsContainer = document.getElementById('metrics');
             if (!metrics) return;
 
-            metricsContainer.innerHTML = `
-                <div class="metric">
-                    <span class="metric-value">${(metrics.test_accuracy * 100).toFixed(1)}%</span>
-                    <div class="metric-label">测试准确率</div>
-                </div>
-                <div class="metric">
-                    <span class="metric-value">${(metrics.train_accuracy * 100).toFixed(1)}%</span>
-                    <div class="metric-label">训练准确率</div>
-                </div>
-                <div class="metric">
-                    <span class="metric-value">${(metrics.test_precision * 100).toFixed(1)}%</span>
-                    <div class="metric-label">精确率</div>
-                </div>
-                <div class="metric">
-                    <span class="metric-value">${(metrics.test_recall * 100).toFixed(1)}%</span>
-                    <div class="metric-label">召回率</div>
-                </div>
-                <div class="metric">
-                    <span class="metric-value">${(metrics.test_f1 * 100).toFixed(1)}%</span>
-                    <div class="metric-label">F1分数</div>
-                </div>
-            `;
+            metricsContainer.innerHTML = '\n                ' + '<div class="metric">' + '\n                    ' + '<span class="metric-value">' + ((metrics.test_accuracy * 100).toFixed(1)) + '%' + '</span>' + '\n                    ' + '<div class="metric-label">' + VizMLI18n.t('测试准确率') + '</div>' + '\n                ' + '</div>' + '\n                ' + '<div class="metric">' + '\n                    ' + '<span class="metric-value">' + ((metrics.train_accuracy * 100).toFixed(1)) + '%' + '</span>' + '\n                    ' + '<div class="metric-label">' + VizMLI18n.t('训练准确率') + '</div>' + '\n                ' + '</div>' + '\n                ' + '<div class="metric">' + '\n                    ' + '<span class="metric-value">' + ((metrics.test_precision * 100).toFixed(1)) + '%' + '</span>' + '\n                    ' + '<div class="metric-label">' + VizMLI18n.t('精确率') + '</div>' + '\n                ' + '</div>' + '\n                ' + '<div class="metric">' + '\n                    ' + '<span class="metric-value">' + ((metrics.test_recall * 100).toFixed(1)) + '%' + '</span>' + '\n                    ' + '<div class="metric-label">' + VizMLI18n.t('召回率') + '</div>' + '\n                ' + '</div>' + '\n                ' + '<div class="metric">' + '\n                    ' + '<span class="metric-value">' + ((metrics.test_f1 * 100).toFixed(1)) + '%' + '</span>' + '\n                    ' + '<div class="metric-label">' + VizMLI18n.t('F1分数') + '</div>' + '\n                ' + '</div>' + '\n            ';
         }
 
         function updateProbabilityAnalysis(results) {
@@ -1437,12 +1419,12 @@
             if (!params.class_prior || !priorChart) return;
             
             const colors = window.VizTheme ? [...VizTheme.palette] : ['#4F46E5', '#0F9D8A', '#E07A3F', '#D64C7F', '#2B8AC6', '#7C6CE7'];
-            const labels = params.class_prior.map((_, idx) => `类别 ${idx}`);
+            const labels = params.class_prior.map((_, idx) => VizMLI18n.t('类别 ') + (idx));
             
             priorChart.data = {
                 labels: labels,
                 datasets: [{
-                    label: '先验概率',
+                    label: VizMLI18n.t('先验概率'),
                     data: params.class_prior,
                     backgroundColor: colors.slice(0, params.class_prior.length).map(color => color + '80'),
                     borderColor: colors.slice(0, params.class_prior.length),
@@ -1476,7 +1458,7 @@
             });
             
             if (!matchedPoint) {
-                console.warn('无法找到匹配的数据点', { x: clickedX, y: clickedY });
+                console.warn(VizMLI18n.t('无法找到匹配的数据点'), { x: clickedX, y: clickedY });
                 return;
             }
 
@@ -1494,17 +1476,7 @@
             const colors = window.VizTheme ? [...VizTheme.palette] : ['#4F46E5', '#0F9D8A', '#E07A3F', '#D64C7F', '#2B8AC6', '#7C6CE7'];
 
             // 显示基本信息
-            let analysisHtml = `
-                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 10px 0;">
-                    <h5 style="margin: 0 0 10px 0; color: #172033;">📍 选中数据点信息</h5>
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-                        <div><strong>特征值:</strong> [${features.map(f => f.toFixed(3)).join(', ')}]</div>
-                        <div><strong>真实类别:</strong> <span style="color: ${colors[trueLabel % colors.length]}">类别 ${trueLabel}</span></div>
-                        <div><strong>预测类别:</strong> <span style="color: ${colors[prediction % colors.length]}">类别 ${prediction}</span></div>
-                        <div><strong>预测结果:</strong> <span style="color: ${point.misclassified ? '#C2415D' : '#0F9D8A'}; font-weight: bold;">${point.misclassified ? '❌ 错误' : '✅ 正确'}</span></div>
-                    </div>
-                </div>
-            `;
+            let analysisHtml = '\n                ' + '<div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 10px 0;">' + '\n                    ' + '<h5 style="margin: 0 0 10px 0; color: #172033;">' + VizMLI18n.t('📍 选中数据点信息') + '</h5>' + '\n                    ' + '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">' + '\n                        ' + '<div>' + '<strong>' + VizMLI18n.t('特征值:') + '</strong>' + ' [' + (features.map(f => f.toFixed(3)).join(', ')) + ']' + '</div>' + '\n                        ' + '<div>' + '<strong>' + VizMLI18n.t('真实类别:') + '</strong>' + ' <span style="color: ' + (colors[trueLabel % colors.length]) + VizMLI18n.t('">类别 ') + (trueLabel) + '</span>' + '</div>' + '\n                        ' + '<div>' + '<strong>' + VizMLI18n.t('预测类别:') + '</strong>' + ' <span style="color: ' + (colors[prediction % colors.length]) + VizMLI18n.t('">类别 ') + (prediction) + '</span>' + '</div>' + '\n                        ' + '<div>' + '<strong>' + VizMLI18n.t('预测结果:') + '</strong>' + ' <span style="color: ' + (point.misclassified ? '#C2415D' : '#0F9D8A') + '; font-weight: bold;">' + (point.misclassified ? VizMLI18n.t('❌ 错误') : VizMLI18n.t('✅ 正确')) + '</span>' + '</div>' + '\n                    ' + '</div>' + '\n                ' + '</div>' + '\n            ';
 
             container.innerHTML = analysisHtml;
 
@@ -1533,8 +1505,8 @@
                 }
 
             } catch (error) {
-                console.error('获取详细概率计算失败:', error);
-                container.innerHTML += '<p style="color: #C2415D;">获取详细分析失败，请检查网络连接</p>';
+                console.error(VizMLI18n.t('获取详细概率计算失败:'), error);
+                container.innerHTML += VizMLI18n.t('<p style="color: #C2415D;">获取详细分析失败，请检查网络连接</p>');
             }
         }
 
@@ -1543,78 +1515,16 @@
             let analysisHtml = container.innerHTML;
 
             // 贝叶斯公式说明
-            analysisHtml += `
-                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #D99A20; margin: 15px 0;">
-                    <h5 style="margin: 0 0 10px 0; color: #856404;">📐 贝叶斯定理应用</h5>
-                    <div style="font-family: monospace; background: #F8FAFD; padding: 10px; border-radius: 5px; text-align: center; margin: 10px 0;">
-                        P(类别|特征) = P(特征|类别) × P(类别) / P(特征)
-                    </div>
-                    <p style="margin: 0;">其中 P(特征) 是归一化常数，使所有后验概率之和为1</p>
-                </div>
-            `;
+            analysisHtml += '\n                ' + '<div style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #D99A20; margin: 15px 0;">' + '\n                    ' + '<h5 style="margin: 0 0 10px 0; color: #856404;">' + VizMLI18n.t('📐 贝叶斯定理应用') + '</h5>' + '\n                    ' + '<div style="font-family: monospace; background: #F8FAFD; padding: 10px; border-radius: 5px; text-align: center; margin: 10px 0;">' + VizMLI18n.t('\n                        P(类别|特征) = P(特征|类别) × P(类别) / P(特征)\n                    ') + '</div>' + '\n                    ' + '<p style="margin: 0;">' + VizMLI18n.t('其中 P(特征) 是归一化常数，使所有后验概率之和为1') + '</p>' + '\n                ' + '</div>' + '\n            ';
 
             // 详细计算过程
-            analysisHtml += `
-                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 15px 0;">
-                    <h5 style="margin: 0 0 15px 0; color: #172033;">🔍 详细概率计算</h5>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
-            `;
+            analysisHtml += '\n                ' + '<div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 15px 0;">' + '\n                    ' + '<h5 style="margin: 0 0 15px 0; color: #172033;">' + VizMLI18n.t('🔍 详细概率计算') + '</h5>' + '\n                    ' + '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">' + '\n            ';
 
             detailedProbs.class_details.forEach((classDetail, index) => {
                 const isPredicted = index === detailedProbs.predicted_class;
                 const color = colors[index % colors.length];
                 
-                analysisHtml += `
-                    <div style="background: ${isPredicted ? '#f8fff9' : '#F8FAFD'};
-                                border: 2px solid ${isPredicted ? '#0F9D8A' : '#e1e5e9'};
-                                border-radius: 8px; 
-                                padding: 15px;">
-                        <h6 style="color: ${color}; margin: 0 0 15px 0;">类别 ${classDetail.class_label} ${isPredicted ? '(预测类别)' : ''}</h6>
-                        
-                        <div style="margin: 10px 0;">
-                            <strong>1. 先验概率:</strong>
-                            <div style="background: #E7EDF5; height: 20px; border-radius: 10px; overflow: hidden; margin: 5px 0;">
-                                <div style="height: 100%; background: ${color}; width: ${classDetail.prior_probability * 100}%; 
-                                            display: flex; align-items: center; justify-content: center; 
-                                            color: white; font-weight: bold; font-size: 11px;">
-                                    ${(classDetail.prior_probability * 100).toFixed(1)}%
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="margin: 10px 0;">
-                            <strong>2. 似然性:</strong>
-                            <div style="font-family: monospace; background: #F8FAFD; padding: 5px; border-radius: 3px; font-size: 0.9em;">
-                                ${classDetail.likelihood.toExponential(3)}
-                            </div>
-                        </div>
-
-                        <div style="margin: 10px 0;">
-                            <strong>3. 后验概率:</strong>
-                            <div style="background: #E7EDF5; height: 25px; border-radius: 12px; overflow: hidden; margin: 5px 0;">
-                                <div style="height: 100%; background: ${color}; width: ${classDetail.posterior_probability * 100}%; 
-                                            display: flex; align-items: center; justify-content: center; 
-                                            color: white; font-weight: bold; font-size: 12px;">
-                                    ${(classDetail.posterior_probability * 100).toFixed(1)}%
-                                </div>
-                            </div>
-                        </div>
-
-                        <details style="margin-top: 10px;">
-                            <summary style="cursor: pointer; color: #6B7890;">特征详细计算</summary>
-                            <div style="margin-top: 10px; font-size: 0.9rem;">
-                                ${classDetail.feature_likelihoods.map(fl => `
-                                    <div style="margin: 8px 0; padding: 8px; background: #F8FAFD; border-radius: 4px;">
-                                        <strong>特征 ${fl.feature_index + 1}:</strong><br>
-                                        特征值: ${fl.feature_value.toFixed(3)}<br>
-                                        均值: ${fl.mean.toFixed(3)}, 方差: ${fl.variance.toFixed(6)}<br>
-                                        似然性: ${fl.likelihood.toExponential(3)}
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </details>
-                    </div>
-                `;
+                analysisHtml += '\n                    <div style="background: ' + (isPredicted ? '#f8fff9' : '#F8FAFD') + ';\n                                border: 2px solid ' + (isPredicted ? '#0F9D8A' : '#e1e5e9') + ';\n                                border-radius: 8px; \n                                padding: 15px;">\n                        <h6 style="color: ' + (color) + VizMLI18n.t('; margin: 0 0 15px 0;">类别 ') + (classDetail.class_label) + ' ' + (isPredicted ? VizMLI18n.t('(预测类别)') : '') + '</h6>' + '\n                        \n                        ' + '<div style="margin: 10px 0;">' + '\n                            ' + '<strong>' + VizMLI18n.t('1. 先验概率:') + '</strong>' + '\n                            ' + '<div style="background: #E7EDF5; height: 20px; border-radius: 10px; overflow: hidden; margin: 5px 0;">' + '\n                                <div style="height: 100%; background: ' + (color) + '; width: ' + (classDetail.prior_probability * 100) + '%; \n                                            display: flex; align-items: center; justify-content: center; \n                                            color: white; font-weight: bold; font-size: 11px;">\n                                    ' + ((classDetail.prior_probability * 100).toFixed(1)) + '%\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n\n                        ' + '<div style="margin: 10px 0;">' + '\n                            ' + '<strong>' + VizMLI18n.t('2. 似然性:') + '</strong>' + '\n                            ' + '<div style="font-family: monospace; background: #F8FAFD; padding: 5px; border-radius: 3px; font-size: 0.9em;">' + '\n                                ' + (classDetail.likelihood.toExponential(3)) + '\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n\n                        ' + '<div style="margin: 10px 0;">' + '\n                            ' + '<strong>' + VizMLI18n.t('3. 后验概率:') + '</strong>' + '\n                            ' + '<div style="background: #E7EDF5; height: 25px; border-radius: 12px; overflow: hidden; margin: 5px 0;">' + '\n                                <div style="height: 100%; background: ' + (color) + '; width: ' + (classDetail.posterior_probability * 100) + '%; \n                                            display: flex; align-items: center; justify-content: center; \n                                            color: white; font-weight: bold; font-size: 12px;">\n                                    ' + ((classDetail.posterior_probability * 100).toFixed(1)) + '%\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n\n                        ' + '<details style="margin-top: 10px;">' + '\n                            ' + '<summary style="cursor: pointer; color: #6B7890;">' + VizMLI18n.t('特征详细计算') + '</summary>' + '\n                            ' + '<div style="margin-top: 10px; font-size: 0.9rem;">' + '\n                                ' + (classDetail.feature_likelihoods.map(fl => '\n                                    ' + '<div style="margin: 8px 0; padding: 8px; background: #F8FAFD; border-radius: 4px;">' + '\n                                        ' + '<strong>' + VizMLI18n.t('特征 ') + (fl.feature_index + 1) + ':' + '</strong>' + '<br>' + VizMLI18n.t('\n                                        特征值: ') + (fl.feature_value.toFixed(3)) + '<br>' + VizMLI18n.t('\n                                        均值: ') + (fl.mean.toFixed(3)) + VizMLI18n.t(', 方差: ') + (fl.variance.toFixed(6)) + '<br>' + VizMLI18n.t('\n                                        似然性: ') + (fl.likelihood.toExponential(3)) + '\n                                    ' + '</div>' + '\n                                ').join('')) + '\n                            ' + '</div>' + '\n                        ' + '</details>' + '\n                    ' + '</div>' + '\n                ';
             });
 
             analysisHtml += `
@@ -1623,14 +1533,8 @@
             `;
 
             // 总结
-            analysisHtml += `
-                <div style="background: #d1ecf1; padding: 15px; border-radius: 8px; border-left: 4px solid #bee5eb; margin: 15px 0;">
-                    <h5 style="margin: 0 0 10px 0; color: #0c5460;">📊 预测总结</h5>
-                    <p style="margin: 5px 0;">模型选择概率最高的类别 <strong style="color: ${colors[detailedProbs.predicted_class % colors.length]}">类别 ${detailedProbs.predicted_class}</strong> 作为预测结果。</p>
-                    <p style="margin: 5px 0;">各类别概率：${detailedProbs.class_probabilities.map((prob, idx) => 
-                        `<span style="color: ${colors[idx % colors.length]}">类别${idx}: ${(prob * 100).toFixed(1)}%</span>`).join(', ')}</p>
-                </div>
-            `;
+            analysisHtml += '\n                ' + '<div style="background: #d1ecf1; padding: 15px; border-radius: 8px; border-left: 4px solid #bee5eb; margin: 15px 0;">' + '\n                    ' + '<h5 style="margin: 0 0 10px 0; color: #0c5460;">' + VizMLI18n.t('📊 预测总结') + '</h5>' + '\n                    ' + '<p style="margin: 5px 0;">' + VizMLI18n.t('模型选择概率最高的类别 <strong style="color: ') + (colors[detailedProbs.predicted_class % colors.length]) + VizMLI18n.t('">类别 ') + (detailedProbs.predicted_class) + '</strong>' + VizMLI18n.t(' 作为预测结果。') + '</p>' + '\n                    ' + '<p style="margin: 5px 0;">' + VizMLI18n.t('各类别概率：') + (detailedProbs.class_probabilities.map((prob, idx) => 
+                        '<span style="color: ' + (colors[idx % colors.length]) + VizMLI18n.t('">类别') + (idx) + ': ' + ((prob * 100).toFixed(1)) + '%' + '</span>').join(', ')) + '</p>' + '\n                ' + '</div>' + '\n            ';
 
             container.innerHTML = analysisHtml;
         }
@@ -1662,17 +1566,7 @@
             let slidersHtml = '';
             
             featureRanges.forEach((range, index) => {
-                slidersHtml += `
-                    <div class="control-group">
-                        <label for="featureSlider${index}">特征 ${index + 1}: <span id="featureValue${index}">${range.current.toFixed(3)}</span></label>
-                        <input type="range" 
-                               id="featureSlider${index}"
-                               min="${range.min.toFixed(3)}" 
-                               max="${range.max.toFixed(3)}" 
-                               step="0.01" 
-                               value="${range.current.toFixed(3)}">
-                    </div>
-                `;
+                slidersHtml += '\n                    ' + '<div class="control-group">' + '\n                        <label for="featureSlider' + (index) + VizMLI18n.t('">特征 ') + (index + 1) + ': <span id="featureValue' + (index) + '">' + (range.current.toFixed(3)) + '</span>' + '</label>' + '\n                        <input type="range" \n                               id="featureSlider' + (index) + '"\n                               min="' + (range.min.toFixed(3)) + '" \n                               max="' + (range.max.toFixed(3)) + '" \n                               step="0.01" \n                               value="' + (range.current.toFixed(3)) + '">\n                    ' + '</div>' + '\n                ';
             });
 
             container.innerHTML = slidersHtml;
@@ -1741,48 +1635,20 @@
                 }
 
             } catch (error) {
-                console.error('实时预测失败:', error);
-                container.innerHTML = '<p>预测计算失败，请检查网络连接</p>';
+                console.error(VizMLI18n.t('实时预测失败:'), error);
+                container.innerHTML = VizMLI18n.t('<p>预测计算失败，请检查网络连接</p>');
             }
         }
 
         function displayRealTimePrediction(detailedProbs, features, container) {
             const colors = window.VizTheme ? [...VizTheme.palette] : ['#4F46E5', '#0F9D8A', '#E07A3F', '#D64C7F', '#2B8AC6', '#7C6CE7'];
             
-            let predictionHtml = `
-                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 10px 0;">
-                    <h5 style="margin: 0 0 10px 0; color: #172033;">🎯 实时预测结果</h5>
-                    <p><strong>当前特征值:</strong> [${features.map(f => f.toFixed(3)).join(', ')}]</p>
-                    <p><strong>预测类别:</strong> <span style="color: #0F9D8A; font-weight: bold;">类别 ${detailedProbs.predicted_class}</span></p>
-                </div>
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin: 15px 0;">
-            `;
+            let predictionHtml = '\n                ' + '<div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 10px 0;">' + '\n                    ' + '<h5 style="margin: 0 0 10px 0; color: #172033;">' + VizMLI18n.t('🎯 实时预测结果') + '</h5>' + '\n                    ' + '<p>' + '<strong>' + VizMLI18n.t('当前特征值:') + '</strong>' + ' [' + (features.map(f => f.toFixed(3)).join(', ')) + ']' + '</p>' + '\n                    ' + '<p>' + '<strong>' + VizMLI18n.t('预测类别:') + '</strong>' + ' ' + '<span style="color: #0F9D8A; font-weight: bold;">' + VizMLI18n.t('类别 ') + (detailedProbs.predicted_class) + '</span>' + '</p>' + '\n                ' + '</div>' + '\n\n                ' + '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin: 15px 0;">' + '\n            ';
 
             detailedProbs.class_details.forEach((classDetail, index) => {
                 const isPredicted = index === detailedProbs.predicted_class;
                 const color = colors[index % colors.length];
-                predictionHtml += `
-                    <div style="background: ${isPredicted ? '#f8fff9' : 'white'}; 
-                                border: 2px solid ${isPredicted ? '#0F9D8A' : '#e1e5e9'};
-                                border-radius: 8px; 
-                                padding: 15px;">
-                        <h6 style="color: ${color}; margin: 0 0 10px 0;">类别 ${classDetail.class_label} ${isPredicted ? '(预测)' : ''}</h6>
-                        
-                        <div style="background: #E7EDF5; height: 25px; border-radius: 15px; overflow: hidden; margin: 10px 0;">
-                            <div style="height: 100%; background: ${color}; width: ${classDetail.posterior_probability * 100}%; 
-                                        display: flex; align-items: center; justify-content: center; 
-                                        color: white; font-weight: bold; font-size: 12px;">
-                                ${(classDetail.posterior_probability * 100).toFixed(1)}%
-                            </div>
-                        </div>
-                        
-                        <div style="font-size: 0.9rem; color: #6B7890;">
-                            <div>先验: ${(classDetail.prior_probability * 100).toFixed(1)}%</div>
-                            <div>似然性: ${classDetail.likelihood.toExponential(2)}</div>
-                        </div>
-                    </div>
-                `;
+                predictionHtml += '\n                    <div style="background: ' + (isPredicted ? '#f8fff9' : 'white') + '; \n                                border: 2px solid ' + (isPredicted ? '#0F9D8A' : '#e1e5e9') + ';\n                                border-radius: 8px; \n                                padding: 15px;">\n                        <h6 style="color: ' + (color) + VizMLI18n.t('; margin: 0 0 10px 0;">类别 ') + (classDetail.class_label) + ' ' + (isPredicted ? VizMLI18n.t('(预测)') : '') + '</h6>' + '\n                        \n                        ' + '<div style="background: #E7EDF5; height: 25px; border-radius: 15px; overflow: hidden; margin: 10px 0;">' + '\n                            <div style="height: 100%; background: ' + (color) + '; width: ' + (classDetail.posterior_probability * 100) + '%; \n                                        display: flex; align-items: center; justify-content: center; \n                                        color: white; font-weight: bold; font-size: 12px;">\n                                ' + ((classDetail.posterior_probability * 100).toFixed(1)) + '%\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n                        \n                        ' + '<div style="font-size: 0.9rem; color: #6B7890;">' + '\n                            ' + '<div>' + VizMLI18n.t('先验: ') + ((classDetail.prior_probability * 100).toFixed(1)) + '%' + '</div>' + '\n                            ' + '<div>' + VizMLI18n.t('似然性: ') + (classDetail.likelihood.toExponential(2)) + '</div>' + '\n                        ' + '</div>' + '\n                    ' + '</div>' + '\n                ';
             });
 
             predictionHtml += '</div>';
@@ -1832,7 +1698,7 @@
                 emptyState.style.display = 'block';
             }
             
-            showMessage('已清除所有数据和模型', 'info');
+            showMessage(VizMLI18n.t('已清除所有数据和模型'), 'info');
         }
 
         function showLoading(message) {
