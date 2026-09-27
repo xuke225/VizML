@@ -54,11 +54,15 @@ class MLPlatformLauncher:
             return True
     
     def get_venv_python(self):
-        """获取虚拟环境Python路径"""
+        """获取虚拟环境Python路径（兼容标准 venv 与 conda 环境结构）"""
         if platform.system() == "Windows":
-            return self.venv_path / 'Scripts' / 'python.exe'
+            if (self.venv_path / 'Scripts' / 'python.exe').exists():
+                return self.venv_path / 'Scripts' / 'python.exe'
+            return self.venv_path / 'python.exe'  # conda 结构
         else:
-            return self.venv_path / 'bin' / 'python'
+            if (self.venv_path / 'bin' / 'python').exists():
+                return self.venv_path / 'bin' / 'python'
+            return self.venv_path / 'python'  # conda 结构
     
     def get_venv_pip(self):
         """获取虚拟环境pip路径"""

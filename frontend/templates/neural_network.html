@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <link rel="stylesheet" href="/static/css/i18n.css">
+    <script src="/static/js/i18n.js?v=2"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>神经网络可视化教具</title>
@@ -404,8 +407,8 @@
         }
     </style>
     <link rel="stylesheet" href="/static/css/design-system.css">
-    <script defer src="/static/js/visualization-theme.js"></script>
-    <script defer src="/static/js/ui-shell.js"></script>
+    <script defer src="/static/js/visualization-theme.js?v=2"></script>
+    <script defer src="/static/js/ui-shell.js?v=2"></script>
 </head>
 <body>
     <div class="container">
@@ -807,7 +810,7 @@
     </div>
 
     <!-- API客户端 -->
-    <script src="/static/js/api-client.js"></script>
+    <script src="/static/js/api-client.js?v=2"></script>
     
     <script>
         // 神经网络可视化教具 JavaScript 代码 - sklearn版本
@@ -883,15 +886,15 @@
                     const isConnected = await this.apiClient.checkConnection();
                     
                     if (isConnected) {
-                        statusBanner.textContent = '✅ 后端服务已连接 - 基于sklearn MLPClassifier的神经网络实现';
+                        statusBanner.textContent = VizMLI18n.t('✅ 后端服务已连接 - 基于sklearn MLPClassifier的神经网络实现');
                         statusBanner.className = 'status-banner connected';
                     } else {
-                        throw new Error('连接失败');
+                        throw new Error(VizMLI18n.t('连接失败'));
                     }
                 } catch (error) {
-                    statusBanner.textContent = '❌ 后端服务未连接 - 请启动Flask服务器 (python start.py)';
+                    statusBanner.textContent = VizMLI18n.t('❌ 后端服务未连接 - 请启动Flask服务器 (python start.py)');
                     statusBanner.className = 'status-banner disconnected';
-                    console.warn('后端服务连接失败:', error);
+                    console.warn(VizMLI18n.t('后端服务连接失败:'), error);
                 }
             }
             
@@ -1019,7 +1022,7 @@
                 dataDisplayOptions.forEach(radio => {
                     radio.addEventListener('change', (e) => {
                         this.dataDisplayMode = e.target.value;
-                        console.log('数据显示模式切换到:', this.dataDisplayMode);
+                        console.log(VizMLI18n.t('数据显示模式切换到:'), this.dataDisplayMode);
                         
                         // 重新绘制数据分布
                         if (this.currentData) {
@@ -1055,7 +1058,7 @@
             // 生成数据
             async generateData() {
                 try {
-                    this.updateStatus('正在生成数据...');
+                    this.updateStatus(VizMLI18n.t('正在生成数据...'));
                     
                     let shape = this.datasetConfig.type;
                     let additionalParams = {};
@@ -1093,14 +1096,14 @@
                         // 启用训练按钮
                         document.getElementById('realtimeTrainBtn').disabled = false;
                         
-                        this.updateStatus('数据生成完成，共 ' + this.currentData.n_samples + ' 个样本');
+                        this.updateStatus(VizMLI18n.t('数据生成完成，共 ') + this.currentData.n_samples + VizMLI18n.t(' 个样本'));
                     } else {
                         throw new Error(result.message);
                     }
                     
                 } catch (error) {
-                    console.error('数据生成失败:', error);
-                    this.updateStatus('数据生成失败: ' + error.message);
+                    console.error(VizMLI18n.t('数据生成失败:'), error);
+                    this.updateStatus(VizMLI18n.t('数据生成失败: ') + error.message);
                 }
             }
             
@@ -1262,7 +1265,7 @@
                         this.drawSimulatedDecisionBoundary();
                     }
                 } catch (error) {
-                    console.warn('获取决策边界失败，使用模拟方法:', error);
+                    console.warn(VizMLI18n.t('获取决策边界失败，使用模拟方法:'), error);
                     this.drawSimulatedDecisionBoundary();
                 }
             }
@@ -1518,7 +1521,7 @@
                     colorBox.style.cssText = `width: 12px; height: 12px; background-color: ${color}; border-radius: 50%; border: 1px solid #172033;`;
                     
                     const labelText = document.createElement('span');
-                    labelText.textContent = `类别 ${label}`;
+                    labelText.textContent = VizMLI18n.t('类别 ') + (label);
                     
                     legendItem.appendChild(colorBox);
                     legendItem.appendChild(labelText);
@@ -1540,7 +1543,7 @@
                     trainBox.style.cssText = 'width: 12px; height: 12px; background-color: #4F46E5; border-radius: 50%; border: 2px solid #172033;';
                     
                     const trainText = document.createElement('span');
-                    trainText.textContent = '训练集';
+                    trainText.textContent = VizMLI18n.t('训练集');
                     
                     trainItem.appendChild(trainBox);
                     trainItem.appendChild(trainText);
@@ -1554,7 +1557,7 @@
                     testBox.style.cssText = 'width: 10px; height: 10px; background-color: white; border-radius: 50%; border: 2px solid #4F46E5;';
                     
                     const testText = document.createElement('span');
-                    testText.textContent = '测试集';
+                    testText.textContent = VizMLI18n.t('测试集');
                     
                     testItem.appendChild(testBox);
                     testItem.appendChild(testText);
@@ -1687,12 +1690,12 @@
                 
                 // 轴标题
                 ctx.textAlign = 'center';
-                ctx.fillText('迭代次数', margin.left + chartWidth / 2, canvas.height - 5);
+                ctx.fillText(VizMLI18n.t('迭代次数'), margin.left + chartWidth / 2, canvas.height - 5);
                 
                 ctx.save();
                 ctx.translate(15, margin.top + chartHeight / 2);
                 ctx.rotate(-Math.PI / 2);
-                ctx.fillText('损失值', 0, 0);
+                ctx.fillText(VizMLI18n.t('损失值'), 0, 0);
                 ctx.restore();
             }
             
@@ -1912,31 +1915,19 @@
                 let html = '';
                 
                 // 总体统计
-                html += `
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <div style="flex: 1;">
-                            <div style="font-weight: bold; color: #44516A;">总参数量: <span style="color: #4F46E5;">${formatNumber(totalParams)}</span></div>
-                            <div style="font-weight: bold; color: #44516A;">计算量: <span style="color: #ff6b6b;">${formatNumber(totalFLOPs)} FLOPs</span></div>
-                        </div>
-                    </div>
-                `;
+                html += '\n                    ' + '<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">' + '\n                        ' + '<div style="flex: 1;">' + '\n                            ' + '<div style="font-weight: bold; color: #44516A;">' + VizMLI18n.t('总参数量: ') + '<span style="color: #4F46E5;">' + (formatNumber(totalParams)) + '</span>' + '</div>' + '\n                            ' + '<div style="font-weight: bold; color: #44516A;">' + VizMLI18n.t('计算量: ') + '<span style="color: #ff6b6b;">' + (formatNumber(totalFLOPs)) + ' FLOPs' + '</span>' + '</div>' + '\n                        ' + '</div>' + '\n                    ' + '</div>' + '\n                ';
                 
                 // 详细分层信息
                 if (layerDetails.length > 0) {
                     html += '<div style="border-top: 1px solid #ddd; padding-top: 8px; margin-top: 8px;">';
-                    html += '<div style="font-weight: bold; margin-bottom: 4px; color: #44516A;">分层详情:</div>';
+                    html += VizMLI18n.t('<div style="font-weight: bold; margin-bottom: 4px; color: #44516A;">分层详情:</div>');
                     
                     layerDetails.forEach((layer, index) => {
-                        const layerName = index === 0 ? '输入→隐藏1' : 
-                                         index === layerDetails.length - 1 ? `隐藏${index}→输出` : 
-                                         `隐藏${index}→隐藏${index + 1}`;
+                        const layerName = index === 0 ? [VizMLI18n.t('输入→隐藏1')]: 
+                                         index === layerDetails.length - 1 ? VizMLI18n.t('隐藏') + (index) + VizMLI18n.t('→输出') : 
+                                         VizMLI18n.t('隐藏') + (index) + VizMLI18n.t('→隐藏') + (index + 1);
                         
-                        html += `
-                            <div style="margin-bottom: 2px; display: flex; justify-content: space-between;">
-                                <span style="font-size: 10px;">${layerName} (${layer.from}→${layer.to}):</span>
-                                <span style="font-size: 10px; color: #4F46E5;">${formatNumber(layer.totalParams)}参数</span>
-                            </div>
-                        `;
+                        html += '\n                            ' + '<div style="margin-bottom: 2px; display: flex; justify-content: space-between;">' + '\n                                ' + '<span style="font-size: 10px;">' + (layerName) + ' (' + (layer.from) + '→' + (layer.to) + '):' + '</span>' + '\n                                ' + '<span style="font-size: 10px; color: #4F46E5;">' + (formatNumber(layer.totalParams)) + VizMLI18n.t('参数') + '</span>' + '\n                            ' + '</div>' + '\n                        ';
                     });
                     
                     html += '</div>';
@@ -2107,13 +2098,13 @@
                     this.boundaryAnimation = null;
                 }
                 
-                this.updateStatus('已重置所有数据');
+                this.updateStatus(VizMLI18n.t('已重置所有数据'));
             }
             
             // 开始实时训练
             async startRealtimeTraining() {
                 if (!this.currentSessionKey) {
-                    alert('请先生成数据！');
+                    alert(VizMLI18n.t('请先生成数据！'));
                     return;
                 }
                 
@@ -2133,16 +2124,16 @@
                     document.getElementById('trainingStats').style.display = 'block';
                     document.getElementById('compactLossChart').style.display = 'block';
                     
-                    this.updateStatus('开始实时训练...');
+                    this.updateStatus(VizMLI18n.t('开始实时训练...'));
                     this.startTrainingAnimation();
                     
                     // 开始分步训练
                     this.performRealtimeTrainingStep();
                     
                 } catch (error) {
-                    console.error('实时训练启动失败:', error);
+                    console.error(VizMLI18n.t('实时训练启动失败:'), error);
                     this.stopRealtimeTraining();
-                    this.updateStatus('实时训练启动失败: ' + error.message);
+                    this.updateStatus(VizMLI18n.t('实时训练启动失败: ') + error.message);
                 }
             }
             
@@ -2235,7 +2226,7 @@
                             this.currentModelKey = `neural_network_${this.currentSessionKey}`;
                             this.stopRealtimeTraining();
                             this.showExportOptions(); // 显示导出选项
-                            this.updateStatus('实时训练完成');
+                            this.updateStatus(VizMLI18n.t('实时训练完成'));
                         } else {
                             // 继续下一步
                             this.realtimeStep++;
@@ -2249,9 +2240,9 @@
                     }
                     
                 } catch (error) {
-                    console.error('实时训练步骤失败:', error);
+                    console.error(VizMLI18n.t('实时训练步骤失败:'), error);
                     this.stopRealtimeTraining();
-                    this.updateStatus('实时训练失败: ' + error.message);
+                    this.updateStatus(VizMLI18n.t('实时训练失败: ') + error.message);
                 }
             }
             
@@ -2271,12 +2262,12 @@
                 // 停止训练动画
                 this.stopTrainingAnimation();
                 
-                this.updateStatus('实时训练已停止');
+                this.updateStatus(VizMLI18n.t('实时训练已停止'));
             }
             
             // 更新状态
             updateStatus(message) {
-                console.log('状态:', message);
+                console.log(VizMLI18n.t('状态:'), message);
             }
             
             // 导出决策边界图像
@@ -2290,10 +2281,10 @@
                     link.href = dataURL;
                     link.click();
                     
-                    this.updateStatus('决策边界图像已导出');
+                    this.updateStatus(VizMLI18n.t('决策边界图像已导出'));
                 } catch (error) {
-                    console.error('导出图像失败:', error);
-                    this.updateStatus('导出图像失败: ' + error.message);
+                    console.error(VizMLI18n.t('导出图像失败:'), error);
+                    this.updateStatus(VizMLI18n.t('导出图像失败: ') + error.message);
                 }
             }
             
@@ -2301,7 +2292,7 @@
             exportTrainingData() {
                 try {
                     if (!this.currentData) {
-                        alert('没有可导出的数据');
+                        alert(VizMLI18n.t('没有可导出的数据'));
                         return;
                     }
                     
@@ -2332,10 +2323,10 @@
                     link.click();
                     
                     URL.revokeObjectURL(url);
-                    this.updateStatus('训练数据已导出');
+                    this.updateStatus(VizMLI18n.t('训练数据已导出'));
                 } catch (error) {
-                    console.error('导出数据失败:', error);
-                    this.updateStatus('导出数据失败: ' + error.message);
+                    console.error(VizMLI18n.t('导出数据失败:'), error);
+                    this.updateStatus(VizMLI18n.t('导出数据失败: ') + error.message);
                 }
             }
             
@@ -2343,7 +2334,7 @@
             exportTrainingHistory() {
                 try {
                     if (!this.trainingHistory || this.trainingHistory.length === 0) {
-                        alert('没有可导出的训练历史');
+                        alert(VizMLI18n.t('没有可导出的训练历史'));
                         return;
                     }
                     
@@ -2365,10 +2356,10 @@
                     link.click();
                     
                     URL.revokeObjectURL(url);
-                    this.updateStatus('训练历史已导出');
+                    this.updateStatus(VizMLI18n.t('训练历史已导出'));
                 } catch (error) {
-                    console.error('导出训练历史失败:', error);
-                    this.updateStatus('导出训练历史失败: ' + error.message);
+                    console.error(VizMLI18n.t('导出训练历史失败:'), error);
+                    this.updateStatus(VizMLI18n.t('导出训练历史失败: ') + error.message);
                 }
             }
             
@@ -2376,7 +2367,7 @@
             exportModelInfo() {
                 try {
                     if (!this.currentModelKey) {
-                        alert('没有可导出的模型信息');
+                        alert(VizMLI18n.t('没有可导出的模型信息'));
                         return;
                     }
                     
@@ -2411,10 +2402,10 @@
                     link.click();
                     
                     URL.revokeObjectURL(url);
-                    this.updateStatus('模型信息已导出');
+                    this.updateStatus(VizMLI18n.t('模型信息已导出'));
                 } catch (error) {
-                    console.error('导出模型信息失败:', error);
-                    this.updateStatus('导出模型信息失败: ' + error.message);
+                    console.error(VizMLI18n.t('导出模型信息失败:'), error);
+                    this.updateStatus(VizMLI18n.t('导出模型信息失败: ') + error.message);
                 }
             }
             

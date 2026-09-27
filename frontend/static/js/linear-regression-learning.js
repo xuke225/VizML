@@ -2,10 +2,10 @@
     'use strict';
 
     const STAGES = [
-        { title: '调整直线', short: '猜一条线' },
-        { title: '理解残差', short: '误差有多大' },
-        { title: '寻找最低点', short: '模型怎样学习' },
-        { title: '检验泛化', short: '面对新数据' }
+        { title: VizMLI18n.t('调整直线'), short: VizMLI18n.t('猜一条线') },
+        { title: VizMLI18n.t('理解残差'), short: VizMLI18n.t('误差有多大') },
+        { title: VizMLI18n.t('寻找最低点'), short: VizMLI18n.t('模型怎样学习') },
+        { title: VizMLI18n.t('检验泛化'), short: VizMLI18n.t('面对新数据') }
     ];
 
     const state = {
@@ -113,7 +113,7 @@
             render();
         } catch (error) {
             state.loading = false;
-            state.error = error.message || '无法加载教学数据';
+            state.error = error.message || VizMLI18n.t('无法加载教学数据');
             render();
         }
     }
@@ -152,28 +152,17 @@
         if (!panel) return;
 
         if (state.loading) {
-            panel.innerHTML = '<div class="learning-complete"><h2>正在准备教学数据…</h2><p>生成数据并计算作为参照的最佳直线。</p></div>';
+            panel.innerHTML = VizMLI18n.t('<div class="learning-complete"><h2>正在准备教学数据…</h2><p>生成数据并计算作为参照的最佳直线。</p></div>');
             return;
         }
 
         if (state.error) {
-            panel.innerHTML = `<div class="learning-complete"><h2>教学实验暂时无法加载</h2><p>${escapeHtml(state.error)}</p><button type="button" id="learningRetry">重试</button></div>`;
+            panel.innerHTML = '<div class="learning-complete">' + '<h2>' + VizMLI18n.t('教学实验暂时无法加载') + '</h2>' + '<p>' + (escapeHtml(state.error)) + '</p>' + '<button type="button" id="learningRetry">' + VizMLI18n.t('重试') + '</button>' + '</div>';
             document.getElementById('learningRetry').addEventListener('click', () => loadDataset(state.scenario));
             return;
         }
 
-        panel.innerHTML = `
-            <div class="lr-learning-lab">
-                <div class="learning-intro">
-                    <div>
-                        <h2>用四个实验看懂线性回归</h2>
-                        <p>先猜一条直线，再亲眼看看模型为什么会选择“误差最小”的那一条。</p>
-                    </div>
-                    <button type="button" class="learning-new-data" id="learningNewData">换一组数据</button>
-                </div>
-                ${progressHtml()}
-                ${stageHtml()}
-            </div>`;
+        panel.innerHTML = '\n            ' + '<div class="lr-learning-lab">' + '\n                ' + '<div class="learning-intro">' + '\n                    ' + '<div>' + '\n                        ' + '<h2>' + VizMLI18n.t('用四个实验看懂线性回归') + '</h2>' + '\n                        ' + '<p>' + VizMLI18n.t('先猜一条直线，再亲眼看看模型为什么会选择“误差最小”的那一条。') + '</p>' + '\n                    ' + '</div>' + '\n                    ' + '<button type="button" class="learning-new-data" id="learningNewData">' + VizMLI18n.t('换一组数据') + '</button>' + '\n                ' + '</div>' + '\n                ' + (progressHtml()) + '\n                ' + (stageHtml()) + '\n            ' + '</div>';
 
         bindCommonEvents();
         bindStageEvents();
@@ -181,13 +170,13 @@
     }
 
     function progressHtml() {
-        return `<div class="learning-progress" aria-label="学习进度">${STAGES.map((item, index) => {
+        return '<div class="learning-progress" aria-label="学习进度">' + (STAGES.map((item, index) => {
             const stage = index + 1;
             const classes = ['learning-step'];
             if (stage === state.stage) classes.push('active');
             if (stage < state.stage || state.answers[stage]) classes.push('complete');
-            return `<button type="button" class="${classes.join(' ')}" data-go-stage="${stage}" aria-current="${stage === state.stage ? 'step' : 'false'}"><span>${stage}</span>${item.short}</button>`;
-        }).join('')}</div>`;
+            return '<button type="button" class="' + (classes.join(' ')) + '" data-go-stage="' + (stage) + '" aria-current="' + (stage === state.stage ? 'step' : 'false') + '">' + '<span>' + (stage) + '</span>' + (item.short) + '</button>';
+        }).join('')) + '</div>';
     }
 
     function stageHtml() {
@@ -198,107 +187,30 @@
     }
 
     function stageOneHtml() {
-        return `
-            <div class="learning-stage">
-                ${visualCard('实验一：亲手调整一条直线', '移动斜率和截距，试着让直线靠近尽可能多的数据点。', true)}
-                <aside class="learning-side-card">
-                    ${equationHtml()}
-                    ${parameterControlsHtml()}
-                    ${lossStatsHtml(currentLineStats(trainingPoints()))}
-                    <div class="learning-callout">斜率决定直线倾斜的方向和程度；截距决定直线在纵轴上的起点。你也可以直接上下拖动图中的直线。</div>
-                    <div class="learning-actions">
-                        <button type="button" class="learning-secondary" id="resetGuess">重置猜测</button>
-                        <button type="button" id="showBest">${state.showBest ? '继续自己调整' : '显示最佳直线'}</button>
-                    </div>
-                    ${formulaHtml('ŷ = wx + b。给定一个 x，直线就会产生预测值 ŷ。w 每增加 1，x 每变化 1 时，预测值的变化量也随之改变。')}
-                </aside>
-                ${checkpointHtml(1, '如果斜率 w 从正数变成负数，直线会怎样？', [
-                    ['向右上升', 'up'], ['向右下降', 'down'], ['只会上下平移', 'move']
-                ], 'down', '负斜率表示 x 增大时，预测值反而减小，所以直线向右下降。')}
-            </div>`;
+        return '\n            ' + '<div class="learning-stage">' + '\n                ' + (visualCard(VizMLI18n.t('实验一：亲手调整一条直线'), VizMLI18n.t('移动斜率和截距，试着让直线靠近尽可能多的数据点。'), true)) + '\n                ' + '<aside class="learning-side-card">' + '\n                    ' + (equationHtml()) + '\n                    ' + (parameterControlsHtml()) + '\n                    ' + (lossStatsHtml(currentLineStats(trainingPoints()))) + '\n                    ' + '<div class="learning-callout">' + VizMLI18n.t('斜率决定直线倾斜的方向和程度；截距决定直线在纵轴上的起点。你也可以直接上下拖动图中的直线。') + '</div>' + '\n                    ' + '<div class="learning-actions">' + '\n                        ' + '<button type="button" class="learning-secondary" id="resetGuess">' + VizMLI18n.t('重置猜测') + '</button>' + '\n                        ' + '<button type="button" id="showBest">' + (state.showBest ? VizMLI18n.t('继续自己调整') : VizMLI18n.t('显示最佳直线')) + '</button>' + '\n                    ' + '</div>' + '\n                    ' + (formulaHtml(VizMLI18n.t('ŷ = wx + b。给定一个 x，直线就会产生预测值 ŷ。w 每增加 1，x 每变化 1 时，预测值的变化量也随之改变。'))) + '\n                ' + '</aside>' + '\n                ' + (checkpointHtml(1, VizMLI18n.t('如果斜率 w 从正数变成负数，直线会怎样？'), [
+                    [VizMLI18n.t('向右上升'), 'up'], [VizMLI18n.t('向右下降'), 'down'], [VizMLI18n.t('只会上下平移'), 'move']
+                ], 'down', VizMLI18n.t('负斜率表示 x 增大时，预测值反而减小，所以直线向右下降。'))) + '\n            ' + '</div>';
     }
 
     function stageTwoHtml() {
         const stats = currentLineStats(trainingPoints());
-        return `
-            <div class="learning-stage">
-                ${visualCard('实验二：误差是怎样被计算的', '每条竖线都是一个残差。悬停数据点，查看这个点为总误差贡献了多少。', true)}
-                <aside class="learning-side-card">
-                    ${equationHtml()}
-                    ${parameterControlsHtml()}
-                    <div class="learning-control">
-                        <label>误差计算方式</label>
-                        <div class="learning-actions">
-                            <button type="button" data-error-mode="squared" class="${state.errorMode === 'squared' ? '' : 'learning-secondary'}">平方误差</button>
-                            <button type="button" data-error-mode="absolute" class="${state.errorMode === 'absolute' ? '' : 'learning-secondary'}">绝对误差</button>
-                        </div>
-                    </div>
-                    ${lossStatsHtml(stats, state.errorMode)}
-                    <div class="learning-callout">残差 = 真实值 − 预测值。正残差在直线上方，负残差在直线下方；平方后它们都成为正数。</div>
-                    ${formulaHtml('残差 eᵢ = yᵢ − ŷᵢ。平方误差和 SSE = Σeᵢ²，均方误差 MSE = SSE / n。平方会放大特别大的错误。')}
-                </aside>
-                ${checkpointHtml(2, '为什么正残差和负残差不能直接相加衡量模型好坏？', [
-                    ['它们可能互相抵消', 'cancel'], ['计算机会报错', 'error'], ['残差没有单位', 'unit']
-                ], 'cancel', '正负残差直接相加可能接近 0，即使每个点都离直线很远；平方可以避免抵消。')}
-            </div>`;
+        return '\n            ' + '<div class="learning-stage">' + '\n                ' + (visualCard(VizMLI18n.t('实验二：误差是怎样被计算的'), VizMLI18n.t('每条竖线都是一个残差。悬停数据点，查看这个点为总误差贡献了多少。'), true)) + '\n                ' + '<aside class="learning-side-card">' + '\n                    ' + (equationHtml()) + '\n                    ' + (parameterControlsHtml()) + '\n                    ' + '<div class="learning-control">' + '\n                        ' + '<label>' + VizMLI18n.t('误差计算方式') + '</label>' + '\n                        ' + '<div class="learning-actions">' + '\n                            <button type="button" data-error-mode="squared" class="' + (state.errorMode === 'squared' ? '' : 'learning-secondary') + VizMLI18n.t('">平方误差') + '</button>' + '\n                            <button type="button" data-error-mode="absolute" class="' + (state.errorMode === 'absolute' ? '' : 'learning-secondary') + VizMLI18n.t('">绝对误差') + '</button>' + '\n                        ' + '</div>' + '\n                    ' + '</div>' + '\n                    ' + (lossStatsHtml(stats, state.errorMode)) + '\n                    ' + '<div class="learning-callout">' + VizMLI18n.t('残差 = 真实值 − 预测值。正残差在直线上方，负残差在直线下方；平方后它们都成为正数。') + '</div>' + '\n                    ' + (formulaHtml(VizMLI18n.t('残差 eᵢ = yᵢ − ŷᵢ。平方误差和 SSE = Σeᵢ²，均方误差 MSE = SSE / n。平方会放大特别大的错误。'))) + '\n                ' + '</aside>' + '\n                ' + (checkpointHtml(2, VizMLI18n.t('为什么正残差和负残差不能直接相加衡量模型好坏？'), [
+                    [VizMLI18n.t('它们可能互相抵消'), 'cancel'], [VizMLI18n.t('计算机会报错'), 'error'], [VizMLI18n.t('残差没有单位'), 'unit']
+                ], 'cancel', VizMLI18n.t('正负残差直接相加可能接近 0，即使每个点都离直线很远；平方可以避免抵消。'))) + '\n            ' + '</div>';
     }
 
     function stageThreeHtml() {
         const stats = currentLineStats(trainingPoints());
-        return `
-            <div class="learning-stage">
-                ${visualCard('实验三：在损失地图上寻找最低点', '地图上的每个位置代表一组斜率和截距。越偏绿色，MSE 越小。', false, 'lossLandscape')}
-                <aside class="learning-side-card">
-                    ${equationHtml()}
-                    ${lossStatsHtml(stats)}
-                    <canvas id="learningMiniCanvas" class="learning-canvas learning-mini-canvas" height="170" aria-label="当前参数对应的回归直线"></canvas>
-                    <div class="loss-legend"></div>
-                    <div class="loss-legend-labels"><span>误差低</span><span>误差高</span></div>
-                    <div class="learning-actions" style="margin-top: 14px">
-                        <button type="button" class="learning-secondary" id="gradientReset">重置路径</button>
-                        <button type="button" id="gradientStep">单步下降</button>
-                        <button type="button" id="gradientPlay">自动播放</button>
-                    </div>
-                    <div class="learning-callout">梯度指出损失上升最快的方向，所以模型向相反方向移动。OLS 最优点与地图最低点应当重合。</div>
-                    ${formulaHtml('MSE 对参数的梯度为 ∂MSE/∂w = −(2/n)Σxᵢ(yᵢ−ŷᵢ)，∂MSE/∂b = −(2/n)Σ(yᵢ−ŷᵢ)。每一步都用“当前参数 − 步长 × 梯度”更新。')}
-                </aside>
-                ${checkpointHtml(3, '梯度下降每一步主要想实现什么？', [
-                    ['让 MSE 变小', 'lower'], ['让斜率永远变大', 'slope'], ['删除误差最大的点', 'delete']
-                ], 'lower', '梯度下降改变参数的目标是让损失逐步变小，而不是固定地增大或减小某个参数。')}
-            </div>`;
+        return '\n            ' + '<div class="learning-stage">' + '\n                ' + (visualCard(VizMLI18n.t('实验三：在损失地图上寻找最低点'), VizMLI18n.t('地图上的每个位置代表一组斜率和截距。越偏绿色，MSE 越小。'), false, 'lossLandscape')) + '\n                ' + '<aside class="learning-side-card">' + '\n                    ' + (equationHtml()) + '\n                    ' + (lossStatsHtml(stats)) + '\n                    ' + '<canvas id="learningMiniCanvas" class="learning-canvas learning-mini-canvas" height="170" aria-label="当前参数对应的回归直线">' + '</canvas>' + '\n                    ' + '<div class="loss-legend">' + '</div>' + '\n                    ' + '<div class="loss-legend-labels">' + '<span>' + VizMLI18n.t('误差低') + '</span>' + '<span>' + VizMLI18n.t('误差高') + '</span>' + '</div>' + '\n                    ' + '<div class="learning-actions" style="margin-top: 14px">' + '\n                        ' + '<button type="button" class="learning-secondary" id="gradientReset">' + VizMLI18n.t('重置路径') + '</button>' + '\n                        ' + '<button type="button" id="gradientStep">' + VizMLI18n.t('单步下降') + '</button>' + '\n                        ' + '<button type="button" id="gradientPlay">' + VizMLI18n.t('自动播放') + '</button>' + '\n                    ' + '</div>' + '\n                    ' + '<div class="learning-callout">' + VizMLI18n.t('梯度指出损失上升最快的方向，所以模型向相反方向移动。OLS 最优点与地图最低点应当重合。') + '</div>' + '\n                    ' + (formulaHtml(VizMLI18n.t('MSE 对参数的梯度为 ∂MSE/∂w = −(2/n)Σxᵢ(yᵢ−ŷᵢ)，∂MSE/∂b = −(2/n)Σ(yᵢ−ŷᵢ)。每一步都用“当前参数 − 步长 × 梯度”更新。'))) + '\n                ' + '</aside>' + '\n                ' + (checkpointHtml(3, VizMLI18n.t('梯度下降每一步主要想实现什么？'), [
+                    [VizMLI18n.t('让 MSE 变小'), 'lower'], [VizMLI18n.t('让斜率永远变大'), 'slope'], [VizMLI18n.t('删除误差最大的点'), 'delete']
+                ], 'lower', VizMLI18n.t('梯度下降改变参数的目标是让损失逐步变小，而不是固定地增大或减小某个参数。'))) + '\n            ' + '</div>';
     }
 
     function stageFourHtml() {
         const splitStats = getSplitStats();
-        return `
-            <div class="learning-stage">
-                ${visualCard('实验四：用没见过的数据检验模型', state.revealTest ? '橙色三角形是训练时没有使用过的测试点。' : '先观察蓝色训练点，再揭晓模型从未见过的测试点。', false)}
-                <aside class="learning-side-card">
-                    ${equationHtml(state.optimumW, state.optimumB)}
-                    <div class="learning-actions">
-                        <button type="button" id="revealTest">${state.revealTest ? '隐藏测试集' : '揭晓测试集'}</button>
-                    </div>
-                    <div class="learning-stats">
-                        <div class="learning-stat"><span>训练集 MSE</span><strong>${formatNumber(splitStats.train)}</strong></div>
-                        <div class="learning-stat"><span>测试集 MSE</span><strong>${state.revealTest ? formatNumber(splitStats.test) : '待揭晓'}</strong></div>
-                    </div>
-                    <div class="learning-control">
-                        <label for="learningScenario">换一种数据情况</label>
-                        <select id="learningScenario">
-                            <option value="linear" ${selected('linear')}>清晰的线性关系</option>
-                            <option value="noisy" ${selected('noisy')}>更多随机噪声</option>
-                            <option value="outliers" ${selected('outliers')}>包含异常点</option>
-                            <option value="nonlinear" ${selected('nonlinear')}>非线性关系</option>
-                        </select>
-                    </div>
-                    <div class="learning-callout">训练误差回答“记住得怎样”，测试误差回答“面对新数据怎样”。残差若呈现明显弯曲模式，通常说明直线并不适合这组数据。</div>
-                    ${formulaHtml('R² = 1 − SSE/TSS，用模型的误差与“永远预测平均值”的误差比较。R² 越接近 1，表示直线解释的数据变化越多；测试集指标更能反映泛化能力。')}
-                </aside>
-                ${checkpointHtml(4, '哪一个指标更能反映模型面对新数据的表现？', [
-                    ['训练集误差', 'train'], ['测试集误差', 'test'], ['样本编号', 'index']
-                ], 'test', '测试集没有参与拟合，因此测试误差更能反映模型对未知数据的预测能力。')}
-                ${state.answers[4] ? summaryHtml() : ''}
-            </div>`;
+        return '\n            ' + '<div class="learning-stage">' + '\n                ' + (visualCard(VizMLI18n.t('实验四：用没见过的数据检验模型'), state.revealTest ? VizMLI18n.t('橙色三角形是训练时没有使用过的测试点。') : VizMLI18n.t('先观察蓝色训练点，再揭晓模型从未见过的测试点。'), false)) + '\n                ' + '<aside class="learning-side-card">' + '\n                    ' + (equationHtml(state.optimumW, state.optimumB)) + '\n                    ' + '<div class="learning-actions">' + '\n                        ' + '<button type="button" id="revealTest">' + (state.revealTest ? VizMLI18n.t('隐藏测试集') : VizMLI18n.t('揭晓测试集')) + '</button>' + '\n                    ' + '</div>' + '\n                    ' + '<div class="learning-stats">' + '\n                        ' + '<div class="learning-stat">' + '<span>' + VizMLI18n.t('训练集 MSE') + '</span>' + '<strong>' + (formatNumber(splitStats.train)) + '</strong>' + '</div>' + '\n                        ' + '<div class="learning-stat">' + '<span>' + VizMLI18n.t('测试集 MSE') + '</span>' + '<strong>' + (state.revealTest ? formatNumber(splitStats.test) : VizMLI18n.t('待揭晓')) + '</strong>' + '</div>' + '\n                    ' + '</div>' + '\n                    ' + '<div class="learning-control">' + '\n                        ' + '<label for="learningScenario">' + VizMLI18n.t('换一种数据情况') + '</label>' + '\n                        ' + '<select id="learningScenario">' + '\n                            <option value="linear" ' + (selected('linear')) + VizMLI18n.t('>清晰的线性关系') + '</option>' + '\n                            <option value="noisy" ' + (selected('noisy')) + VizMLI18n.t('>更多随机噪声') + '</option>' + '\n                            <option value="outliers" ' + (selected('outliers')) + VizMLI18n.t('>包含异常点') + '</option>' + '\n                            <option value="nonlinear" ' + (selected('nonlinear')) + VizMLI18n.t('>非线性关系') + '</option>' + '\n                        ' + '</select>' + '\n                    ' + '</div>' + '\n                    ' + '<div class="learning-callout">' + VizMLI18n.t('训练误差回答“记住得怎样”，测试误差回答“面对新数据怎样”。残差若呈现明显弯曲模式，通常说明直线并不适合这组数据。') + '</div>' + '\n                    ' + (formulaHtml(VizMLI18n.t('R² = 1 − SSE/TSS，用模型的误差与“永远预测平均值”的误差比较。R² 越接近 1，表示直线解释的数据变化越多；测试集指标更能反映泛化能力。'))) + '\n                ' + '</aside>' + '\n                ' + (checkpointHtml(4, VizMLI18n.t('哪一个指标更能反映模型面对新数据的表现？'), [
+                    [VizMLI18n.t('训练集误差'), 'train'], [VizMLI18n.t('测试集误差'), 'test'], [VizMLI18n.t('样本编号'), 'index']
+                ], 'test', VizMLI18n.t('测试集没有参与拟合，因此测试误差更能反映模型对未知数据的预测能力。'))) + '\n                ' + (state.answers[4] ? summaryHtml() : '') + '\n            ' + '</div>';
     }
 
     function selected(value) {
@@ -323,49 +235,27 @@
     }
 
     function parameterControlsHtml() {
-        return `
-            <div class="learning-control">
-                <label for="learningSlope"><span>斜率 w</span><span>${formatNumber(state.w)}</span></label>
-                <input id="learningSlope" type="range" min="${state.wMin}" max="${state.wMax}" value="${state.w}" step="${(state.wMax - state.wMin) / 240}" aria-label="调整斜率">
-            </div>
-            <div class="learning-control">
-                <label for="learningIntercept"><span>截距 b</span><span>${formatNumber(state.b)}</span></label>
-                <input id="learningIntercept" type="range" min="${state.bMin}" max="${state.bMax}" value="${state.b}" step="${(state.bMax - state.bMin) / 240}" aria-label="调整截距">
-            </div>`;
+        return '\n            ' + '<div class="learning-control">' + '\n                ' + '<label for="learningSlope">' + '<span>' + VizMLI18n.t('斜率 w') + '</span>' + '<span>' + (formatNumber(state.w)) + '</span>' + '</label>' + '\n                <input id="learningSlope" type="range" min="' + (state.wMin) + '" max="' + (state.wMax) + '" value="' + (state.w) + '" step="' + ((state.wMax - state.wMin) / 240) + VizMLI18n.t('" aria-label="调整斜率">\n            ') + '</div>' + '\n            ' + '<div class="learning-control">' + '\n                ' + '<label for="learningIntercept">' + '<span>' + VizMLI18n.t('截距 b') + '</span>' + '<span>' + (formatNumber(state.b)) + '</span>' + '</label>' + '\n                <input id="learningIntercept" type="range" min="' + (state.bMin) + '" max="' + (state.bMax) + '" value="' + (state.b) + '" step="' + ((state.bMax - state.bMin) / 240) + VizMLI18n.t('" aria-label="调整截距">\n            ') + '</div>';
     }
 
     function lossStatsHtml(stats, mode) {
         const absolute = mode === 'absolute';
-        return `
-            <div class="learning-stats">
-                <div class="learning-stat"><span>${absolute ? '绝对误差和 SAE' : '平方误差和 SSE'}</span><strong id="learningTotalLoss">${formatNumber(absolute ? stats.sae : stats.sse)}</strong></div>
-                <div class="learning-stat"><span>${absolute ? '平均绝对误差 MAE' : '均方误差 MSE'}</span><strong id="learningMeanLoss">${formatNumber(absolute ? stats.mae : stats.mse)}</strong></div>
-            </div>`;
+        return '\n            ' + '<div class="learning-stats">' + '\n                ' + '<div class="learning-stat">' + '<span>' + (absolute ? VizMLI18n.t('绝对误差和 SAE') : VizMLI18n.t('平方误差和 SSE')) + '</span>' + '<strong id="learningTotalLoss">' + (formatNumber(absolute ? stats.sae : stats.sse)) + '</strong>' + '</div>' + '\n                ' + '<div class="learning-stat">' + '<span>' + (absolute ? VizMLI18n.t('平均绝对误差 MAE') : VizMLI18n.t('均方误差 MSE')) + '</span>' + '<strong id="learningMeanLoss">' + (formatNumber(absolute ? stats.mae : stats.mse)) + '</strong>' + '</div>' + '\n            ' + '</div>';
     }
 
     function formulaHtml(text) {
-        return `<details class="learning-formula"><summary>展开数学解释</summary><p>${text}</p></details>`;
+        return '<details class="learning-formula">' + '<summary>' + VizMLI18n.t('展开数学解释') + '</summary>' + '<p>' + (text) + '</p>' + '</details>';
     }
 
     function checkpointHtml(stage, question, options, correct, explanation) {
         const answer = state.answers[stage];
-        const feedback = answer ? `<p class="checkpoint-feedback ${answer.correct ? 'correct' : 'incorrect'}">${answer.correct ? '答对了。' : '再想一步。'}${explanation}</p>` : '<p class="checkpoint-feedback" aria-live="polite"></p>';
-        const nav = `<div class="learning-actions" style="margin-top: 12px">${stage > 1 ? '<button type="button" class="learning-secondary" data-stage-nav="prev">上一步</button>' : ''}${stage < 4 ? '<button type="button" data-stage-nav="next">进入下一个实验</button>' : ''}</div>`;
-        return `<section class="learning-checkpoint"><h3>想一想：${question}</h3><div class="checkpoint-options">${options.map(([label, value]) => `<button type="button" data-check-stage="${stage}" data-check-value="${value}" data-check-correct="${correct}">${label}</button>`).join('')}</div>${feedback}${nav}</section>`;
+        const feedback = answer ? '<p class="checkpoint-feedback ' + (answer.correct ? 'correct' : 'incorrect') + '">' + (answer.correct ? VizMLI18n.t('答对了。') : VizMLI18n.t('再想一步。')) + (explanation) + '</p>' : '<p class="checkpoint-feedback" aria-live="polite"></p>';
+        const nav = '<div class="learning-actions" style="margin-top: 12px">' + (stage > 1 ? VizMLI18n.t('<button type="button" class="learning-secondary" data-stage-nav="prev">上一步</button>') : '') + (stage < 4 ? VizMLI18n.t('<button type="button" data-stage-nav="next">进入下一个实验</button>') : '') + '</div>';
+        return '<section class="learning-checkpoint">' + '<h3>' + VizMLI18n.t('想一想：') + (question) + '</h3>' + '<div class="checkpoint-options">' + (options.map(([label, value]) => '<button type="button" data-check-stage="' + (stage) + '" data-check-value="' + (value) + '" data-check-correct="' + (correct) + '">' + (label) + '</button>').join('')) + '</div>' + (feedback) + (nav) + '</section>';
     }
 
     function summaryHtml() {
-        return `<section class="learning-complete" style="grid-column: 1 / -1">
-            <h2>你已经走完线性回归的核心链路</h2>
-            <p>一条直线并不是凭空出现的：模型定义预测、残差衡量错误、损失汇总错误，优化过程寻找损失更小的参数，最后再用新数据检验它。</p>
-            <div class="learning-summary-grid">
-                <div><strong>直线模型</strong>用斜率和截距产生预测</div>
-                <div><strong>残差</strong>是真实值与预测值的差</div>
-                <div><strong>最小二乘</strong>选择平方误差最小的参数</div>
-                <div><strong>泛化</strong>要看模型未见过的数据</div>
-            </div>
-            <button type="button" id="restartLearning">从头再做一次</button>
-        </section>`;
+        return '<section class="learning-complete" style="grid-column: 1 / -1">' + '\n            ' + '<h2>' + VizMLI18n.t('你已经走完线性回归的核心链路') + '</h2>' + '\n            ' + '<p>' + VizMLI18n.t('一条直线并不是凭空出现的：模型定义预测、残差衡量错误、损失汇总错误，优化过程寻找损失更小的参数，最后再用新数据检验它。') + '</p>' + '\n            ' + '<div class="learning-summary-grid">' + '\n                ' + '<div>' + '<strong>' + VizMLI18n.t('直线模型') + '</strong>' + VizMLI18n.t('用斜率和截距产生预测') + '</div>' + '\n                ' + '<div>' + '<strong>' + VizMLI18n.t('残差') + '</strong>' + VizMLI18n.t('是真实值与预测值的差') + '</div>' + '\n                ' + '<div>' + '<strong>' + VizMLI18n.t('最小二乘') + '</strong>' + VizMLI18n.t('选择平方误差最小的参数') + '</div>' + '\n                ' + '<div>' + '<strong>' + VizMLI18n.t('泛化') + '</strong>' + VizMLI18n.t('要看模型未见过的数据') + '</div>' + '\n            ' + '</div>' + '\n            ' + '<button type="button" id="restartLearning">' + VizMLI18n.t('从头再做一次') + '</button>' + '\n        ' + '</section>';
     }
 
     function bindCommonEvents() {
@@ -538,7 +428,7 @@
             return;
         }
         const button = document.getElementById('gradientPlay');
-        if (button) button.textContent = '暂停';
+        if (button) button.textContent = VizMLI18n.t('暂停');
         state.gradientTimer = window.setInterval(() => {
             const done = stepGradient();
             updateLossText();
@@ -547,7 +437,7 @@
             if (equation) equation.innerHTML = `ŷ = ${formatNumber(state.w)}x ${state.b >= 0 ? '+' : '−'} ${formatNumber(Math.abs(state.b))}`;
             if (done || state.gradientSteps >= 80) {
                 stopGradient();
-                if (button) button.textContent = '已到达最低点';
+                if (button) button.textContent = VizMLI18n.t('已到达最低点');
             }
         }, 230);
     }
@@ -700,9 +590,9 @@
         if (options.showSplit && !options.mini) {
             ctx.font = '12px Arial';
             ctx.fillStyle = '#4f46e5';
-            ctx.fillText('● 训练点', padding.left + 5, padding.top + 15);
+            ctx.fillText(VizMLI18n.t('● 训练点'), padding.left + 5, padding.top + 15);
             ctx.fillStyle = '#d97706';
-            ctx.fillText('▲ 测试点', padding.left + 78, padding.top + 15);
+            ctx.fillText(VizMLI18n.t('▲ 测试点'), padding.left + 78, padding.top + 15);
         }
     }
 
@@ -738,11 +628,11 @@
         if (!mini) {
             ctx.fillStyle = '#526078';
             ctx.font = '12px Arial';
-            ctx.fillText('特征 x', padding.left + (width - padding.left - padding.right) / 2, height - 18);
+            ctx.fillText(VizMLI18n.t('特征 x'), padding.left + (width - padding.left - padding.right) / 2, height - 18);
             ctx.save();
             ctx.translate(15, padding.top + (height - padding.top - padding.bottom) / 2);
             ctx.rotate(-Math.PI / 2);
-            ctx.fillText('目标 y', 0, 0);
+            ctx.fillText(VizMLI18n.t('目标 y'), 0, 0);
             ctx.restore();
         }
     }
@@ -782,11 +672,11 @@
         ctx.fillStyle = '#526078';
         ctx.font = '12px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('斜率 w', padding.left + plotW / 2, height - 16);
+        ctx.fillText(VizMLI18n.t('斜率 w'), padding.left + plotW / 2, height - 16);
         ctx.save();
         ctx.translate(15, padding.top + plotH / 2);
         ctx.rotate(-Math.PI / 2);
-        ctx.fillText('截距 b', 0, 0);
+        ctx.fillText(VizMLI18n.t('截距 b'), 0, 0);
         ctx.restore();
         ctx.fillText(formatNumber(state.wMin), padding.left, height - padding.bottom + 9);
         ctx.fillText(formatNumber(state.wMax), width - padding.right, height - padding.bottom + 9);
@@ -811,10 +701,10 @@
         drawMarker(ctx, xMap(state.optimumW), yMap(state.optimumB), '#ffffff', '#08735f', 8);
         ctx.fillStyle = '#08735f';
         ctx.textAlign = 'left';
-        ctx.fillText('OLS 最优点', xMap(state.optimumW) + 10, yMap(state.optimumB) - 7);
+        ctx.fillText(VizMLI18n.t('OLS 最优点'), xMap(state.optimumW) + 10, yMap(state.optimumB) - 7);
         drawMarker(ctx, xMap(state.w), yMap(state.b), '#c2415d', '#ffffff', 7);
         ctx.fillStyle = '#7f1d3a';
-        ctx.fillText(`当前参数（第 ${state.gradientSteps} 步）`, xMap(state.w) + 10, yMap(state.b) + 12);
+        ctx.fillText(VizMLI18n.t('当前参数（第 ') + (state.gradientSteps) + VizMLI18n.t(' 步）'), xMap(state.w) + 10, yMap(state.b) + 12);
     }
 
     function drawMarker(ctx, x, y, fill, stroke, radius) {
@@ -867,7 +757,7 @@
             return;
         }
         const residual = nearest.point.actual - nearest.predicted;
-        tooltip.innerHTML = `真实值 y = ${formatNumber(nearest.point.actual)}<br>预测值 ŷ = ${formatNumber(nearest.predicted)}<br>残差 e = ${formatNumber(residual)}<br>e² = ${formatNumber(residual ** 2)}`;
+        tooltip.innerHTML = VizMLI18n.t('真实值 y = ') + (formatNumber(nearest.point.actual)) + '<br>' + VizMLI18n.t('预测值 ŷ = ') + (formatNumber(nearest.predicted)) + '<br>' + VizMLI18n.t('残差 e = ') + (formatNumber(residual)) + '<br>' + 'e² = ' + (formatNumber(residual ** 2));
         tooltip.style.left = `${nearest.x}px`;
         tooltip.style.top = `${nearest.y}px`;
         tooltip.hidden = false;

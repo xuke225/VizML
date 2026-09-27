@@ -3,17 +3,17 @@
     'use strict';
 
     const pages = {
-        linear_regression: ['监督学习', '线性回归'],
-        sgd: ['优化算法', 'SGD 优化器'],
-        svm: ['监督学习', '支持向量机'],
-        knn: ['监督学习', 'K 近邻'],
-        decision_tree: ['监督学习', '决策树'],
-        bayesian_classification: ['监督学习', '贝叶斯分类'],
-        clustering: ['无监督学习', '聚类算法'],
-        neural_network: ['模型训练', '神经网络'],
-        ensemble: ['集成学习', '集成模型'],
-        dimensionality_reduction: ['无监督学习', '降维算法'],
-        reinforcement_learning: ['强化学习', 'Q-Learning 网格世界']
+        linear_regression: [VizMLI18n.t('监督学习'), VizMLI18n.t('线性回归')],
+        sgd: [VizMLI18n.t('优化算法'), VizMLI18n.t('SGD 优化器')],
+        svm: [VizMLI18n.t('监督学习'), VizMLI18n.t('支持向量机')],
+        knn: [VizMLI18n.t('监督学习'), VizMLI18n.t('K 近邻')],
+        decision_tree: [VizMLI18n.t('监督学习'), VizMLI18n.t('决策树')],
+        bayesian_classification: [VizMLI18n.t('监督学习'), VizMLI18n.t('贝叶斯分类')],
+        clustering: [VizMLI18n.t('无监督学习'), VizMLI18n.t('聚类算法')],
+        neural_network: [VizMLI18n.t('模型训练'), VizMLI18n.t('神经网络')],
+        ensemble: [VizMLI18n.t('集成学习'), VizMLI18n.t('集成模型')],
+        dimensionality_reduction: [VizMLI18n.t('无监督学习'), VizMLI18n.t('降维算法')],
+        reinforcement_learning: [VizMLI18n.t('强化学习'), VizMLI18n.t('Q-Learning 网格世界')]
     };
 
     const logo = `
@@ -46,17 +46,7 @@
         if (document.querySelector('.viz-topbar')) return;
         const bar = document.createElement('header');
         bar.className = 'viz-topbar';
-        bar.innerHTML = `
-            <div class="viz-topbar__inner">
-                <a class="viz-brand" href="/" aria-label="返回 VizML 首页">
-                    <span class="viz-brand__mark">${logo}</span><span>VizML</span>
-                </a>
-                <span class="viz-topbar__divider" aria-hidden="true"></span>
-                <div class="viz-breadcrumb"><span>${meta[0]}</span><span aria-hidden="true">/</span><strong>${meta[1]}</strong></div>
-                <span class="viz-topbar__spacer"></span>
-                <span class="viz-workspace-badge">本地工作台</span>
-                <a class="viz-home-link" href="/">${homeIcon}<span>算法首页</span></a>
-            </div>`;
+        bar.innerHTML = '\n            ' + '<div class="viz-topbar__inner">' + '\n                ' + '<a class="viz-brand" href="/" aria-label="返回 VizML 首页">' + '\n                    ' + '<span class="viz-brand__mark">' + (logo) + '</span>' + '<span>' + 'VizML' + '</span>' + '\n                ' + '</a>' + '\n                ' + '<span class="viz-topbar__divider" aria-hidden="true">' + '</span>' + '\n                ' + '<div class="viz-breadcrumb">' + '<span>' + (meta[0]) + '</span>' + '<span aria-hidden="true">' + '/' + '</span>' + '<strong>' + (meta[1]) + '</strong>' + '</div>' + '\n                ' + '<span class="viz-topbar__spacer">' + '</span>' + '\n                ' + '<span class="viz-workspace-badge">' + VizMLI18n.t('本地工作台') + '</span>' + '\n                ' + '<a class="viz-home-link" href="/">' + (homeIcon) + '<span>' + VizMLI18n.t('算法首页') + '</span>' + '</a>' + '\n            ' + '</div>';
         document.body.prepend(bar);
     }
 
@@ -65,11 +55,11 @@
         candidates.forEach((panel, index) => {
             if (panel.classList.contains('viz-help')) return;
             const text = panel.textContent || '';
-            if (!text.includes('使用说明')) return;
+            if (!text.includes(VizMLI18n.t('使用说明'))) return;
 
             const title = Array.from(panel.children).find((element) =>
                 element.matches('h1, h2, h3, h4, h5, h6, .explanation-title, strong') &&
-                (element.textContent || '').includes('使用说明')
+                (element.textContent || '').includes(VizMLI18n.t('使用说明'))
             );
             if (!title) return;
 
@@ -89,11 +79,11 @@
             button.className = 'viz-help-toggle';
             button.setAttribute('aria-expanded', 'false');
             button.setAttribute('aria-controls', contentId);
-            button.setAttribute('aria-label', '展开使用说明');
+            button.setAttribute('aria-label', VizMLI18n.t('展开使用说明'));
 
             const label = document.createElement('span');
             label.className = 'viz-help-toggle__label';
-            label.textContent = cleanLabel(title.textContent) || '使用说明';
+            label.textContent = cleanLabel(title.textContent) || VizMLI18n.t('使用说明');
 
             const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             icon.setAttribute('class', 'viz-help-toggle__icon');
@@ -116,7 +106,7 @@
                 const collapsed = panel.classList.toggle('viz-help--collapsed');
                 content.hidden = collapsed;
                 button.setAttribute('aria-expanded', String(!collapsed));
-                button.setAttribute('aria-label', collapsed ? '展开使用说明' : '收起使用说明');
+                button.setAttribute('aria-label', collapsed ? VizMLI18n.t('展开使用说明') : VizMLI18n.t('收起使用说明'));
             });
         });
     }
@@ -127,7 +117,7 @@
             canvas.setAttribute('role', canvas.getAttribute('role') || 'img');
             if (!canvas.getAttribute('aria-label')) {
                 const heading = canvas.closest('.panel, .canvas-panel, .canvas-container')?.querySelector('h2, h3, h4');
-                canvas.setAttribute('aria-label', heading?.textContent.trim() || '机器学习数据可视化');
+                canvas.setAttribute('aria-label', heading?.textContent.trim() || VizMLI18n.t('机器学习数据可视化'));
             }
         });
     }

@@ -49,8 +49,19 @@
                     card.hidden = !visible;
                     if (visible) count += 1;
                 });
-                if (status) status.textContent = `当前显示${labels[category]}的 ${count} 个算法实验`;
+                if (status) status.textContent = VizMLI18n.tpl('当前显示{0}的 {1} 个算法实验', [VizMLI18n.t(labels[category]), count]);
             });
+        });
+        window.addEventListener('vizml:langchange', () => {
+            if (!status) return;
+            const active = document.querySelector('.filter-button.is-active');
+            if (!active) return;
+            const category = active.dataset.category;
+            let count = 0;
+            cards.forEach((card) => {
+                if (category === 'all' || card.dataset.category === category) count += 1;
+            });
+            status.textContent = VizMLI18n.tpl('当前显示{0}的 {1} 个算法实验', [VizMLI18n.t(labels[category]), count]);
         });
     }
 
@@ -128,17 +139,13 @@
 
             this.pauseButton?.addEventListener('click', () => {
                 this.paused = !this.paused;
-                this.pauseButton.setAttribute('aria-pressed', String(this.paused));
-                this.pauseButton.setAttribute('aria-label', this.paused ? '继续动画' : '暂停动画');
-                const use = this.pauseButton.querySelector('use');
-                const label = this.pauseButton.querySelector('span');
-                use?.setAttribute('href', this.paused ? '#icon-play' : '#icon-pause');
-                if (label) label.textContent = this.paused ? '继续' : '暂停';
+                this.updatePauseUI();
                 if (!this.paused && !prefersReducedMotion) {
                     this.lastTime = performance.now();
                     this.frame = requestAnimationFrame((time) => this.animate(time));
                 }
             });
+            window.addEventListener('vizml:langchange', () => this.updatePauseUI());
 
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden && !this.paused && !prefersReducedMotion && !this.frame) {
@@ -146,6 +153,16 @@
                     this.frame = requestAnimationFrame((time) => this.animate(time));
                 }
             });
+        }
+
+        updatePauseUI() {
+            if (!this.pauseButton) return;
+            this.pauseButton.setAttribute('aria-pressed', String(this.paused));
+            this.pauseButton.setAttribute('aria-label', VizMLI18n.t(this.paused ? '继续动画' : '暂停动画'));
+            const use = this.pauseButton.querySelector('use');
+            const label = this.pauseButton.querySelector('span');
+            use?.setAttribute('href', this.paused ? '#icon-play' : '#icon-pause');
+            if (label) label.textContent = VizMLI18n.t(this.paused ? '继续' : '暂停');
         }
 
         random() {

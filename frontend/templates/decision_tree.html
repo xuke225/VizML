@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <link rel="stylesheet" href="/static/css/i18n.css">
+    <script src="/static/js/i18n.js?v=2"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>决策树可视化工具</title>
@@ -788,8 +791,8 @@
         }
     </style>
     <link rel="stylesheet" href="/static/css/design-system.css">
-    <script defer src="/static/js/visualization-theme.js"></script>
-    <script defer src="/static/js/ui-shell.js"></script>
+    <script defer src="/static/js/visualization-theme.js?v=2"></script>
+    <script defer src="/static/js/ui-shell.js?v=2"></script>
 </head>
 <body>
     <div class="container">
@@ -1062,7 +1065,7 @@
     </div>
 
     <!-- API客户端 -->
-    <script src="/static/js/api-client.js"></script>
+    <script src="/static/js/api-client.js?v=2"></script>
     
     <script>
         // 全局变量
@@ -1076,24 +1079,24 @@
         // 数据集配置
         const datasetConfig = {
             'iris': {
-                name: '鸢尾花分类',
-                features: ['萼片长度', '萼片宽度', '花瓣长度', '花瓣宽度'],
-                target_names: ['山鸢尾', '变色鸢尾', '维吉尼亚鸢尾']
+                name: VizMLI18n.t('鸢尾花分类'),
+                features: [VizMLI18n.t('萼片长度'), VizMLI18n.t('萼片宽度'), VizMLI18n.t('花瓣长度'), VizMLI18n.t('花瓣宽度')],
+                target_names: [VizMLI18n.t('山鸢尾'), VizMLI18n.t('变色鸢尾'), VizMLI18n.t('维吉尼亚鸢尾')]
             },
             'wine': {
-                name: '红酒品质',
-                features: ['酒精度', '酸度', '残糖', '氯化物', '游离SO2', '总SO2', '密度', 'pH', '硫酸盐', '酒精', '品质'],
-                target_names: ['低品质', '高品质']
+                name: VizMLI18n.t('红酒品质'),
+                features: [VizMLI18n.t('酒精度'), VizMLI18n.t('酸度'), VizMLI18n.t('残糖'), VizMLI18n.t('氯化物'), VizMLI18n.t('游离SO2'), VizMLI18n.t('总SO2'), VizMLI18n.t('密度'), 'pH', VizMLI18n.t('硫酸盐'), VizMLI18n.t('酒精'), VizMLI18n.t('品质')],
+                target_names: [VizMLI18n.t('低品质'), VizMLI18n.t('高品质')]
             },
             'breast_cancer': {
-                name: '乳腺癌诊断',
-                features: ['半径', '纹理', '周长', '面积', '光滑度', '紧密度', '凹陷度', '凹点数', '对称性', '分形维数'],
-                target_names: ['恶性', '良性']
+                name: VizMLI18n.t('乳腺癌诊断'),
+                features: [VizMLI18n.t('半径'), VizMLI18n.t('纹理'), VizMLI18n.t('周长'), VizMLI18n.t('面积'), VizMLI18n.t('光滑度'), VizMLI18n.t('紧密度'), VizMLI18n.t('凹陷度'), VizMLI18n.t('凹点数'), VizMLI18n.t('对称性'), VizMLI18n.t('分形维数')],
+                target_names: [VizMLI18n.t('恶性'), VizMLI18n.t('良性')]
             },
             'digits': {
-                name: '手写数字',
-                features: ['像素1', '像素2', '像素3', '像素4', '像素5', '像素6', '像素7', '像素8'],
-                target_names: ['数字0', '数字1', '数字2', '数字3', '数字4', '数字5', '数字6', '数字7', '数字8', '数字9']
+                name: VizMLI18n.t('手写数字'),
+                features: [VizMLI18n.t('像素1'), VizMLI18n.t('像素2'), VizMLI18n.t('像素3'), VizMLI18n.t('像素4'), VizMLI18n.t('像素5'), VizMLI18n.t('像素6'), VizMLI18n.t('像素7'), VizMLI18n.t('像素8')],
+                target_names: [VizMLI18n.t('数字0'), VizMLI18n.t('数字1'), VizMLI18n.t('数字2'), VizMLI18n.t('数字3'), VizMLI18n.t('数字4'), VizMLI18n.t('数字5'), VizMLI18n.t('数字6'), VizMLI18n.t('数字7'), VizMLI18n.t('数字8'), VizMLI18n.t('数字9')]
             }
         };
         
@@ -1115,7 +1118,7 @@
             // 初始化树可视化器
             treeVisualizer = new DecisionTreeVisualizer('treeCanvas', 'nodeInfo');
             
-            console.log('决策树可视化工具已初始化');
+            console.log(VizMLI18n.t('决策树可视化工具已初始化'));
         });
         
         // 检查后端连接
@@ -1126,15 +1129,15 @@
                 const isConnected = await apiClient.checkConnection();
                 
                 if (isConnected) {
-                    statusBanner.textContent = '✅ 后端服务已连接 - 基于sklearn的决策树实现';
+                    statusBanner.textContent = VizMLI18n.t('✅ 后端服务已连接 - 基于sklearn的决策树实现');
                     statusBanner.className = 'status-banner connected';
                 } else {
-                    throw new Error('连接失败');
+                    throw new Error(VizMLI18n.t('连接失败'));
                 }
             } catch (error) {
-                statusBanner.textContent = '❌ 后端服务未连接 - 请启动Flask服务器 (python start.py)';
+                statusBanner.textContent = VizMLI18n.t('❌ 后端服务未连接 - 请启动Flask服务器 (python start.py)');
                 statusBanner.className = 'status-banner disconnected';
-                console.warn('后端服务连接失败:', error);
+                console.warn(VizMLI18n.t('后端服务连接失败:'), error);
             }
         }
         
@@ -1197,7 +1200,7 @@
             
             if (config) {
                 document.getElementById('featureList').textContent = 
-                    `${config.name} - 特征: ${config.features.slice(0, 5).join(', ')}${config.features.length > 5 ? '...' : ''}`;
+                    (config.name) + VizMLI18n.t(' - 特征: ') + (config.features.slice(0, 5).join(', ')) + (config.features.length > 5 ? '...' : '');
             }
             
             // 更新维度显示
@@ -1226,11 +1229,11 @@
             if (useFullFeatures) {
                 // 多维模式
                 const fullFeatureCount = datasetFeatureCounts[dataType] || 4;
-                dimensionStatus.textContent = `完整特征模式 (${fullFeatureCount}维)`;
+                dimensionStatus.textContent = VizMLI18n.t('完整特征模式 (') + (fullFeatureCount) + VizMLI18n.t('维)');
                 dimensionStatus.style.color = '#388e3c';
             } else {
                 // 2D模式
-                dimensionStatus.textContent = '2D 可视化模式';
+                dimensionStatus.textContent = VizMLI18n.t('2D 可视化模式');
                 dimensionStatus.style.color = '#4338CA';
             }
         }
@@ -1238,7 +1241,7 @@
         // 生成数据
         async function generateData() {
             try {
-                updateStatus('正在生成数据...');
+                updateStatus(VizMLI18n.t('正在生成数据...'));
                 
                 const dataType = document.getElementById('dataType').value;
                 const sampleCount = parseInt(document.getElementById('sampleCount').value);
@@ -1280,14 +1283,14 @@
                     document.getElementById('buildTreeBtn').disabled = false;
                     
                     const featureCount = currentData.n_features || currentData.X[0].length;
-                    updateStatus(`数据生成完成，共 ${currentData.n_samples} 个样本，${featureCount} 个特征`);
+                    updateStatus(VizMLI18n.t('数据生成完成，共 ') + (currentData.n_samples) + VizMLI18n.t(' 个样本，') + (featureCount) + VizMLI18n.t(' 个特征'));
                 } else {
                     throw new Error(result.message);
                 }
                 
             } catch (error) {
-                console.error('数据生成失败:', error);
-                updateStatus('数据生成失败: ' + error.message);
+                console.error(VizMLI18n.t('数据生成失败:'), error);
+                updateStatus(VizMLI18n.t('数据生成失败: ') + error.message);
             }
         }
         
@@ -1301,7 +1304,7 @@
                 trainingData.push({
                     features: currentData.X[i],
                     label: currentData.y[i],
-                    name: `样本${i + 1}`,
+                    name: VizMLI18n.t('样本') + (i + 1),
                     prediction: null,
                     misclassified: false
                 });
@@ -1315,22 +1318,17 @@
             const config = datasetConfig[dataType];
             
             let html = '<div style="max-height: 300px; overflow-y: auto;">';
-            html += '<h4>原始数据 (未训练):</h4>';
+            html += VizMLI18n.t('<h4>原始数据 (未训练):</h4>');
             
             trainingData.slice(0, 30).forEach((sample, index) => {
                 const className = `class-${sample.label}`;
-                const targetName = config.target_names[sample.label] || `类别${sample.label}`;
+                const targetName = config.target_names[sample.label] || VizMLI18n.t('类别') + (sample.label);
                 
-                html += `
-                    <div class="data-point ${className}" style="margin: 3px 0; padding: 5px; border-left: 3px solid var(--class-color-${sample.label}, #ccc); background: #f9f9f9;">
-                        <strong>样本 ${index + 1}:</strong> ${targetName}
-                        <br><small>特征: [${sample.features.slice(0, 4).map(f => f.toFixed(2)).join(', ')}]</small>
-                    </div>
-                `;
+                html += '\n                    <div class="data-point ' + (className) + '" style="margin: 3px 0; padding: 5px; border-left: 3px solid var(--class-color-' + (sample.label) + ', #ccc); background: #f9f9f9;">\n                        ' + '<strong>' + VizMLI18n.t('样本 ') + (index + 1) + ':' + '</strong>' + ' ' + (targetName) + '\n                        ' + '<br>' + '<small>' + VizMLI18n.t('特征: [') + (sample.features.slice(0, 4).map(f => f.toFixed(2)).join(', ')) + ']' + '</small>' + '\n                    ' + '</div>' + '\n                ';
             });
             
             if (trainingData.length > 30) {
-                html += `<div style="text-align: center; color: #6B7890; margin: 10px;">... 还有 ${trainingData.length - 30} 个样本</div>`;
+                html += '<div style="text-align: center; color: #6B7890; margin: 10px;">' + VizMLI18n.t('... 还有 ') + (trainingData.length - 30) + VizMLI18n.t(' 个样本') + '</div>';
             }
             
             html += '</div>';
@@ -1347,53 +1345,28 @@
             // 显示训练数据结果
             if (window.trainData && window.trainData.length > 0) {
                 html += '<div style="margin-bottom: 25px; padding: 15px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 10px; border-left: 5px solid #4F46E5;">';
-                html += '<h4 style="color: #4338CA; margin: 0 0 15px 0; display: flex; align-items: center;"><span style="margin-right: 8px;">📚</span>训练集预测结果</h4>';
+                html += VizMLI18n.t('<h4 style="color: #4338CA; margin: 0 0 15px 0; display: flex; align-items: center;"><span style="margin-right: 8px;">📚</span>训练集预测结果</h4>');
                 
                 const trainCorrect = window.trainData.filter(s => !s.misclassified).length;
                 const trainTotal = window.trainData.length;
                 const trainAccuracy = (trainCorrect/trainTotal*100).toFixed(1);
                 
-                html += `<div style="background: rgba(255, 255, 255, 0.9); padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <div style="display: flex; align-items: center;">
-                        <span style="font-size: 24px; margin-right: 10px;">${trainAccuracy >= 90 ? '🎯' : trainAccuracy >= 70 ? '✅' : '⚠️'}</span>
-                        <div>
-                            <div style="font-weight: 600; font-size: 16px; color: #4338CA;">训练准确率</div>
-                            <div style="font-size: 24px; font-weight: bold; color: ${trainAccuracy >= 90 ? '#0F9D8A' : trainAccuracy >= 70 ? '#D99A20' : '#C2415D'};">${trainAccuracy}%</div>
-                        </div>
-                    </div>
-                    <div style="text-align: right; color: #6B7890; font-size: 14px;">
-                        正确: ${trainCorrect} / 总数: ${trainTotal}
-                    </div>
-                </div>`;
+                html += '<div style="background: rgba(255, 255, 255, 0.9); padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">' + '\n                    ' + '<div style="display: flex; align-items: center;">' + '\n                        ' + '<span style="font-size: 24px; margin-right: 10px;">' + (trainAccuracy >= 90 ? '🎯' : trainAccuracy >= 70 ? '✅' : '⚠️') + '</span>' + '\n                        ' + '<div>' + '\n                            ' + '<div style="font-weight: 600; font-size: 16px; color: #4338CA;">' + VizMLI18n.t('训练准确率') + '</div>' + '\n                            <div style="font-size: 24px; font-weight: bold; color: ' + (trainAccuracy >= 90 ? '#0F9D8A' : trainAccuracy >= 70 ? '#D99A20' : '#C2415D') + ';">' + (trainAccuracy) + '%' + '</div>' + '\n                        ' + '</div>' + '\n                    ' + '</div>' + '\n                    ' + '<div style="text-align: right; color: #6B7890; font-size: 14px;">' + VizMLI18n.t('\n                        正确: ') + (trainCorrect) + VizMLI18n.t(' / 总数: ') + (trainTotal) + '\n                    ' + '</div>' + '\n                ' + '</div>';
                 
                 // 显示训练样本详情
                 html += '<div style="background: rgba(255, 255, 255, 0.7); border-radius: 8px; padding: 10px; max-height: 200px; overflow-y: auto;">';
                 window.trainData.slice(0, 20).forEach((sample, index) => {
-                    const targetName = config.target_names[sample.label] || `类别${sample.label}`;
-                    const predName = config.target_names[sample.prediction] || `类别${sample.prediction}`;
+                    const targetName = config.target_names[sample.label] || VizMLI18n.t('类别') + (sample.label);
+                    const predName = config.target_names[sample.prediction] || VizMLI18n.t('类别') + (sample.prediction);
                     const icon = sample.misclassified ? '❌' : '✅';
                     const bgColor = sample.misclassified ? '#ffebee' : '#e8f5e8';
                     const borderColor = sample.misclassified ? '#C2415D' : '#0F9D8A';
                     
-                    html += `
-                        <div style="margin: 6px 0; padding: 10px; border-left: 4px solid ${borderColor}; background: ${bgColor}; border-radius: 4px; font-size: 13px; transition: all 0.2s ease;">
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <span style="font-weight: 600;">样本 ${index + 1}</span>
-                                <span style="font-size: 16px;">${icon}</span>
-                            </div>
-                            <div style="margin: 4px 0; color: #555;">
-                                <strong>真实:</strong> <span style="color: #4F46E5; font-weight: 600;">${targetName}</span> |
-                                <strong>预测:</strong> <span style="color: ${sample.misclassified ? '#C2415D' : '#0F9D8A'}; font-weight: 600;">${predName}</span>
-                            </div>
-                            <div style="font-size: 12px; color: #6B7890;">
-                                特征: [${sample.features.slice(0, 4).map(f => f.toFixed(2)).join(', ')}${sample.features.length > 4 ? '...' : ''}]
-                            </div>
-                        </div>
-                    `;
+                    html += '\n                        <div style="margin: 6px 0; padding: 10px; border-left: 4px solid ' + (borderColor) + '; background: ' + (bgColor) + '; border-radius: 4px; font-size: 13px; transition: all 0.2s ease;">\n                            ' + '<div style="display: flex; align-items: center; justify-content: space-between;">' + '\n                                ' + '<span style="font-weight: 600;">' + VizMLI18n.t('样本 ') + (index + 1) + '</span>' + '\n                                ' + '<span style="font-size: 16px;">' + (icon) + '</span>' + '\n                            ' + '</div>' + '\n                            ' + '<div style="margin: 4px 0; color: #555;">' + '\n                                ' + '<strong>' + VizMLI18n.t('真实:') + '</strong>' + ' ' + '<span style="color: #4F46E5; font-weight: 600;">' + (targetName) + '</span>' + ' |\n                                ' + '<strong>' + VizMLI18n.t('预测:') + '</strong>' + ' <span style="color: ' + (sample.misclassified ? '#C2415D' : '#0F9D8A') + '; font-weight: 600;">' + (predName) + '</span>' + '\n                            ' + '</div>' + '\n                            ' + '<div style="font-size: 12px; color: #6B7890;">' + VizMLI18n.t('\n                                特征: [') + (sample.features.slice(0, 4).map(f => f.toFixed(2)).join(', ')) + (sample.features.length > 4 ? '...' : '') + ']\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n                    ';
                 });
                 
                 if (window.trainData.length > 20) {
-                    html += `<div style="text-align: center; color: #6B7890; margin: 10px; padding: 8px; background: rgba(255,255,255,0.8); border-radius: 4px;">... 还有 ${window.trainData.length - 20} 个训练样本</div>`;
+                    html += '<div style="text-align: center; color: #6B7890; margin: 10px; padding: 8px; background: rgba(255,255,255,0.8); border-radius: 4px;">' + VizMLI18n.t('... 还有 ') + (window.trainData.length - 20) + VizMLI18n.t(' 个训练样本') + '</div>';
                 }
                 html += '</div></div>';
             }
@@ -1401,49 +1374,24 @@
             // 显示测试数据结果
             if (window.testData && window.testData.length > 0) {
                 html += '<div style="padding: 15px; background: linear-gradient(135deg, #fff3e0, #ffcc02); border-radius: 10px; border-left: 5px solid #D99A20;">';
-                html += '<h4 style="color: #F57C00; margin: 0 0 15px 0; display: flex; align-items: center;"><span style="margin-right: 8px;">🧪</span>测试集预测结果</h4>';
+                html += VizMLI18n.t('<h4 style="color: #F57C00; margin: 0 0 15px 0; display: flex; align-items: center;"><span style="margin-right: 8px;">🧪</span>测试集预测结果</h4>');
                 
                 const testCorrect = window.testData.filter(s => !s.misclassified).length;
                 const testTotal = window.testData.length;
                 const testAccuracy = (testCorrect/testTotal*100).toFixed(1);
                 
-                html += `<div style="background: rgba(255, 255, 255, 0.9); padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <div style="display: flex; align-items: center;">
-                        <span style="font-size: 24px; margin-right: 10px;">${testAccuracy >= 90 ? '🎯' : testAccuracy >= 70 ? '✅' : '⚠️'}</span>
-                        <div>
-                            <div style="font-weight: 600; font-size: 16px; color: #F57C00;">测试准确率</div>
-                            <div style="font-size: 24px; font-weight: bold; color: ${testAccuracy >= 90 ? '#0F9D8A' : testAccuracy >= 70 ? '#D99A20' : '#C2415D'};">${testAccuracy}%</div>
-                        </div>
-                    </div>
-                    <div style="text-align: right; color: #6B7890; font-size: 14px;">
-                        正确: ${testCorrect} / 总数: ${testTotal}
-                    </div>
-                </div>`;
+                html += '<div style="background: rgba(255, 255, 255, 0.9); padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">' + '\n                    ' + '<div style="display: flex; align-items: center;">' + '\n                        ' + '<span style="font-size: 24px; margin-right: 10px;">' + (testAccuracy >= 90 ? '🎯' : testAccuracy >= 70 ? '✅' : '⚠️') + '</span>' + '\n                        ' + '<div>' + '\n                            ' + '<div style="font-weight: 600; font-size: 16px; color: #F57C00;">' + VizMLI18n.t('测试准确率') + '</div>' + '\n                            <div style="font-size: 24px; font-weight: bold; color: ' + (testAccuracy >= 90 ? '#0F9D8A' : testAccuracy >= 70 ? '#D99A20' : '#C2415D') + ';">' + (testAccuracy) + '%' + '</div>' + '\n                        ' + '</div>' + '\n                    ' + '</div>' + '\n                    ' + '<div style="text-align: right; color: #6B7890; font-size: 14px;">' + VizMLI18n.t('\n                        正确: ') + (testCorrect) + VizMLI18n.t(' / 总数: ') + (testTotal) + '\n                    ' + '</div>' + '\n                ' + '</div>';
                 
                 // 显示测试样本详情
                 html += '<div style="background: rgba(255, 255, 255, 0.7); border-radius: 8px; padding: 10px; max-height: 200px; overflow-y: auto;">';
                 window.testData.forEach((sample, index) => {
-                    const targetName = config.target_names[sample.label] || `类别${sample.label}`;
-                    const predName = config.target_names[sample.prediction] || `类别${sample.prediction}`;
+                    const targetName = config.target_names[sample.label] || VizMLI18n.t('类别') + (sample.label);
+                    const predName = config.target_names[sample.prediction] || VizMLI18n.t('类别') + (sample.prediction);
                     const icon = sample.misclassified ? '❌' : '✅';
                     const bgColor = sample.misclassified ? '#ffebee' : '#e8f5e8';
                     const borderColor = sample.misclassified ? '#C2415D' : '#0F9D8A';
                     
-                    html += `
-                        <div style="margin: 6px 0; padding: 10px; border-left: 4px solid ${borderColor}; background: ${bgColor}; border-radius: 4px; font-size: 13px; transition: all 0.2s ease;">
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <span style="font-weight: 600;">测试样本 ${index + 1}</span>
-                                <span style="font-size: 16px;">${icon}</span>
-                            </div>
-                            <div style="margin: 4px 0; color: #555;">
-                                <strong>真实:</strong> <span style="color: #4F46E5; font-weight: 600;">${targetName}</span> |
-                                <strong>预测:</strong> <span style="color: ${sample.misclassified ? '#C2415D' : '#0F9D8A'}; font-weight: 600;">${predName}</span>
-                            </div>
-                            <div style="font-size: 12px; color: #6B7890;">
-                                特征: [${sample.features.slice(0, 4).map(f => f.toFixed(2)).join(', ')}${sample.features.length > 4 ? '...' : ''}]
-                            </div>
-                        </div>
-                    `;
+                    html += '\n                        <div style="margin: 6px 0; padding: 10px; border-left: 4px solid ' + (borderColor) + '; background: ' + (bgColor) + '; border-radius: 4px; font-size: 13px; transition: all 0.2s ease;">\n                            ' + '<div style="display: flex; align-items: center; justify-content: space-between;">' + '\n                                ' + '<span style="font-weight: 600;">' + VizMLI18n.t('测试样本 ') + (index + 1) + '</span>' + '\n                                ' + '<span style="font-size: 16px;">' + (icon) + '</span>' + '\n                            ' + '</div>' + '\n                            ' + '<div style="margin: 4px 0; color: #555;">' + '\n                                ' + '<strong>' + VizMLI18n.t('真实:') + '</strong>' + ' ' + '<span style="color: #4F46E5; font-weight: 600;">' + (targetName) + '</span>' + ' |\n                                ' + '<strong>' + VizMLI18n.t('预测:') + '</strong>' + ' <span style="color: ' + (sample.misclassified ? '#C2415D' : '#0F9D8A') + '; font-weight: 600;">' + (predName) + '</span>' + '\n                            ' + '</div>' + '\n                            ' + '<div style="font-size: 12px; color: #6B7890;">' + VizMLI18n.t('\n                                特征: [') + (sample.features.slice(0, 4).map(f => f.toFixed(2)).join(', ')) + (sample.features.length > 4 ? '...' : '') + ']\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n                    ';
                 });
                 html += '</div></div>';
             }
@@ -1455,12 +1403,12 @@
         // 构建决策树
         async function buildTree() {
             if (!currentSessionKey) {
-                alert('请先生成数据！');
+                alert(VizMLI18n.t('请先生成数据！'));
                 return;
             }
             
             try {
-                updateStatus('正在构建决策树...');
+                updateStatus(VizMLI18n.t('正在构建决策树...'));
                 
                 const maxFeaturesValue = document.getElementById('maxFeatures').value;
                 const maxFeatures = maxFeaturesValue === 'None' ? null : maxFeaturesValue;
@@ -1498,14 +1446,14 @@
                     // 启用测试按钮
                     document.getElementById('testSampleBtn').disabled = false;
                     
-                    updateStatus('决策树构建完成');
+                    updateStatus(VizMLI18n.t('决策树构建完成'));
                 } else {
                     throw new Error(result.message);
                 }
                 
             } catch (error) {
-                console.error('决策树构建失败:', error);
-                updateStatus('决策树构建失败: ' + error.message);
+                console.error(VizMLI18n.t('决策树构建失败:'), error);
+                updateStatus(VizMLI18n.t('决策树构建失败: ') + error.message);
             }
         }
         
@@ -1524,7 +1472,7 @@
                 window.testData = testData;
                 window.fullDataWithLabels = fullDataWithLabels;
                 
-                console.log('数据更新完成:', {
+                console.log(VizMLI18n.t('数据更新完成:'), {
                     trainSize: trainData.length,
                     testSize: testData.length,
                     trainCorrect: trainData.filter(d => !d.misclassified).length,
@@ -1532,7 +1480,7 @@
                 });
             } else {
                 // 兼容旧版本数据格式
-                console.warn('使用旧版本数据格式，可能存在准确性问题');
+                console.warn(VizMLI18n.t('使用旧版本数据格式，可能存在准确性问题'));
                 const trainPredictions = results.predictions.train;
                 const testPredictions = results.predictions.test;
                 
@@ -1591,7 +1539,7 @@
                     else color = '#C2415D';
                     
                     const icon = isTraining ? '📚' : '🧪';
-                    const label = isTraining ? '训练准确率' : '测试准确率';
+                    const label = isTraining ? [VizMLI18n.t('训练准确率')]: VizMLI18n.t('测试准确率');
                     
                     mainHtml += `
                         <div class="metric-item" style="border-left-color: ${color};">
@@ -1606,12 +1554,7 @@
             if (metrics.train_accuracy && metrics.test_accuracy) {
                 const diff = Math.abs(metrics.train_accuracy - metrics.test_accuracy) * 100;
                 if (diff > 10) {
-                    mainHtml += `
-                        <div class="metric-item" style="border-left-color: #ff5722; background: linear-gradient(135deg, #fff, #ffebee);">
-                            <div class="metric-label">⚠️ 性能差异</div>
-                            <div class="metric-value" style="color: #ff5722; font-size: 16px;">${diff.toFixed(1)}%</div>
-                        </div>
-                    `;
+                    mainHtml += '\n                        ' + '<div class="metric-item" style="border-left-color: #ff5722; background: linear-gradient(135deg, #fff, #ffebee);">' + '\n                            ' + '<div class="metric-label">' + VizMLI18n.t('⚠️ 性能差异') + '</div>' + '\n                            ' + '<div class="metric-value" style="color: #ff5722; font-size: 16px;">' + (diff.toFixed(1)) + '%' + '</div>' + '\n                        ' + '</div>' + '\n                    ';
                 }
             }
             
@@ -1622,10 +1565,10 @@
             const testMetrics = ['test_accuracy', 'test_precision', 'test_recall', 'test_f1'];
             
             const metricNames = {
-                'train_accuracy': '准确率', 'test_accuracy': '准确率',
-                'train_precision': '精确率', 'test_precision': '精确率',
-                'train_recall': '召回率', 'test_recall': '召回率',
-                'train_f1': 'F1分数', 'test_f1': 'F1分数'
+                'train_accuracy': VizMLI18n.t('准确率'), 'test_accuracy': VizMLI18n.t('准确率'),
+                'train_precision': VizMLI18n.t('精确率'), 'test_precision': VizMLI18n.t('精确率'),
+                'train_recall': VizMLI18n.t('召回率'), 'test_recall': VizMLI18n.t('召回率'),
+                'train_f1': VizMLI18n.t('F1分数'), 'test_f1': VizMLI18n.t('F1分数')
             };
             
             function createMetricHtml(metricKeys) {
@@ -1847,7 +1790,7 @@
             // 更新树统计信息
             updateTreeStats() {
                 if (!this.treeData) {
-                    document.getElementById('treeStatsContent').innerHTML = '等待构建决策树...';
+                    document.getElementById('treeStatsContent').innerHTML = VizMLI18n.t('等待构建决策树...');
                     return;
                 }
                 
@@ -1856,15 +1799,7 @@
                 const leafNodes = this.nodes.filter(node => node.is_leaf).length;
                 const internalNodes = totalNodes - leafNodes;
                 
-                const statsHTML = `
-                    <div style="line-height: 1.4;">
-                        <div><strong>树深度:</strong> ${depth} 层</div>
-                        <div><strong>总节点:</strong> ${totalNodes} 个</div>
-                        <div><strong>内部节点:</strong> ${internalNodes} 个</div>
-                        <div><strong>叶节点:</strong> ${leafNodes} 个</div>
-                        <div><strong>缩放:</strong> ${(this.zoomLevel * 100).toFixed(0)}%</div>
-                    </div>
-                `;
+                const statsHTML = '\n                    ' + '<div style="line-height: 1.4;">' + '\n                        ' + '<div>' + '<strong>' + VizMLI18n.t('树深度:') + '</strong>' + ' ' + (depth) + VizMLI18n.t(' 层') + '</div>' + '\n                        ' + '<div>' + '<strong>' + VizMLI18n.t('总节点:') + '</strong>' + ' ' + (totalNodes) + VizMLI18n.t(' 个') + '</div>' + '\n                        ' + '<div>' + '<strong>' + VizMLI18n.t('内部节点:') + '</strong>' + ' ' + (internalNodes) + VizMLI18n.t(' 个') + '</div>' + '\n                        ' + '<div>' + '<strong>' + VizMLI18n.t('叶节点:') + '</strong>' + ' ' + (leafNodes) + VizMLI18n.t(' 个') + '</div>' + '\n                        ' + '<div>' + '<strong>' + VizMLI18n.t('缩放:') + '</strong>' + ' ' + ((this.zoomLevel * 100).toFixed(0)) + '%' + '</div>' + '\n                    ' + '</div>' + '\n                ';
                 
                 document.getElementById('treeStatsContent').innerHTML = statsHTML;
             }
@@ -1957,7 +1892,7 @@
                 this.ctx.fillStyle = '#6B7890';
                 this.ctx.font = '16px Arial';
                 this.ctx.textAlign = 'center';
-                this.ctx.fillText('请先构建决策树', this.canvas.width / 2, this.canvas.height / 2);
+                this.ctx.fillText(VizMLI18n.t('请先构建决策树'), this.canvas.width / 2, this.canvas.height / 2);
             }
             
             // 绘制连接线
@@ -2092,10 +2027,10 @@
                     const classLabel = this.getClassLabel(node.value);
                     this.ctx.fillText(classLabel, x, y - 6);
                     this.ctx.font = '9px "Segoe UI", Arial, sans-serif';
-                    this.ctx.fillText(`样本: ${node.samples}`, x, y + 8);
+                    this.ctx.fillText(VizMLI18n.t('样本: ') + (node.samples), x, y + 8);
                 } else {
                     // 内部节点显示特征
-                    this.ctx.fillText(`特征 ${node.feature}`, x, y - 6);
+                    this.ctx.fillText(VizMLI18n.t('特征 ') + (node.feature), x, y - 6);
                     this.ctx.font = '9px "Segoe UI", Arial, sans-serif';
                     this.ctx.fillText(`≤ ${node.threshold.toFixed(2)}`, x, y + 8);
                 }
@@ -2115,7 +2050,7 @@
                 if (this.targetNames && this.targetNames[maxIndex]) {
                     return this.targetNames[maxIndex];
                 }
-                return `类别 ${maxIndex}`;
+                return VizMLI18n.t('类别 ') + (maxIndex);
             }
             
             // 鼠标移动事件
@@ -2179,18 +2114,18 @@
                     // 获取真实类别名称
                     const majorityClassName = this.targetNames && this.targetNames[majorityClass] 
                         ? this.targetNames[majorityClass] 
-                        : `类别 ${majorityClass}`;
+                        : VizMLI18n.t('类别 ') + (majorityClass);
                     
-                    html += `<strong>叶节点</strong><br>`;
-                    html += `<div class="node-detail">预测类别: <span class="feature-importance">${majorityClassName}</span></div>`;
-                    html += `<div class="node-detail">样本数量: ${node.samples}</div>`;
-                    html += `<div class="node-detail">类别分布:</div>`;
+                    html += '<strong>' + VizMLI18n.t('叶节点') + '</strong>' + '<br>';
+                    html += '<div class="node-detail">' + VizMLI18n.t('预测类别: ') + '<span class="feature-importance">' + (majorityClassName) + '</span>' + '</div>';
+                    html += '<div class="node-detail">' + VizMLI18n.t('样本数量: ') + (node.samples) + '</div>';
+                    html += '<div class="node-detail">' + VizMLI18n.t('类别分布:') + '</div>';
                     
                     html += '<div class="class-distribution">';
                     classCounts.forEach((count, i) => {
                         const width = (count / totalSamples) * 200;
                         const hue = (i * 120) % 360;
-                        const className = this.targetNames && this.targetNames[i] ? this.targetNames[i] : `类别${i}`;
+                        const className = this.targetNames && this.targetNames[i] ? this.targetNames[i] : VizMLI18n.t('类别') + (i);
                         html += `<div class="class-bar" style="width: ${width}px; background: hsl(${hue}, 70%, 50%);">${className}: ${count}</div>`;
                     });
                     html += '</div>';
@@ -2198,13 +2133,13 @@
                     // 获取真实特征名称
                     const featureName = this.featureNames && this.featureNames[node.feature] 
                         ? this.featureNames[node.feature] 
-                        : `特征 ${node.feature}`;
+                        : VizMLI18n.t('特征 ') + (node.feature);
                     
-                    html += `<strong>内部节点</strong><br>`;
-                    html += `<div class="node-detail">分裂特征: <span class="feature-importance">${featureName}</span></div>`;
-                    html += `<div class="node-detail">分裂阈值: ${node.threshold.toFixed(4)}</div>`;
-                    html += `<div class="node-detail">样本数量: ${node.samples}</div>`;
-                    html += `<div class="node-detail">分裂条件: ≤ ${node.threshold.toFixed(2)} (左) / > ${node.threshold.toFixed(2)} (右)</div>`;
+                    html += '<strong>' + VizMLI18n.t('内部节点') + '</strong>' + '<br>';
+                    html += '<div class="node-detail">' + VizMLI18n.t('分裂特征: ') + '<span class="feature-importance">' + (featureName) + '</span>' + '</div>';
+                    html += '<div class="node-detail">' + VizMLI18n.t('分裂阈值: ') + (node.threshold.toFixed(4)) + '</div>';
+                    html += '<div class="node-detail">' + VizMLI18n.t('样本数量: ') + (node.samples) + '</div>';
+                    html += '<div class="node-detail">' + VizMLI18n.t('分裂条件: ≤ ') + (node.threshold.toFixed(2)) + VizMLI18n.t(' (左) / > ') + (node.threshold.toFixed(2)) + VizMLI18n.t(' (右)') + '</div>';
                 }
                 
                 html += '</div>';
@@ -2213,7 +2148,7 @@
             
             // 隐藏节点信息
             hideNodeInfo() {
-                this.nodeInfo.innerHTML = '<div style="text-align: center; color: #6B7890;">悬停在节点上查看详细信息</div>';
+                this.nodeInfo.innerHTML = VizMLI18n.t('<div style="text-align: center; color: #6B7890;">悬停在节点上查看详细信息</div>');
             }
             
             // 高亮决策路径
@@ -2404,16 +2339,16 @@
                     featureNames = config.features;
                 } else {
                     // 2D模式，使用PCA降维后的通用特征名称
-                    featureNames = ['主成分1', '主成分2'];
+                    featureNames = [VizMLI18n.t('主成分1'), VizMLI18n.t('主成分2')];
                 }
             }
             
             // 使用真实的树结构数据
             if (decisionTree && decisionTree.results && decisionTree.results.algorithm_params && decisionTree.results.algorithm_params.tree_structure) {
-                console.log('使用真实树结构数据:', decisionTree.results.algorithm_params.tree_structure);
+                console.log(VizMLI18n.t('使用真实树结构数据:'), decisionTree.results.algorithm_params.tree_structure);
                 treeVisualizer.setTreeData(decisionTree.results.algorithm_params.tree_structure, targetNames, featureNames);
             } else {
-                console.warn('未找到树结构数据，使用示例树');
+                console.warn(VizMLI18n.t('未找到树结构数据，使用示例树'));
                 // 创建示例树结构
                 const exampleTree = createExampleTree();
                 treeVisualizer.setTreeData(exampleTree, targetNames, featureNames);
@@ -2460,7 +2395,7 @@
         // 测试新样本
         async function testSample() {
             if (!currentModelKey) {
-                alert('请先构建决策树！');
+                alert(VizMLI18n.t('请先构建决策树！'));
                 return;
             }
             
@@ -2470,7 +2405,7 @@
                     treeVisualizer.clearHighlight();
                 }
                 
-                updateStatus('正在生成测试样本...');
+                updateStatus(VizMLI18n.t('正在生成测试样本...'));
                 
                 const dataType = document.getElementById('dataType').value;
                 const config = datasetConfig[dataType];
@@ -2527,15 +2462,15 @@
                     const testPath = document.getElementById('testPath');
                     
                     let html = '<div style="background: #F8FAFD; padding: 20px; border-radius: 12px; margin: 15px 0;">';
-                    html += '<h4 style="color: #4F46E5; margin: 0 0 15px 0;">🧪 测试样本预测结果</h4>';
+                    html += VizMLI18n.t('<h4 style="color: #4F46E5; margin: 0 0 15px 0;">🧪 测试样本预测结果</h4>');
                     
                     // 显示特征值
                     html += '<div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">';
-                    html += '<h5 style="color: #172033; margin: 0 0 10px 0;">📊 输入特征:</h5>';
+                    html += VizMLI18n.t('<h5 style="color: #172033; margin: 0 0 10px 0;">📊 输入特征:</h5>');
                     
                     const featureNames = currentData.feature_names || config.features;
                     testSample.forEach((value, i) => {
-                        const featureName = featureNames[i] || `特征${i + 1}`;
+                        const featureName = featureNames[i] || VizMLI18n.t('特征') + (i + 1);
                         html += `<div style="margin: 5px 0; padding: 5px 10px; background: #f1f3f4; border-radius: 4px; font-size: 14px;">`;
                         html += `<strong>${featureName}:</strong> ${value.toFixed(3)}`;
                         html += '</div>';
@@ -2544,8 +2479,8 @@
                     
                     // 显示预测结果
                     html += '<div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">';
-                    html += '<h5 style="color: #172033; margin: 0 0 10px 0;">🎯 预测结果:</h5>';
-                    const predictionName = config.target_names[prediction] || `类别${prediction}`;
+                    html += VizMLI18n.t('<h5 style="color: #172033; margin: 0 0 10px 0;">🎯 预测结果:</h5>');
+                    const predictionName = config.target_names[prediction] || VizMLI18n.t('类别') + (prediction);
                     html += `<div style="font-size: 18px; font-weight: bold; color: #0F9D8A; margin: 8px 0;">`;
                     html += `${predictionName}`;
                     html += '</div>';
@@ -2553,9 +2488,9 @@
                     // 显示概率（如果可用）
                     if (probabilities) {
                         html += '<div style="margin-top: 10px;">';
-                        html += '<strong>预测概率:</strong><br>';
+                        html += VizMLI18n.t('<strong>预测概率:</strong><br>');
                         probabilities.forEach((prob, i) => {
-                            const className = config.target_names[i] || `类别${i}`;
+                            const className = config.target_names[i] || VizMLI18n.t('类别') + (i);
                             const percentage = (prob * 100).toFixed(1);
                             html += `<div style="margin: 3px 0; display: flex; justify-content: space-between; align-items: center;">`;
                             html += `<span>${className}:</span>`;
@@ -2569,7 +2504,7 @@
                     // 显示决策路径
                     if (pathResult.status === 'success' && pathResult.decision_paths && pathResult.decision_paths[0]) {
                         html += '<div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">';
-                        html += '<h5 style="color: #172033; margin: 0 0 15px 0;">🛤️ 决策路径:</h5>';
+                        html += VizMLI18n.t('<h5 style="color: #172033; margin: 0 0 15px 0;">🛤️ 决策路径:</h5>');
                         
                         const path = pathResult.decision_paths[0].path;
                         path.forEach((node, i) => {
@@ -2581,21 +2516,21 @@
                             
                             if (node.is_leaf) {
                                 // 叶节点
-                                html += `<div style="font-weight: bold; color: #A9344D;">🍃 叶节点 (最终预测)</div>`;
-                                html += `<div style="margin: 5px 0;">预测类别: <strong>${config.target_names[node.predicted_class] || `类别${node.predicted_class}`}</strong></div>`;
-                                html += `<div style="color: #6B7890; font-size: 12px;">样本数: ${node.samples}</div>`;
+                                html += '<div style="font-weight: bold; color: #A9344D;">' + VizMLI18n.t('🍃 叶节点 (最终预测)') + '</div>';
+                                html += '<div style="margin: 5px 0;">' + VizMLI18n.t('预测类别: ') + '<strong>' + (config.target_names[node.predicted_class] || VizMLI18n.t('类别') + (node.predicted_class)) + '</strong>' + '</div>';
+                                html += '<div style="color: #6B7890; font-size: 12px;">' + VizMLI18n.t('样本数: ') + (node.samples) + '</div>';
                             } else {
                                 // 内部节点
-                                const featureName = featureNames[node.feature] || `特征${node.feature}`;
+                                const featureName = featureNames[node.feature] || VizMLI18n.t('特征') + (node.feature);
                                 const sampleValue = testSample[node.feature];
                                 const threshold = node.threshold;
                                 const direction = sampleValue <= threshold ? '≤' : '>';
                                 const arrow = sampleValue <= threshold ? '⬅️' : '➡️';
                                 
-                                html += `<div style="font-weight: bold; color: #4338CA;">🔍 内部节点 ${i + 1}</div>`;
-                                html += `<div style="margin: 5px 0;">判断条件: <strong>${featureName} ${direction} ${threshold.toFixed(3)}</strong></div>`;
-                                html += `<div style="margin: 5px 0;">样本值: <strong>${sampleValue.toFixed(3)}</strong> ${arrow}</div>`;
-                                html += `<div style="color: #6B7890; font-size: 12px;">样本数: ${node.samples}</div>`;
+                                html += '<div style="font-weight: bold; color: #4338CA;">' + VizMLI18n.t('🔍 内部节点 ') + (i + 1) + '</div>';
+                                html += '<div style="margin: 5px 0;">' + VizMLI18n.t('判断条件: ') + '<strong>' + (featureName) + ' ' + (direction) + ' ' + (threshold.toFixed(3)) + '</strong>' + '</div>';
+                                html += '<div style="margin: 5px 0;">' + VizMLI18n.t('样本值: ') + '<strong>' + (sampleValue.toFixed(3)) + '</strong>' + ' ' + (arrow) + '</div>';
+                                html += '<div style="color: #6B7890; font-size: 12px;">' + VizMLI18n.t('样本数: ') + (node.samples) + '</div>';
                             }
                             
                             html += '</div>';
@@ -2614,16 +2549,16 @@
                         treeVisualizer.highlightPath(pathResult.decision_paths[0].path, testSample);
                     }
                     
-                    updateStatus('测试样本预测完成');
+                    updateStatus(VizMLI18n.t('测试样本预测完成'));
                     
                 } else {
-                    throw new Error(predResult.message || '预测失败');
+                    throw new Error(predResult.message || VizMLI18n.t('预测失败'));
                 }
                 
             } catch (error) {
-                console.error('样本测试失败:', error);
-                updateStatus('样本测试失败: ' + error.message);
-                alert('测试失败: ' + error.message);
+                console.error(VizMLI18n.t('样本测试失败:'), error);
+                updateStatus(VizMLI18n.t('样本测试失败: ') + error.message);
+                alert(VizMLI18n.t('测试失败: ') + error.message);
             }
         }
         
@@ -2635,25 +2570,25 @@
             trainingData = [];
             decisionTree = null;
             
-            document.getElementById('dataDisplay').innerHTML = '暂无数据，请先生成训练数据';
+            document.getElementById('dataDisplay').innerHTML = VizMLI18n.t('暂无数据，请先生成训练数据');
             
             // 重置树可视化
             if (treeVisualizer) {
                 treeVisualizer.setTreeData(null);
             }
             
-            document.getElementById('performanceMetrics').innerHTML = '<div class="metric-item"><span class="metric-label">等待训练...</span></div>';
+            document.getElementById('performanceMetrics').innerHTML = VizMLI18n.t('<div class="metric-item"><span class="metric-label">等待训练...</span></div>');
             document.getElementById('testResult').style.display = 'none';
             
             document.getElementById('buildTreeBtn').disabled = true;
             document.getElementById('testSampleBtn').disabled = true;
             
-            updateStatus('已清空所有数据');
+            updateStatus(VizMLI18n.t('已清空所有数据'));
         }
         
         // 更新状态
         function updateStatus(message) {
-            console.log('状态:', message);
+            console.log(VizMLI18n.t('状态:'), message);
             // 可以在这里添加状态显示逻辑
         }
     </script>
