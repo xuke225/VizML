@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <link rel="stylesheet" href="/static/css/i18n.css">
+    <script src="/static/js/i18n.js"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>集成学习可视化工具</title>
@@ -939,7 +942,7 @@
             initializeCanvases();
             await checkBackendConnection();
             setupEventListeners();
-            console.log('集成学习增强可视化工具已初始化');
+            console.log(VizMLI18n.t('集成学习增强可视化工具已初始化'));
         });
         
         // 初始化画布
@@ -964,15 +967,15 @@
                 const isConnected = await apiClient.checkConnection();
                 
                 if (isConnected) {
-                    statusBanner.textContent = '✅ 后端服务已连接 - 增强版集成学习功能已就绪';
+                    statusBanner.textContent = VizMLI18n.t('✅ 后端服务已连接 - 增强版集成学习功能已就绪');
                     statusBanner.className = 'status-banner connected';
                 } else {
-                    throw new Error('连接失败');
+                    throw new Error(VizMLI18n.t('连接失败'));
                 }
             } catch (error) {
-                statusBanner.textContent = '❌ 后端服务未连接 - 请启动Flask服务器 (python start.py)';
+                statusBanner.textContent = VizMLI18n.t('❌ 后端服务未连接 - 请启动Flask服务器 (python start.py)');
                 statusBanner.className = 'status-banner disconnected';
-                console.warn('后端服务连接失败:', error);
+                console.warn(VizMLI18n.t('后端服务连接失败:'), error);
             }
         }
         
@@ -1010,7 +1013,7 @@
             try {
                 const btn = document.getElementById('generateDataBtn');
                 btn.disabled = true;
-                btn.innerHTML = '<span class="loading"></span> 生成中...';
+                btn.innerHTML = VizMLI18n.t('<span class="loading"></span> 生成中...');
                 
                 const datasetType = document.getElementById('datasetType').value;
                 const sampleSize = parseInt(document.getElementById('sampleSize').value);
@@ -1043,12 +1046,12 @@
                 }
                 
             } catch (error) {
-                console.error('数据生成失败:', error);
-                alert('数据生成失败: ' + error.message);
+                console.error(VizMLI18n.t('数据生成失败:'), error);
+                alert(VizMLI18n.t('数据生成失败: ') + error.message);
             } finally {
                 const btn = document.getElementById('generateDataBtn');
                 btn.disabled = false;
-                btn.innerHTML = '生成数据';
+                btn.innerHTML = VizMLI18n.t('生成数据');
             }
         }
         
@@ -1087,15 +1090,9 @@
             const dataInfo = document.getElementById('dataInfo');
             const uniqueClasses = [...new Set(currentData.y)];
             
-            dataInfo.innerHTML = `
-                <strong>数据集信息:</strong><br>
-                样本数量: ${currentData.n_samples}<br>
-                特征维度: ${currentData.n_features}<br>
-                类别数量: ${uniqueClasses.length}<br>
-                类别分布: ${uniqueClasses.map(cls => 
-                    `类别${cls}(${currentData.y.filter(y => y === cls).length})`
-                ).join(', ')}
-            `;
+            dataInfo.innerHTML = '\n                ' + '<strong>' + VizMLI18n.t('数据集信息:') + '</strong>' + '<br>' + VizMLI18n.t('\n                样本数量: ') + (currentData.n_samples) + '<br>' + VizMLI18n.t('\n                特征维度: ') + (currentData.n_features) + '<br>' + VizMLI18n.t('\n                类别数量: ') + (uniqueClasses.length) + '<br>' + VizMLI18n.t('\n                类别分布: ') + (uniqueClasses.map(cls => 
+                    VizMLI18n.t('类别') + (cls) + '(' + (currentData.y.filter(y => y === cls).length) + ')'
+                ).join(', ')) + '\n            ';
         }
         
         // 更新方法配置
@@ -1106,343 +1103,43 @@
             
             const methodConfigs = {
                 random_forest: {
-                    title: '🌳 随机森林配置',
+                    title: VizMLI18n.t('🌳 随机森林配置'),
                     showBaseLearners: false,
-                    params: `
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="nEstimators">基学习器数量:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">随机森林中决策树的数量。更多的树通常可以提高性能，但会增加计算成本。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="nEstimators" value="10" min="3" max="100">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="maxDepth">最大深度:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">每棵决策树的最大深度。控制模型复杂度，防止过拟合。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="maxDepth" value="5" min="1" max="20">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="minSamplesSplit">最小分割样本数:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">分割内部节点所需的最小样本数。更高的值可以防止过拟合。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="minSamplesSplit" value="2" min="2" max="20">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="maxFeatures">最大特征数:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">在分割节点时考虑的最大特征数。sqrt:特征数的平方根；log2:特征数的对数。</span>
-                                </div>
-                            </div>
-                            <select id="maxFeatures">
-                                <option value="sqrt" selected>sqrt</option>
-                                <option value="log2">log2</option>
-                                <option value="auto">auto</option>
-                            </select>
-                        </div>
-                    `
+                    params: '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="nEstimators">' + VizMLI18n.t('基学习器数量:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('随机森林中决策树的数量。更多的树通常可以提高性能，但会增加计算成本。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="nEstimators" value="10" min="3" max="100">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="maxDepth">' + VizMLI18n.t('最大深度:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('每棵决策树的最大深度。控制模型复杂度，防止过拟合。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="maxDepth" value="5" min="1" max="20">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="minSamplesSplit">' + VizMLI18n.t('最小分割样本数:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('分割内部节点所需的最小样本数。更高的值可以防止过拟合。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="minSamplesSplit" value="2" min="2" max="20">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="maxFeatures">' + VizMLI18n.t('最大特征数:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('在分割节点时考虑的最大特征数。sqrt:特征数的平方根；log2:特征数的对数。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<select id="maxFeatures">' + '\n                                ' + '<option value="sqrt" selected>' + 'sqrt' + '</option>' + '\n                                ' + '<option value="log2">' + 'log2' + '</option>' + '\n                                ' + '<option value="auto">' + 'auto' + '</option>' + '\n                            ' + '</select>' + '\n                        ' + '</div>' + '\n                    '
                 },
                 adaboost: {
-                    title: '🚀 AdaBoost配置',
+                    title: VizMLI18n.t('🚀 AdaBoost配置'),
                     showBaseLearners: false,
-                    params: `
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="nEstimators">基学习器数量:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">串行训练的弱学习器数量。更多的学习器可以提高性能，但也增加过拟合风险。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="nEstimators" value="50" min="10" max="200">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="learningRate">学习率:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">每个学习器贡献的权重。较低的学习率需要更多的学习器，但性能通常更好。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="learningRate" value="1.0" min="0.01" max="2.0" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="baseMaxDepth">基学习器最大深度:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">基学习器（决策树）的最大深度。AdaBoost通常使用树桩（深度=1）。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="baseMaxDepth" value="1" min="1" max="10">
-                        </div>
-                    `
+                    params: '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="nEstimators">' + VizMLI18n.t('基学习器数量:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('串行训练的弱学习器数量。更多的学习器可以提高性能，但也增加过拟合风险。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="nEstimators" value="50" min="10" max="200">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="learningRate">' + VizMLI18n.t('学习率:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('每个学习器贡献的权重。较低的学习率需要更多的学习器，但性能通常更好。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="learningRate" value="1.0" min="0.01" max="2.0" step="0.01">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="baseMaxDepth">' + VizMLI18n.t('基学习器最大深度:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('基学习器（决策树）的最大深度。AdaBoost通常使用树桩（深度=1）。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="baseMaxDepth" value="1" min="1" max="10">' + '\n                        ' + '</div>' + '\n                    '
                 },
                 gradient_boosting: {
-                    title: '📈 梯度提升配置',
+                    title: VizMLI18n.t('📈 梯度提升配置'),
                     showBaseLearners: false,
-                    params: `
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="nEstimators">基学习器数量:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">要执行的提升阶段数量。更多的阶段可能提高性能，但也增加过拟合风险。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="nEstimators" value="100" min="10" max="300">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="learningRate">学习率:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">缩放每个学习器贡献的参数。较低的值可以获得更好的泛化能力。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="learningRate" value="0.1" min="0.01" max="1.0" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="maxDepth">最大深度:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">各个回归估计器的最大深度。控制模型的复杂性。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="maxDepth" value="3" min="1" max="15">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="subsample">子采样率:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">用于拟合各个基学习器的样本比例。小于1.0的值可以减少方差并防止过拟合。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="subsample" value="1.0" min="0.1" max="1.0" step="0.1">
-                        </div>
-                    `
+                    params: '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="nEstimators">' + VizMLI18n.t('基学习器数量:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('要执行的提升阶段数量。更多的阶段可能提高性能，但也增加过拟合风险。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="nEstimators" value="100" min="10" max="300">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="learningRate">' + VizMLI18n.t('学习率:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('缩放每个学习器贡献的参数。较低的值可以获得更好的泛化能力。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="learningRate" value="0.1" min="0.01" max="1.0" step="0.01">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="maxDepth">' + VizMLI18n.t('最大深度:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('各个回归估计器的最大深度。控制模型的复杂性。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="maxDepth" value="3" min="1" max="15">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="subsample">' + VizMLI18n.t('子采样率:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('用于拟合各个基学习器的样本比例。小于1.0的值可以减少方差并防止过拟合。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="subsample" value="1.0" min="0.1" max="1.0" step="0.1">' + '\n                        ' + '</div>' + '\n                    '
                 },
                 voting: {
-                    title: '🗳️ 投票集成配置',
+                    title: VizMLI18n.t('🗳️ 投票集成配置'),
                     showBaseLearners: true,
                     baseLearners: ['decision_tree', 'svm', 'logistic_regression', 'knn', 'naive_bayes'],
-                    params: `
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="votingType">投票方式:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">硬投票：使用预测的类别标签进行投票。软投票：使用预测概率进行投票，通常效果更好。</span>
-                                </div>
-                            </div>
-                            <select id="votingType">
-                                <option value="hard" selected>硬投票</option>
-                                <option value="soft">软投票</option>
-                            </select>
-                        </div>
-                    `
+                    params: '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="votingType">' + VizMLI18n.t('投票方式:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('硬投票：使用预测的类别标签进行投票。软投票：使用预测概率进行投票，通常效果更好。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<select id="votingType">' + '\n                                ' + '<option value="hard" selected>' + VizMLI18n.t('硬投票') + '</option>' + '\n                                ' + '<option value="soft">' + VizMLI18n.t('软投票') + '</option>' + '\n                            ' + '</select>' + '\n                        ' + '</div>' + '\n                    '
                 },
                 stacking: {
-                    title: '🏠 Stacking配置',
+                    title: VizMLI18n.t('🏠 Stacking配置'),
                     showBaseLearners: true,
                     baseLearners: ['decision_tree', 'svm', 'knn', 'naive_bayes', 'neural_network'],
-                    params: `
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="cv">交叉验证折数:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">用于生成元特征的交叉验证折数。更多的折数可以获得更好的泛化能力。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="cv" value="5" min="2" max="10">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="stackMethod">堆叠方法:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">确定如何将基学习器的输出传递给元学习器。auto：自动选择；predict：使用预测值；predict_proba：使用预测概率。</span>
-                                </div>
-                            </div>
-                            <select id="stackMethod">
-                                <option value="auto" selected>自动</option>
-                                <option value="predict">预测值</option>
-                                <option value="predict_proba">概率值</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="metaLearner">元学习器:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">用于组合基学习器预测的最终学习器。较简单的模型（如逻辑回归）通常效果更好。</span>
-                                </div>
-                            </div>
-                            <select id="metaLearner">
-                                <option value="logistic_regression" selected>逻辑回归</option>
-                                <option value="decision_tree">决策树</option>
-                                <option value="svm">支持向量机</option>
-                            </select>
-                        </div>
-                    `
+                    params: '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="cv">' + VizMLI18n.t('交叉验证折数:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('用于生成元特征的交叉验证折数。更多的折数可以获得更好的泛化能力。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="cv" value="5" min="2" max="10">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="stackMethod">' + VizMLI18n.t('堆叠方法:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('确定如何将基学习器的输出传递给元学习器。auto：自动选择；predict：使用预测值；predict_proba：使用预测概率。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<select id="stackMethod">' + '\n                                ' + '<option value="auto" selected>' + VizMLI18n.t('自动') + '</option>' + '\n                                ' + '<option value="predict">' + VizMLI18n.t('预测值') + '</option>' + '\n                                ' + '<option value="predict_proba">' + VizMLI18n.t('概率值') + '</option>' + '\n                            ' + '</select>' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="metaLearner">' + VizMLI18n.t('元学习器:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('用于组合基学习器预测的最终学习器。较简单的模型（如逻辑回归）通常效果更好。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<select id="metaLearner">' + '\n                                ' + '<option value="logistic_regression" selected>' + VizMLI18n.t('逻辑回归') + '</option>' + '\n                                ' + '<option value="decision_tree">' + VizMLI18n.t('决策树') + '</option>' + '\n                                ' + '<option value="svm">' + VizMLI18n.t('支持向量机') + '</option>' + '\n                            ' + '</select>' + '\n                        ' + '</div>' + '\n                    '
                 },
                 bagging: {
-                    title: '🎒 Bagging配置',
+                    title: VizMLI18n.t('🎒 Bagging配置'),
                     showBaseLearners: false,
                     singleBaseLearner: true,
                     baseLearners: ['decision_tree', 'svm', 'knn', 'linear'],
-                    params: `
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="nEstimators">基学习器数量:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">集成中基学习器的数量。更多的学习器通常提高性能，但增加计算成本。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="nEstimators" value="10" min="3" max="100">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="maxSamples">样本采样比例:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">每个基学习器使用的样本比例。小于1.0的值可以增加多样性并减少过拟合。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="maxSamples" value="1.0" min="0.1" max="1.0" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="maxFeatures">特征采样比例:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">每个基学习器使用的特征比例。降低这个值可以增加学习器之间的多样性。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="maxFeatures" value="1.0" min="0.1" max="1.0" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="bootstrap">Bootstrap采样:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">是否使用有放回的Bootstrap采样。关闭后将使用无放回采样。</span>
-                                </div>
-                            </div>
-                            <select id="bootstrap">
-                                <option value="true" selected>启用</option>
-                                <option value="false">禁用</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="baseEstimatorType">基学习器类型:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">选择用于Bagging的基学习器类型。决策树是经典选择，其他类型也可以用于实验。</span>
-                                </div>
-                            </div>
-                            <select id="baseEstimatorType">
-                                <option value="decision_tree" selected>决策树</option>
-                                <option value="svm">支持向量机</option>
-                                <option value="knn">K近邻</option>
-                                <option value="linear">线性模型</option>
-                            </select>
-                        </div>
-                    `
+                    params: '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="nEstimators">' + VizMLI18n.t('基学习器数量:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('集成中基学习器的数量。更多的学习器通常提高性能，但增加计算成本。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="nEstimators" value="10" min="3" max="100">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="maxSamples">' + VizMLI18n.t('样本采样比例:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('每个基学习器使用的样本比例。小于1.0的值可以增加多样性并减少过拟合。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="maxSamples" value="1.0" min="0.1" max="1.0" step="0.1">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="maxFeatures">' + VizMLI18n.t('特征采样比例:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('每个基学习器使用的特征比例。降低这个值可以增加学习器之间的多样性。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="maxFeatures" value="1.0" min="0.1" max="1.0" step="0.1">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="bootstrap">' + VizMLI18n.t('Bootstrap采样:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('是否使用有放回的Bootstrap采样。关闭后将使用无放回采样。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<select id="bootstrap">' + '\n                                ' + '<option value="true" selected>' + VizMLI18n.t('启用') + '</option>' + '\n                                ' + '<option value="false">' + VizMLI18n.t('禁用') + '</option>' + '\n                            ' + '</select>' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="baseEstimatorType">' + VizMLI18n.t('基学习器类型:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('选择用于Bagging的基学习器类型。决策树是经典选择，其他类型也可以用于实验。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<select id="baseEstimatorType">' + '\n                                ' + '<option value="decision_tree" selected>' + VizMLI18n.t('决策树') + '</option>' + '\n                                ' + '<option value="svm">' + VizMLI18n.t('支持向量机') + '</option>' + '\n                                ' + '<option value="knn">' + VizMLI18n.t('K近邻') + '</option>' + '\n                                ' + '<option value="linear">' + VizMLI18n.t('线性模型') + '</option>' + '\n                            ' + '</select>' + '\n                        ' + '</div>' + '\n                    '
                 },
                 xgboost: {
-                    title: '🚀 XGBoost配置',
+                    title: VizMLI18n.t('🚀 XGBoost配置'),
                     showBaseLearners: false,
-                    params: `
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="nEstimators">树的数量:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">提升轮数，即训练的树的数量。更多的树通常提高性能，但也增加训练时间和过拟合风险。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="nEstimators" value="100" min="10" max="1000">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="maxDepth">最大深度:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">每棵树的最大深度。较大的深度允许模型学习更复杂的模式，但可能导致过拟合。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="maxDepth" value="6" min="1" max="20">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="learningRate">学习率:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">每一步的步长缩减，用于防止过拟合。较小的学习率通常需要更多的提升轮数。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="learningRate" value="0.3" min="0.01" max="1.0" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="subsample">子采样率:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">每棵树训练时使用的样本比例。小于1.0的值可以防止过拟合。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="subsample" value="1.0" min="0.1" max="1.0" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="colsampleBytree">特征采样率:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">每棵树训练时使用的特征比例。降低此值可以增加模型的泛化能力。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="colsampleBytree" value="1.0" min="0.1" max="1.0" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="regAlpha">L1正则化:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">权重的L1正则化项。增加此值将使模型更加保守，有助于减少过拟合。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="regAlpha" value="0" min="0" max="10" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <div class="label-with-tooltip">
-                                <label for="regLambda">L2正则化:</label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltiptext">权重的L2正则化项。增加此值将使模型更加保守，有助于减少过拟合。</span>
-                                </div>
-                            </div>
-                            <input type="number" id="regLambda" value="1" min="0" max="10" step="0.1">
-                        </div>
-                    `
+                    params: '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="nEstimators">' + VizMLI18n.t('树的数量:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('提升轮数，即训练的树的数量。更多的树通常提高性能，但也增加训练时间和过拟合风险。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="nEstimators" value="100" min="10" max="1000">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="maxDepth">' + VizMLI18n.t('最大深度:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('每棵树的最大深度。较大的深度允许模型学习更复杂的模式，但可能导致过拟合。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="maxDepth" value="6" min="1" max="20">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="learningRate">' + VizMLI18n.t('学习率:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('每一步的步长缩减，用于防止过拟合。较小的学习率通常需要更多的提升轮数。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="learningRate" value="0.3" min="0.01" max="1.0" step="0.01">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="subsample">' + VizMLI18n.t('子采样率:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('每棵树训练时使用的样本比例。小于1.0的值可以防止过拟合。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="subsample" value="1.0" min="0.1" max="1.0" step="0.1">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="colsampleBytree">' + VizMLI18n.t('特征采样率:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('每棵树训练时使用的特征比例。降低此值可以增加模型的泛化能力。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="colsampleBytree" value="1.0" min="0.1" max="1.0" step="0.1">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="regAlpha">' + VizMLI18n.t('L1正则化:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('权重的L1正则化项。增加此值将使模型更加保守，有助于减少过拟合。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="regAlpha" value="0" min="0" max="10" step="0.1">' + '\n                        ' + '</div>' + '\n                        ' + '<div class="form-group">' + '\n                            ' + '<div class="label-with-tooltip">' + '\n                                ' + '<label for="regLambda">' + VizMLI18n.t('L2正则化:') + '</label>' + '\n                                ' + '<div class="tooltip">' + '\n                                    ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                    ' + '<span class="tooltiptext">' + VizMLI18n.t('权重的L2正则化项。增加此值将使模型更加保守，有助于减少过拟合。') + '</span>' + '\n                                ' + '</div>' + '\n                            ' + '</div>' + '\n                            ' + '<input type="number" id="regLambda" value="1" min="0" max="10" step="0.1">' + '\n                        ' + '</div>' + '\n                    '
                 }
             };
             
@@ -1467,13 +1164,13 @@
             const container = document.getElementById('learnerCheckboxes');
             
             const learnerConfigs = {
-                decision_tree: { name: '决策树', class: 'DecisionTreeClassifier' },
-                svm: { name: '支持向量机', class: 'SVC' },
-                knn: { name: 'K近邻', class: 'KNeighborsClassifier' },
-                naive_bayes: { name: '朴素贝叶斯', class: 'GaussianNB' },
-                logistic_regression: { name: '逻辑回归', class: 'LogisticRegression' },
-                neural_network: { name: '神经网络', class: 'MLPClassifier' },
-                linear: { name: '线性模型', class: 'LogisticRegression/LinearRegression' }
+                decision_tree: { name: VizMLI18n.t('决策树'), class: 'DecisionTreeClassifier' },
+                svm: { name: VizMLI18n.t('支持向量机'), class: 'SVC' },
+                knn: { name: VizMLI18n.t('K近邻'), class: 'KNeighborsClassifier' },
+                naive_bayes: { name: VizMLI18n.t('朴素贝叶斯'), class: 'GaussianNB' },
+                logistic_regression: { name: VizMLI18n.t('逻辑回归'), class: 'LogisticRegression' },
+                neural_network: { name: VizMLI18n.t('神经网络'), class: 'MLPClassifier' },
+                linear: { name: VizMLI18n.t('线性模型'), class: 'LogisticRegression/LinearRegression' }
             };
             
             container.innerHTML = '';
@@ -1542,11 +1239,7 @@
             const container = document.getElementById('baseLearnerParams');
             
             if (selectedLearners.length === 0) {
-                container.innerHTML = `
-                    <p style="text-align: center; color: #6B7890; padding: 40px;">
-                        请选择至少一个基学习器
-                    </p>
-                `;
+                container.innerHTML = '\n                    ' + '<p style="text-align: center; color: #6B7890; padding: 40px;">' + VizMLI18n.t('\n                        请选择至少一个基学习器\n                    ') + '</p>' + '\n                ';
                 return;
             }
             
@@ -1556,14 +1249,7 @@
                 const learnerId = checkbox.dataset.learner;
                 const learnerName = checkbox.parentElement.querySelector('.learner-name').textContent;
                 
-                html += `
-                    <div class="learner-param-card">
-                        <h5>${learnerName} 参数配置</h5>
-                        <div id="params-${learnerId}">
-                            ${getLearnerParamsHTML(learnerId)}
-                        </div>
-                    </div>
-                `;
+                html += '\n                    ' + '<div class="learner-param-card">' + '\n                        ' + '<h5>' + (learnerName) + VizMLI18n.t(' 参数配置') + '</h5>' + '\n                        <div id="params-' + (learnerId) + '">\n                            ' + (getLearnerParamsHTML(learnerId)) + '\n                        ' + '</div>' + '\n                    ' + '</div>' + '\n                ';
             });
             
             container.innerHTML = html;
@@ -1572,145 +1258,28 @@
         // 获取特定学习器的参数HTML
         function getLearnerParamsHTML(learnerId) {
             const paramConfigs = {
-                decision_tree: `
-                    <div class="form-group">
-                        <div class="label-with-tooltip">
-                            <label>最大深度:</label>
-                            <div class="tooltip">
-                                <span class="tooltip-icon">?</span>
-                                <span class="tooltiptext">决策树的最大深度。控制模型复杂度，防止过拟合。</span>
-                            </div>
-                        </div>
-                        <input type="number" value="5" min="1" max="20">
-                    </div>
-                    <div class="form-group">
-                        <div class="label-with-tooltip">
-                            <label>最小分割样本:</label>
-                            <div class="tooltip">
-                                <span class="tooltip-icon">?</span>
-                                <span class="tooltiptext">分割内部节点所需的最小样本数。</span>
-                            </div>
-                        </div>
-                        <input type="number" value="2" min="2" max="20">
-                    </div>
-                `,
-                svm: `
-                    <div class="form-group">
-                        <div class="label-with-tooltip">
-                            <label>C参数:</label>
-                            <div class="tooltip">
-                                <span class="tooltip-icon">?</span>
-                                <span class="tooltiptext">正则化参数。较大的C值意味着更少的正则化。</span>
-                            </div>
-                        </div>
-                        <input type="number" value="1.0" min="0.01" max="100" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <div class="label-with-tooltip">
-                            <label>核函数:</label>
-                            <div class="tooltip">
-                                <span class="tooltip-icon">?</span>
-                                <span class="tooltiptext">SVM使用的核函数类型。RBF适用于非线性问题。</span>
-                            </div>
-                        </div>
-                        <select>
-                            <option value="rbf" selected>RBF</option>
-                            <option value="linear">线性</option>
-                            <option value="poly">多项式</option>
-                        </select>
-                    </div>
-                `,
-                knn: `
-                    <div class="form-group">
-                        <div class="label-with-tooltip">
-                            <label>邻居数量:</label>
-                            <div class="tooltip">
-                                <span class="tooltip-icon">?</span>
-                                <span class="tooltiptext">用于分类的最近邻数量。较小的值更敏感于噪声。</span>
-                            </div>
-                        </div>
-                        <input type="number" value="5" min="1" max="20">
-                    </div>
-                    <div class="form-group">
-                        <div class="label-with-tooltip">
-                            <label>权重:</label>
-                            <div class="tooltip">
-                                <span class="tooltip-icon">?</span>
-                                <span class="tooltiptext">邻居的权重函数。distance权重与距离成反比。</span>
-                            </div>
-                        </div>
-                        <select>
-                            <option value="uniform" selected>均匀</option>
-                            <option value="distance">距离</option>
-                        </select>
-                    </div>
-                `,
-                logistic_regression: `
-                    <div class="form-group">
-                        <div class="label-with-tooltip">
-                            <label>C参数:</label>
-                            <div class="tooltip">
-                                <span class="tooltip-icon">?</span>
-                                <span class="tooltiptext">正则化强度的倒数。较小的值指定更强的正则化。</span>
-                            </div>
-                        </div>
-                        <input type="number" value="1.0" min="0.01" max="100" step="0.01">
-                    </div>
-                `,
-                naive_bayes: `
-                    <div class="form-group">
-                        <div class="label-with-tooltip">
-                            <label>平滑参数:</label>
-                            <div class="tooltip">
-                                <span class="tooltip-icon">?</span>
-                                <span class="tooltiptext">加性平滑参数。用于处理训练数据中未出现的特征。</span>
-                            </div>
-                        </div>
-                        <input type="number" value="1e-9" min="1e-10" max="1e-5" step="1e-10">
-                    </div>
-                `,
-                neural_network: `
-                    <div class="form-group">
-                        <div class="label-with-tooltip">
-                            <label>隐藏层大小:</label>
-                            <div class="tooltip">
-                                <span class="tooltip-icon">?</span>
-                                <span class="tooltiptext">隐藏层的神经元数量。可以是单个数字或多个数字的元组。</span>
-                            </div>
-                        </div>
-                        <input type="text" value="100" placeholder="如: 100 或 100,50">
-                    </div>
-                    <div class="form-group">
-                        <div class="label-with-tooltip">
-                            <label>激活函数:</label>
-                            <div class="tooltip">
-                                <span class="tooltip-icon">?</span>
-                                <span class="tooltiptext">隐藏层的激活函数。ReLU通常效果最好。</span>
-                            </div>
-                        </div>
-                        <select>
-                            <option value="relu" selected>ReLU</option>
-                            <option value="tanh">Tanh</option>
-                            <option value="logistic">Sigmoid</option>
-                        </select>
-                    </div>
-                `
+                decision_tree: '\n                    ' + '<div class="form-group">' + '\n                        ' + '<div class="label-with-tooltip">' + '\n                            ' + '<label>' + VizMLI18n.t('最大深度:') + '</label>' + '\n                            ' + '<div class="tooltip">' + '\n                                ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                ' + '<span class="tooltiptext">' + VizMLI18n.t('决策树的最大深度。控制模型复杂度，防止过拟合。') + '</span>' + '\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n                        ' + '<input type="number" value="5" min="1" max="20">' + '\n                    ' + '</div>' + '\n                    ' + '<div class="form-group">' + '\n                        ' + '<div class="label-with-tooltip">' + '\n                            ' + '<label>' + VizMLI18n.t('最小分割样本:') + '</label>' + '\n                            ' + '<div class="tooltip">' + '\n                                ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                ' + '<span class="tooltiptext">' + VizMLI18n.t('分割内部节点所需的最小样本数。') + '</span>' + '\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n                        ' + '<input type="number" value="2" min="2" max="20">' + '\n                    ' + '</div>' + '\n                ',
+                svm: '\n                    ' + '<div class="form-group">' + '\n                        ' + '<div class="label-with-tooltip">' + '\n                            ' + '<label>' + VizMLI18n.t('C参数:') + '</label>' + '\n                            ' + '<div class="tooltip">' + '\n                                ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                ' + '<span class="tooltiptext">' + VizMLI18n.t('正则化参数。较大的C值意味着更少的正则化。') + '</span>' + '\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n                        ' + '<input type="number" value="1.0" min="0.01" max="100" step="0.01">' + '\n                    ' + '</div>' + '\n                    ' + '<div class="form-group">' + '\n                        ' + '<div class="label-with-tooltip">' + '\n                            ' + '<label>' + VizMLI18n.t('核函数:') + '</label>' + '\n                            ' + '<div class="tooltip">' + '\n                                ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                ' + '<span class="tooltiptext">' + VizMLI18n.t('SVM使用的核函数类型。RBF适用于非线性问题。') + '</span>' + '\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n                        ' + '<select>' + '\n                            ' + '<option value="rbf" selected>' + 'RBF' + '</option>' + '\n                            ' + '<option value="linear">' + VizMLI18n.t('线性') + '</option>' + '\n                            ' + '<option value="poly">' + VizMLI18n.t('多项式') + '</option>' + '\n                        ' + '</select>' + '\n                    ' + '</div>' + '\n                ',
+                knn: '\n                    ' + '<div class="form-group">' + '\n                        ' + '<div class="label-with-tooltip">' + '\n                            ' + '<label>' + VizMLI18n.t('邻居数量:') + '</label>' + '\n                            ' + '<div class="tooltip">' + '\n                                ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                ' + '<span class="tooltiptext">' + VizMLI18n.t('用于分类的最近邻数量。较小的值更敏感于噪声。') + '</span>' + '\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n                        ' + '<input type="number" value="5" min="1" max="20">' + '\n                    ' + '</div>' + '\n                    ' + '<div class="form-group">' + '\n                        ' + '<div class="label-with-tooltip">' + '\n                            ' + '<label>' + VizMLI18n.t('权重:') + '</label>' + '\n                            ' + '<div class="tooltip">' + '\n                                ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                ' + '<span class="tooltiptext">' + VizMLI18n.t('邻居的权重函数。distance权重与距离成反比。') + '</span>' + '\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n                        ' + '<select>' + '\n                            ' + '<option value="uniform" selected>' + VizMLI18n.t('均匀') + '</option>' + '\n                            ' + '<option value="distance">' + VizMLI18n.t('距离') + '</option>' + '\n                        ' + '</select>' + '\n                    ' + '</div>' + '\n                ',
+                logistic_regression: '\n                    ' + '<div class="form-group">' + '\n                        ' + '<div class="label-with-tooltip">' + '\n                            ' + '<label>' + VizMLI18n.t('C参数:') + '</label>' + '\n                            ' + '<div class="tooltip">' + '\n                                ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                ' + '<span class="tooltiptext">' + VizMLI18n.t('正则化强度的倒数。较小的值指定更强的正则化。') + '</span>' + '\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n                        ' + '<input type="number" value="1.0" min="0.01" max="100" step="0.01">' + '\n                    ' + '</div>' + '\n                ',
+                naive_bayes: '\n                    ' + '<div class="form-group">' + '\n                        ' + '<div class="label-with-tooltip">' + '\n                            ' + '<label>' + VizMLI18n.t('平滑参数:') + '</label>' + '\n                            ' + '<div class="tooltip">' + '\n                                ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                ' + '<span class="tooltiptext">' + VizMLI18n.t('加性平滑参数。用于处理训练数据中未出现的特征。') + '</span>' + '\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n                        ' + '<input type="number" value="1e-9" min="1e-10" max="1e-5" step="1e-10">' + '\n                    ' + '</div>' + '\n                ',
+                neural_network: '\n                    ' + '<div class="form-group">' + '\n                        ' + '<div class="label-with-tooltip">' + '\n                            ' + '<label>' + VizMLI18n.t('隐藏层大小:') + '</label>' + '\n                            ' + '<div class="tooltip">' + '\n                                ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                ' + '<span class="tooltiptext">' + VizMLI18n.t('隐藏层的神经元数量。可以是单个数字或多个数字的元组。') + '</span>' + '\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n                        ' + '<input type="text" value="100" placeholder="如: 100 或 100,50">' + '\n                    ' + '</div>' + '\n                    ' + '<div class="form-group">' + '\n                        ' + '<div class="label-with-tooltip">' + '\n                            ' + '<label>' + VizMLI18n.t('激活函数:') + '</label>' + '\n                            ' + '<div class="tooltip">' + '\n                                ' + '<span class="tooltip-icon">' + '?' + '</span>' + '\n                                ' + '<span class="tooltiptext">' + VizMLI18n.t('隐藏层的激活函数。ReLU通常效果最好。') + '</span>' + '\n                            ' + '</div>' + '\n                        ' + '</div>' + '\n                        ' + '<select>' + '\n                            ' + '<option value="relu" selected>' + 'ReLU' + '</option>' + '\n                            ' + '<option value="tanh">' + 'Tanh' + '</option>' + '\n                            ' + '<option value="logistic">' + 'Sigmoid' + '</option>' + '\n                        ' + '</select>' + '\n                    ' + '</div>' + '\n                '
             };
             
-            return paramConfigs[learnerId] || '<p>暂无可配置参数</p>';
+            return paramConfigs[learnerId] || VizMLI18n.t('<p>暂无可配置参数</p>');
         }
         
         // 训练集成模型
         async function trainEnsemble() {
             if (!currentSessionKey) {
-                alert('请先生成数据！');
+                alert(VizMLI18n.t('请先生成数据！'));
                 return;
             }
             
             try {
                 const btn = document.getElementById('trainEnsembleBtn');
                 btn.disabled = true;
-                btn.innerHTML = '<span class="loading"></span> 训练中...';
+                btn.innerHTML = VizMLI18n.t('<span class="loading"></span> 训练中...');
                 
                 // 获取参数
                 const params = getEnsembleParams();
@@ -1744,12 +1313,12 @@
                 }
                 
             } catch (error) {
-                console.error('集成模型训练失败:', error);
-                alert('集成模型训练失败: ' + error.message);
+                console.error(VizMLI18n.t('集成模型训练失败:'), error);
+                alert(VizMLI18n.t('集成模型训练失败: ') + error.message);
             } finally {
                 const btn = document.getElementById('trainEnsembleBtn');
                 btn.disabled = false;
-                btn.innerHTML = '训练集成模型';
+                btn.innerHTML = VizMLI18n.t('训练集成模型');
             }
         }
         
@@ -1846,8 +1415,8 @@
             
             // 集成模型性能
             const displayNames = {
-                'train_accuracy': '训练准确率',
-                'test_accuracy': '测试准确率'
+                'train_accuracy': VizMLI18n.t('训练准确率'),
+                'test_accuracy': VizMLI18n.t('测试准确率')
             };
             
             let ensembleHtml = '';
@@ -1866,16 +1435,7 @@
             ensembleMetrics.innerHTML = ensembleHtml;
             
             // 基学习器统计 - 这部分需要从增强结果中获取
-            baseLearnersStats.innerHTML = `
-                <div class="metric-item">
-                    <span class="metric-label">学习器数量</span>
-                    <span class="metric-value">--</span>
-                </div>
-                <div class="metric-item">
-                    <span class="metric-label">平均准确率</span>
-                    <span class="metric-value">--</span>
-                </div>
-            `;
+            baseLearnersStats.innerHTML = '\n                ' + '<div class="metric-item">' + '\n                    ' + '<span class="metric-label">' + VizMLI18n.t('学习器数量') + '</span>' + '\n                    ' + '<span class="metric-value">' + '--' + '</span>' + '\n                ' + '</div>' + '\n                ' + '<div class="metric-item">' + '\n                    ' + '<span class="metric-label">' + VizMLI18n.t('平均准确率') + '</span>' + '\n                    ' + '<span class="metric-value">' + '--' + '</span>' + '\n                ' + '</div>' + '\n            ';
         }
         
         // 显示基学习器详情
@@ -1895,19 +1455,7 @@
                         let html = '';
                         baseLearners.forEach((learner, i) => {
                             const performance = (learner.performance * 100).toFixed(1);
-                            html += `
-                                <div class="learner-card">
-                                    <h4>学习器 ${typeof learner.id === 'string' ? learner.id : (learner.id + 1)}</h4>
-                                    <div class="learner-type">${learner.type || 'DecisionTree'}</div>
-                                    <div class="learner-performance">${performance}%</div>
-                                    <div class="learner-details">
-                                        准确率: ${performance}%<br>
-                                        指标: ${learner.metric || 'accuracy'}
-                                        ${learner.node_count ? `<br>节点数: ${learner.node_count}` : ''}
-                                        ${learner.max_depth ? `<br>深度: ${learner.max_depth}` : ''}
-                                    </div>
-                                </div>
-                            `;
+                            html += '\n                                ' + '<div class="learner-card">' + '\n                                    ' + '<h4>' + VizMLI18n.t('学习器 ') + (typeof learner.id === 'string' ? learner.id : (learner.id + 1)) + '</h4>' + '\n                                    ' + '<div class="learner-type">' + (learner.type || 'DecisionTree') + '</div>' + '\n                                    ' + '<div class="learner-performance">' + (performance) + '%' + '</div>' + '\n                                    ' + '<div class="learner-details">' + VizMLI18n.t('\n                                        准确率: ') + (performance) + '%' + '<br>' + VizMLI18n.t('\n                                        指标: ') + (learner.metric || 'accuracy') + '\n                                        ' + (learner.node_count ? '<br>' + VizMLI18n.t('节点数: ') + (learner.node_count) : '') + '\n                                        ' + (learner.max_depth ? '<br>' + VizMLI18n.t('深度: ') + (learner.max_depth) : '') + '\n                                    ' + '</div>' + '\n                                ' + '</div>' + '\n                            ';
                         });
                         
                         learnersGrid.innerHTML = html;
@@ -1920,7 +1468,7 @@
                     }
                 }
             } catch (error) {
-                console.error('获取基学习器详情失败:', error);
+                console.error(VizMLI18n.t('获取基学习器详情失败:'), error);
             }
         }
         
@@ -1933,43 +1481,26 @@
                 const bestAccuracy = Math.max(...baseLearners.map(l => l.performance));
                 const worstAccuracy = Math.min(...baseLearners.map(l => l.performance));
                 
-                baseLearnersStats.innerHTML = `
-                    <div class="metric-item">
-                        <span class="metric-label">学习器数量</span>
-                        <span class="metric-value">${baseLearners.length}</span>
-                    </div>
-                    <div class="metric-item">
-                        <span class="metric-label">平均准确率</span>
-                        <span class="metric-value">${(avgAccuracy * 100).toFixed(1)}%</span>
-                    </div>
-                    <div class="metric-item">
-                        <span class="metric-label">最佳准确率</span>
-                        <span class="metric-value">${(bestAccuracy * 100).toFixed(1)}%</span>
-                    </div>
-                    <div class="metric-item">
-                        <span class="metric-label">最差准确率</span>
-                        <span class="metric-value">${(worstAccuracy * 100).toFixed(1)}%</span>
-                    </div>
-                `;
+                baseLearnersStats.innerHTML = '\n                    ' + '<div class="metric-item">' + '\n                        ' + '<span class="metric-label">' + VizMLI18n.t('学习器数量') + '</span>' + '\n                        ' + '<span class="metric-value">' + (baseLearners.length) + '</span>' + '\n                    ' + '</div>' + '\n                    ' + '<div class="metric-item">' + '\n                        ' + '<span class="metric-label">' + VizMLI18n.t('平均准确率') + '</span>' + '\n                        ' + '<span class="metric-value">' + ((avgAccuracy * 100).toFixed(1)) + '%' + '</span>' + '\n                    ' + '</div>' + '\n                    ' + '<div class="metric-item">' + '\n                        ' + '<span class="metric-label">' + VizMLI18n.t('最佳准确率') + '</span>' + '\n                        ' + '<span class="metric-value">' + ((bestAccuracy * 100).toFixed(1)) + '%' + '</span>' + '\n                    ' + '</div>' + '\n                    ' + '<div class="metric-item">' + '\n                        ' + '<span class="metric-label">' + VizMLI18n.t('最差准确率') + '</span>' + '\n                        ' + '<span class="metric-value">' + ((worstAccuracy * 100).toFixed(1)) + '%' + '</span>' + '\n                    ' + '</div>' + '\n                ';
             }
         }
         
         // 更新基学习器选择器
         function updateLearnerSelector(baseLearners) {
             const selector = document.getElementById('learnerSelector');
-            selector.innerHTML = '<option value="">选择基学习器</option>';
+            selector.innerHTML = VizMLI18n.t('<option value="">选择基学习器</option>');
             
             baseLearners.forEach((learner, i) => {
                 const option = document.createElement('option');
                 option.value = i;
-                option.textContent = `学习器 ${typeof learner.id === 'string' ? learner.id : (learner.id + 1)} - ${learner.type}`;
+                option.textContent = VizMLI18n.t('学习器 ') + (typeof learner.id === 'string' ? learner.id : (learner.id + 1)) + ' - ' + (learner.type);
                 selector.appendChild(option);
             });
             
             // 添加集成选项
             const ensembleOption = document.createElement('option');
             ensembleOption.value = 'ensemble';
-            ensembleOption.textContent = '集成模型';
+            ensembleOption.textContent = VizMLI18n.t('集成模型');
             selector.appendChild(ensembleOption);
         }
         
@@ -1999,7 +1530,7 @@
                     window.allBoundaries = boundaries;
                 }
             } catch (error) {
-                console.error('获取决策边界失败:', error);
+                console.error(VizMLI18n.t('获取决策边界失败:'), error);
             }
         }
         
@@ -2103,18 +1634,18 @@
         // 参数名称映射函数
         function getParameterName(labelText, learnerType) {
             const paramMappings = {
-                '最大深度:': 'max_depth',
-                '最小分割样本:': 'min_samples_split',
-                '最小分割样本数:': 'min_samples_split',
-                '最小叶子样本:': 'min_samples_leaf',
-                'C参数:': 'C',
-                '核函数:': 'kernel',
-                '邻居数量:': 'n_neighbors',
-                '权重:': 'weights',
-                '平滑参数:': 'var_smoothing',
-                '隐藏层大小:': 'hidden_layer_sizes',
-                '激活函数:': 'activation',
-                '学习率:': 'alpha'
+                [VizMLI18n.t('最大深度:')]: 'max_depth',
+                [VizMLI18n.t('最小分割样本:')]: 'min_samples_split',
+                [VizMLI18n.t('最小分割样本数:')]: 'min_samples_split',
+                [VizMLI18n.t('最小叶子样本:')]: 'min_samples_leaf',
+                [VizMLI18n.t('C参数:')]: 'C',
+                [VizMLI18n.t('核函数:')]: 'kernel',
+                [VizMLI18n.t('邻居数量:')]: 'n_neighbors',
+                [VizMLI18n.t('权重:')]: 'weights',
+                [VizMLI18n.t('平滑参数:')]: 'var_smoothing',
+                [VizMLI18n.t('隐藏层大小:')]: 'hidden_layer_sizes',
+                [VizMLI18n.t('激活函数:')]: 'activation',
+                [VizMLI18n.t('学习率:')]: 'alpha'
             };
             
             return paramMappings[labelText] || null;

@@ -33,7 +33,7 @@
       const response = await fetch('/api/rl/info');
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
-      if (data.status !== 'success' || !data.environments) throw new Error(data.message || '场景数据不可用');
+      if (data.status !== 'success' || !data.environments) throw new Error(data.message || VizMLI18n.t('场景数据不可用'));
       state.environments = data.environments;
       const select = $('envSel');
       select.replaceChildren();
@@ -41,17 +41,17 @@
       select.disabled = false;
       $('trainBtn').disabled = false;
       showEnvironment();
-      status('场景已就绪。调整参数后开始训练。');
+      status(VizMLI18n.t('场景已就绪。调整参数后开始训练。'));
     } catch (error) {
-      $('envSel').replaceChildren(new Option('场景载入失败', ''));
-      status(`无法载入场景：${error.message}`, 'error');
+      $('envSel').replaceChildren(new Option(VizMLI18n.t('场景载入失败'), ''));
+      status(VizMLI18n.t('无法载入场景：') + (error.message), 'error');
     }
   }
 
   function stopLearning() {
     if (state.learnTimer !== null) clearInterval(state.learnTimer);
     state.learnTimer = null;
-    $('playLearnBtn').querySelector('span').textContent = '播放学习过程';
+    $('playLearnBtn').querySelector('span').textContent = VizMLI18n.t('播放学习过程');
     $('playLearnBtn').firstChild.textContent = '▶ ';
   }
 
@@ -59,7 +59,7 @@
     if (state.pathTimer !== null) clearInterval(state.pathTimer);
     state.pathTimer = null;
     state.agentStep = null;
-    $('playPathBtn').querySelector('span').textContent = '播放当前轨迹';
+    $('playPathBtn').querySelector('span').textContent = VizMLI18n.t('播放当前轨迹');
   }
 
   function resetResults() {
@@ -67,19 +67,19 @@
     state.result = null;
     state.index = 0;
     state.valueMin = 0; state.valueMax = 1;
-    $('scaleLow').textContent = '低 Q'; $('scaleHigh').textContent = '高 Q';
+    $('scaleLow').textContent = VizMLI18n.t('低 Q'); $('scaleHigh').textContent = VizMLI18n.t('高 Q');
     if (state.chart) { state.chart.destroy(); state.chart = null; }
     $('chartEmpty').classList.remove('is-hidden');
-    $('episodeLabel').textContent = '等待训练';
+    $('episodeLabel').textContent = VizMLI18n.t('等待训练');
     $('chartEpisode').textContent = '—';
     $('ckptSlider').value = 0; $('ckptSlider').max = 0; $('ckptSlider').disabled = true;
     fillRange($('ckptSlider'));
     $('playLearnBtn').disabled = true; $('playPathBtn').disabled = true;
     ['stSuccess', 'stReward', 'stEps', 'stPath'].forEach(id => { $(id).textContent = '—'; });
-    $('pathDetail').textContent = '从起点尝试抵达目标';
+    $('pathDetail').textContent = VizMLI18n.t('从起点尝试抵达目标');
     $('stageCaption').dataset.tone = '';
-    $('stageCaption').querySelector('.rl-insight__badge').textContent = '观察重点';
-    $('stageCaption').querySelector('p').textContent = '训练后拖动时间线，查看每个阶段的价值热力、贪心动作和智能体轨迹。';
+    $('stageCaption').querySelector('.rl-insight__badge').textContent = VizMLI18n.t('观察重点');
+    $('stageCaption').querySelector('p').textContent = VizMLI18n.t('训练后拖动时间线，查看每个阶段的价值热力、贪心动作和智能体轨迹。');
   }
 
   function showEnvironment() {
@@ -92,7 +92,7 @@
     $('envDesc').textContent = item.description;
     $('mapTitle').textContent = item.name;
     const hasWind = item.grid.wind?.some(value => value > 0);
-    $('mapSubtitle').textContent = `${item.grid.rows} × ${item.grid.cols} 网格 · 起点 S → 目标 G${hasWind ? ' · 蓝色数字标示向上风力' : ''}`;
+    $('mapSubtitle').textContent = (item.grid.rows) + ' × ' + (item.grid.cols) + VizMLI18n.t(' 网格 · 起点 S → 目标 G') + (hasWind ? [VizMLI18n.t(' · 蓝色数字标示向上风力')]: '');
     $('windLegend').hidden = !hasWind;
     renderMap();
   }
@@ -103,8 +103,8 @@
     const button = $('trainBtn');
     const select = $('envSel');
     button.disabled = true; select.disabled = true;
-    button.querySelector('span').textContent = '正在训练…';
-    status('正在训练智能体并记录检查点，请稍候。');
+    button.querySelector('span').textContent = VizMLI18n.t('正在训练…');
+    status(VizMLI18n.t('正在训练智能体并记录检查点，请稍候。'));
     try {
       const payload = { env: select.value, params: {
         episodes: Number($('episodes').value), alpha: Number($('alpha').value),
@@ -113,27 +113,27 @@
       } };
       const response = await fetch('/api/rl/train', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const data = await response.json();
-      if (!response.ok || data.status !== 'success' || !data.results?.checkpoints?.length) throw new Error(data.message || '训练数据不完整');
+      if (!response.ok || data.status !== 'success' || !data.results?.checkpoints?.length) throw new Error(data.message || VizMLI18n.t('训练数据不完整'));
       resetResults();
       state.result = data.results;
       const values = data.results.checkpoints.flatMap(checkpoint => checkpoint.heatmap.flat().filter(Number.isFinite));
       state.valueMin = Math.min(...values);
       state.valueMax = Math.max(...values);
       if (state.valueMin === state.valueMax) state.valueMax = state.valueMin + 1;
-      $('scaleLow').textContent = `低 Q ${state.valueMin.toFixed(0)}`;
-      $('scaleHigh').textContent = `高 Q ${state.valueMax.toFixed(0)}`;
+      $('scaleLow').textContent = VizMLI18n.t('低 Q ') + (state.valueMin.toFixed(0));
+      $('scaleHigh').textContent = VizMLI18n.t('高 Q ') + (state.valueMax.toFixed(0));
       $('ckptSlider').max = data.results.checkpoints.length - 1;
       $('ckptSlider').disabled = data.results.checkpoints.length < 2;
       $('playLearnBtn').disabled = data.results.checkpoints.length < 2;
       $('playPathBtn').disabled = false;
       drawChart(data.results.rewards);
       selectCheckpoint(data.results.checkpoints.length - 1);
-      status(`训练完成 · ${data.results.stats.episodes} 回合 · 最近 100 回合成功率 ${(data.results.stats.recent_success_rate * 100).toFixed(0)}%`, 'success');
+      status(VizMLI18n.t('训练完成 · ') + (data.results.stats.episodes) + VizMLI18n.t(' 回合 · 最近 100 回合成功率 ') + ((data.results.stats.recent_success_rate * 100).toFixed(0)) + '%', 'success');
     } catch (error) {
-      status(`训练失败：${error.message}`, 'error');
+      status(VizMLI18n.t('训练失败：') + (error.message), 'error');
     } finally {
       button.disabled = false; select.disabled = false;
-      button.querySelector('span').textContent = '重新训练';
+      button.querySelector('span').textContent = VizMLI18n.t('重新训练');
     }
   }
   $('trainBtn').addEventListener('click', train);
@@ -151,7 +151,7 @@
     $('ckptSlider').value = state.index;
     fillRange($('ckptSlider'));
     const current = checkpoint();
-    $('episodeLabel').textContent = `第 ${current.episode} / ${state.result.stats.episodes} 回合`;
+    $('episodeLabel').textContent = VizMLI18n.t('第 ') + (current.episode) + ' / ' + (state.result.stats.episodes) + VizMLI18n.t(' 回合');
     $('chartEpisode').textContent = `EP ${current.episode}`;
     $('stSuccess').textContent = `${Math.round(current.success_rate * 100)}%`;
     $('stReward').textContent = current.avg_reward.toFixed(1);
@@ -159,15 +159,14 @@
     const goal = state.result.grid.goal;
     const path = current.greedy_path || [];
     const reached = path.length > 0 && path[path.length - 1][0] === goal[0] && path[path.length - 1][1] === goal[1];
-    $('stPath').textContent = reached ? `${path.length - 1} 步` : '未抵达';
-    $('pathDetail').textContent = reached ? '当前贪心策略可到达目标' : '当前策略可能停滞或重复';
+    $('stPath').textContent = reached ? (path.length - 1) + [VizMLI18n.t(' 步')]: VizMLI18n.t('未抵达');
+    $('pathDetail').textContent = reached ? [VizMLI18n.t('当前贪心策略可到达目标')]: VizMLI18n.t('当前策略可能停滞或重复');
     const early = current.success_rate < .3;
     const strong = current.success_rate >= .8;
     $('stageCaption').dataset.tone = early ? 'warm' : strong ? 'good' : '';
-    $('stageCaption').querySelector('.rl-insight__badge').textContent = early ? '探索起步' : strong ? '策略成形' : '持续学习';
+    $('stageCaption').querySelector('.rl-insight__badge').textContent = early ? [VizMLI18n.t('探索起步')]: strong ? [VizMLI18n.t('策略成形')]: VizMLI18n.t('持续学习');
     const detail = state.route === 'demo'
-      ? `演示轨迹走了 ${current.demo_steps} 步，奖励 ${current.demo_reward.toFixed(0)}${current.demo_fell ? `，掉崖 ${current.demo_fell} 次` : ''}。轨迹含随机探索，箭头表示已尝试的贪心动作。`
-      : reached ? `当前贪心策略经过 ${path.length - 1} 步到达目标。箭头对应本阶段的 Q 值。` : '当前贪心策略尚不能到达目标；继续观察后续检查点的变化。';
+      ? VizMLI18n.t('演示轨迹走了 ') + (current.demo_steps) + VizMLI18n.t(' 步，奖励 ') + (current.demo_reward.toFixed(0)) + (current.demo_fell ? VizMLI18n.t('，掉崖 ') + (current.demo_fell) + [VizMLI18n.t(' 次')]: '') + [VizMLI18n.t('。轨迹含随机探索，箭头表示已尝试的贪心动作。')]: reached ? VizMLI18n.t('当前贪心策略经过 ') + (path.length - 1) + [VizMLI18n.t(' 步到达目标。箭头对应本阶段的 Q 值。')]: VizMLI18n.t('当前贪心策略尚不能到达目标；继续观察后续检查点的变化。');
     $('stageCaption').querySelector('p').textContent = detail;
     if (state.chart) state.chart.update('none');
     renderMap();
@@ -180,7 +179,7 @@
     stopPath();
     let next = state.index >= state.result.checkpoints.length - 1 ? 0 : state.index;
     selectCheckpoint(next);
-    $('playLearnBtn').querySelector('span').textContent = '暂停播放';
+    $('playLearnBtn').querySelector('span').textContent = VizMLI18n.t('暂停播放');
     $('playLearnBtn').firstChild.textContent = 'Ⅱ ';
     state.learnTimer = setInterval(() => {
       next += 1;
@@ -194,7 +193,7 @@
     const path = routePath();
     if (!path || path.length < 2) return;
     state.agentStep = 0;
-    $('playPathBtn').querySelector('span').textContent = '停止轨迹';
+    $('playPathBtn').querySelector('span').textContent = VizMLI18n.t('停止轨迹');
     renderMap();
     state.pathTimer = setInterval(() => {
       state.agentStep += 1;
@@ -331,12 +330,12 @@
     gradient.addColorStop(0, 'rgba(90,83,211,.18)'); gradient.addColorStop(1, 'rgba(90,83,211,0)');
     $('chartEmpty').classList.add('is-hidden');
     state.chart = new Chart(chartContext, { type: 'line', data: { labels: rewards.map((_, index) => index + 1), datasets: [
-      { label: '单轮奖励', data: rewards, borderColor: 'rgba(159,175,198,.43)', borderWidth: 1, pointRadius: 0, tension: 0 },
-      { label: '25 回合移动平均', data: average, borderColor: '#5a53d3', backgroundColor: gradient, borderWidth: 2.5, pointRadius: 0, tension: .2, fill: true }
+      { label: VizMLI18n.t('单轮奖励'), data: rewards, borderColor: 'rgba(159,175,198,.43)', borderWidth: 1, pointRadius: 0, tension: 0 },
+      { label: VizMLI18n.t('25 回合移动平均'), data: average, borderColor: '#5a53d3', backgroundColor: gradient, borderWidth: 2.5, pointRadius: 0, tension: .2, fill: true }
     ] }, plugins: [checkpointLine], options: { responsive: true, maintainAspectRatio: false, animation: false,
       interaction: { mode: 'index', intersect: false },
       plugins: { legend: { display: true, position: 'bottom', align: 'start', labels: { color: '#7f8ba0', boxWidth: 11, boxHeight: 3, padding: 12, font: { size: 10 } } },
-        tooltip: { callbacks: { title: items => `第 ${items[0].label} 回合`, label: item => `${item.dataset.label}: ${item.parsed.y.toFixed(1)}` } } },
+        tooltip: { callbacks: { title: items => VizMLI18n.t('第 ') + (items[0].label) + VizMLI18n.t(' 回合'), label: item => `${item.dataset.label}: ${item.parsed.y.toFixed(1)}` } } },
       scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: '#9ca8b7', maxTicksLimit: 6, font: { size: 10 } } },
         y: { grid: { color: '#eef1f5' }, border: { display: false }, ticks: { color: '#9ca8b7', maxTicksLimit: 5, font: { size: 10 } } } }
     } });

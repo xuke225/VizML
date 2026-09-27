@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <link rel="stylesheet" href="/static/css/i18n.css">
+    <script src="/static/js/i18n.js"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>聚类算法可视化工具</title>
@@ -1554,13 +1557,13 @@
             try {
                 const isConnected = await apiClient.checkConnection();
                 if (!isConnected) {
-                    updateStatus('❌ 后端服务未连接 - 请启动Flask服务器 (python start.py)');
+                    updateStatus(VizMLI18n.t('❌ 后端服务未连接 - 请启动Flask服务器 (python start.py)'));
                 } else {
-                    updateStatus('✅ 后端服务已连接 - 基于sklearn的算法实现');
+                    updateStatus(VizMLI18n.t('✅ 后端服务已连接 - 基于sklearn的算法实现'));
                 }
             } catch (error) {
-                updateStatus('❌ 后端服务连接失败 - ' + error.message);
-                console.warn('后端服务连接失败:', error);
+                updateStatus(VizMLI18n.t('❌ 后端服务连接失败 - ') + error.message);
+                console.warn(VizMLI18n.t('后端服务连接失败:'), error);
             }
         }
         
@@ -1708,29 +1711,29 @@
                 dataCanvas.style.cursor = 'crosshair';
                 generateBtn.style.display = 'none';
                 finishBtn.style.display = 'inline-block';
-                updateStatus('点击画布绘制数据点，按住鼠标拖拽可连续绘制。完成后点击"完成绘制"按钮。');
+                updateStatus(VizMLI18n.t('点击画布绘制数据点，按住鼠标拖拽可连续绘制。完成后点击"完成绘制"按钮。'));
             } else {
                 pointsInput.disabled = false;
                 noiseInput.disabled = false;
                 dataCanvas.style.cursor = 'default';
                 generateBtn.style.display = 'inline-block';
                 finishBtn.style.display = 'none';
-                updateStatus('请点击"生成数据"按钮生成' + getShapeDisplayName(shape) + '数据');
+                updateStatus(VizMLI18n.t('请点击"生成数据"按钮生成') + getShapeDisplayName(shape) + VizMLI18n.t('数据'));
             }
         }
         
         // 获取形状显示名称
         function getShapeDisplayName(shape) {
             const shapeNames = {
-                'blobs': '分散圆形簇',
-                'circles': '同心圆',
-                'moons': '新月形',
-                'anisotropic': '椭圆形簇',
-                'varied': '不同密度簇',
-                'smiley': '笑脸状分布',
-                'petals': '花瓣状分布'
+                'blobs': VizMLI18n.t('分散圆形簇'),
+                'circles': VizMLI18n.t('同心圆'),
+                'moons': VizMLI18n.t('新月形'),
+                'anisotropic': VizMLI18n.t('椭圆形簇'),
+                'varied': VizMLI18n.t('不同密度簇'),
+                'smiley': VizMLI18n.t('笑脸状分布'),
+                'petals': VizMLI18n.t('花瓣状分布')
             };
-            return shapeNames[shape] || '未知';
+            return shapeNames[shape] || VizMLI18n.t('未知');
         }
         
         // 处理算法变化
@@ -1763,7 +1766,7 @@
                 const noise = parseFloat(document.getElementById('noise').value);
                 
                 if (shape !== 'custom') {
-                    updateStatus('正在生成数据...');
+                    updateStatus(VizMLI18n.t('正在生成数据...'));
                     
                     // 映射形状名称到后端API
                     const shapeMapping = {
@@ -1808,7 +1811,7 @@
                         
                         drawData();
                         updateDataDisplay();
-                        updateStatus('数据已生成，共 ' + data.length + ' 个数据点');
+                        updateStatus(VizMLI18n.t('数据已生成，共 ') + data.length + VizMLI18n.t(' 个数据点'));
                     } else {
                         throw new Error(result.message);
                     }
@@ -1818,8 +1821,8 @@
                 
                 resetStepControls();
             } catch (error) {
-                console.error('数据生成失败:', error);
-                updateStatus('数据生成失败: ' + error.message);
+                console.error(VizMLI18n.t('数据生成失败:'), error);
+                updateStatus(VizMLI18n.t('数据生成失败: ') + error.message);
             }
         }
 
@@ -1827,7 +1830,7 @@
         function setupCustomDrawing() {
             clearCanvas(dataCtx, dataCanvas);
             updateDataDisplay();
-            updateStatus('点击画布绘制数据点，按住鼠标拖拽可连续绘制');
+            updateStatus(VizMLI18n.t('点击画布绘制数据点，按住鼠标拖拽可连续绘制'));
         }
         
         // 处理画布鼠标事件
@@ -1864,12 +1867,12 @@
         // 完成手绘数据并上传到后端
         async function finishCustomDrawing() {
             if (data.length < 3) {
-                alert('请至少绘制3个数据点才能进行聚类分析！');
+                alert(VizMLI18n.t('请至少绘制3个数据点才能进行聚类分析！'));
                 return;
             }
             
             try {
-                updateStatus('正在上传手绘数据...');
+                updateStatus(VizMLI18n.t('正在上传手绘数据...'));
                 
                 // 将前端格式 [{x, y}] 转换为后端格式 [[x, y]]
                 const formattedData = data.map(point => [point.x, point.y]);
@@ -1902,14 +1905,14 @@
                     dataCanvas.style.cursor = 'default';
                     document.getElementById('finishDrawingBtn').disabled = true;
                     
-                    updateStatus(`手绘数据已上传完成，共 ${data.length} 个数据点，可以开始聚类分析`);
+                    updateStatus(VizMLI18n.t('手绘数据已上传完成，共 ') + (data.length) + VizMLI18n.t(' 个数据点，可以开始聚类分析'));
                 } else {
                     throw new Error(result.message);
                 }
                 
             } catch (error) {
-                console.error('手绘数据处理失败:', error);
-                updateStatus('手绘数据处理失败: ' + error.message);
+                console.error(VizMLI18n.t('手绘数据处理失败:'), error);
+                updateStatus(VizMLI18n.t('手绘数据处理失败: ') + error.message);
             }
         }
         
@@ -1972,7 +1975,7 @@
         // 查看最终聚类结果
         async function showFinalResults() {
             if (data.length === 0 || !currentSessionKey) {
-                alert('请先生成数据！');
+                alert(VizMLI18n.t('请先生成数据！'));
                 return;
             }
             
@@ -1982,19 +1985,19 @@
                 const algorithmNames = {
                     'kmeans': 'K-Means',
                     'dbscan': 'DBSCAN',
-                    'hierarchical': '层次聚类',
-                    'gmm': '高斯混合模型'
+                    'hierarchical': VizMLI18n.t('层次聚类'),
+                    'gmm': VizMLI18n.t('高斯混合模型')
                 };
-                updateStatus('正在执行 ' + (algorithmNames[algorithm] || '未知') + ' 算法...');
+                updateStatus(VizMLI18n.t('正在执行 ') + (algorithmNames[algorithm] || VizMLI18n.t('未知')) + VizMLI18n.t(' 算法...'));
                 
                 // 直接获取最终聚类结果，不生成步骤信息
                 await getFinalClusteringResults(algorithm);
                 
-                updateStatus('聚类完成！查看右侧聚类结果');
+                updateStatus(VizMLI18n.t('聚类完成！查看右侧聚类结果'));
                 
             } catch (error) {
-                console.error('聚类执行失败:', error);
-                updateStatus('聚类执行失败: ' + error.message);
+                console.error(VizMLI18n.t('聚类执行失败:'), error);
+                updateStatus(VizMLI18n.t('聚类执行失败: ') + error.message);
             }
         }
         
@@ -2099,8 +2102,8 @@
             const algorithmNames = {
                 'kmeans': 'K-Means',
                 'dbscan': 'DBSCAN',
-                'hierarchical': '层次聚类',
-                'gmm': '高斯混合模型'
+                'hierarchical': VizMLI18n.t('层次聚类'),
+                'gmm': VizMLI18n.t('高斯混合模型')
             };
             
             switch (algorithm) {
@@ -2110,10 +2113,10 @@
                     
                     if (k <= 0 || k > data.length) {
                         isValid = false;
-                        message = `${algorithmNames[algorithm]}: K值必须在1到数据点数量之间`;
+                        message = (algorithmNames[algorithm]) + VizMLI18n.t(': K值必须在1到数据点数量之间');
                     } else if (maxIter < 1) {
                         isValid = false;
-                        message = `${algorithmNames[algorithm]}: 最大迭代次数必须至少为1`;
+                        message = (algorithmNames[algorithm]) + VizMLI18n.t(': 最大迭代次数必须至少为1');
                     }
                     break;
                     
@@ -2123,10 +2126,10 @@
                     
                     if (eps <= 0) {
                         isValid = false;
-                        message = `${algorithmNames[algorithm]}: Epsilon必须大于0`;
+                        message = (algorithmNames[algorithm]) + VizMLI18n.t(': Epsilon必须大于0');
                     } else if (minPts < 1) {
                         isValid = false;
-                        message = `${algorithmNames[algorithm]}: MinPts必须至少为1`;
+                        message = (algorithmNames[algorithm]) + VizMLI18n.t(': MinPts必须至少为1');
                     }
                     break;
                     
@@ -2135,7 +2138,7 @@
                     
                     if (hClusters <= 0 || hClusters > data.length) {
                         isValid = false;
-                        message = `${algorithmNames[algorithm]}: 聚类数必须在1到数据点数量之间`;
+                        message = (algorithmNames[algorithm]) + VizMLI18n.t(': 聚类数必须在1到数据点数量之间');
                     }
                     break;
                     
@@ -2146,19 +2149,19 @@
                     
                     if (components <= 0 || components > data.length) {
                         isValid = false;
-                        message = `${algorithmNames[algorithm]}: 分量数必须在1到数据点数量之间`;
+                        message = (algorithmNames[algorithm]) + VizMLI18n.t(': 分量数必须在1到数据点数量之间');
                     } else if (gmmMaxIter < 1) {
                         isValid = false;
-                        message = `${algorithmNames[algorithm]}: 最大迭代次数必须至少为1`;
+                        message = (algorithmNames[algorithm]) + VizMLI18n.t(': 最大迭代次数必须至少为1');
                     } else if (tol <= 0) {
                         isValid = false;
-                        message = `${algorithmNames[algorithm]}: 收敛阈值必须大于0`;
+                        message = (algorithmNames[algorithm]) + VizMLI18n.t(': 收敛阈值必须大于0');
                     }
                     break;
             }
             
             if (!isValid) {
-                updateStatus(`❌ 参数验证失败: ${message}`);
+                updateStatus(VizMLI18n.t('❌ 参数验证失败: ') + (message));
                 return false;
             }
             
@@ -2416,11 +2419,11 @@
         // 改进的智能参数设置
         function setOptimalParameters() {
             if (data.length === 0) {
-                alert('请先生成数据！');
+                alert(VizMLI18n.t('请先生成数据！'));
                 return;
             }
             
-            updateStatus('正在分析数据特征...');
+            updateStatus(VizMLI18n.t('正在分析数据特征...'));
             
             const algorithm = document.getElementById('algorithm').value;
             const dataShape = analyzeDataShape();
@@ -2442,7 +2445,7 @@
                         document.getElementById('kInit').value = 'kmeans++';
                     }
                     
-                    statusMessage = `推荐K=${optimalK} (基于肘部法则和数据分布分析)`;
+                    statusMessage = VizMLI18n.t('推荐K=') + (optimalK) + VizMLI18n.t(' (基于肘部法则和数据分布分析)');
                     break;
                     
                 case 'dbscan':
@@ -2461,7 +2464,7 @@
                     document.getElementById('dbscanEps').value = eps.toFixed(3);
                     document.getElementById('dbscanMinPts').value = minPts;
                     
-                    statusMessage = `推荐ε=${eps.toFixed(3)}, MinPts=${minPts} (基于${Math.floor(kthDistance*1000)/1000}的k近邻距离)`;
+                    statusMessage = VizMLI18n.t('推荐ε=') + (eps.toFixed(3)) + ', MinPts=' + (minPts) + VizMLI18n.t(' (基于') + (Math.floor(kthDistance*1000)/1000) + VizMLI18n.t('的k近邻距离)');
                     break;
                     
                 case 'hierarchical':
@@ -2477,7 +2480,7 @@
                     }
                     
                     document.getElementById('linkage').value = linkageMethod;
-                    statusMessage = `推荐聚类数=${hOptimalClusters}, 连接方式=${linkageMethod} (基于数据形状: ${dataShape})`;
+                    statusMessage = VizMLI18n.t('推荐聚类数=') + (hOptimalClusters) + VizMLI18n.t(', 连接方式=') + (linkageMethod) + VizMLI18n.t(' (基于数据形状: ') + (dataShape) + ')';
                     break;
                     
                 case 'gmm':
@@ -2504,7 +2507,7 @@
                     document.getElementById('gmmMaxIter').value = maxIter;
                     document.getElementById('tolerance').value = tolerance;
                     
-                    statusMessage = `推荐分量数=${gmmOptimalComponents}, 协方差=${covType} (基于数据特征分析)`;
+                    statusMessage = VizMLI18n.t('推荐分量数=') + (gmmOptimalComponents) + VizMLI18n.t(', 协方差=') + (covType) + VizMLI18n.t(' (基于数据特征分析)');
                     break;
             }
             
@@ -2541,7 +2544,7 @@
                     const k = parseInt(document.getElementById('kClusters').value);
                     if (k > data.length) {
                         isValid = false;
-                        message = 'K值不能大于数据点数量';
+                        message = VizMLI18n.t('K值不能大于数据点数量');
                     }
                     break;
                     
@@ -2550,11 +2553,11 @@
                     const minPts = parseInt(document.getElementById('dbscanMinPts').value);
                     if (eps <= 0) {
                         isValid = false;
-                        message = 'Epsilon必须大于0';
+                        message = VizMLI18n.t('Epsilon必须大于0');
                     }
                     if (minPts < 1) {
                         isValid = false;
-                        message = 'MinPts必须至少为1';
+                        message = VizMLI18n.t('MinPts必须至少为1');
                     }
                     break;
                     
@@ -2565,15 +2568,15 @@
                     
                     if (components > data.length) {
                         isValid = false;
-                        message = '分量数不能大于数据点数量';
+                        message = VizMLI18n.t('分量数不能大于数据点数量');
                     }
                     if (maxIter < 1) {
                         isValid = false;
-                        message = '最大迭代次数必须至少为1';
+                        message = VizMLI18n.t('最大迭代次数必须至少为1');
                     }
                     if (tol <= 0) {
                         isValid = false;
-                        message = '收敛阈值必须大于0';
+                        message = VizMLI18n.t('收敛阈值必须大于0');
                     }
                     break;
             }
@@ -2591,59 +2594,13 @@
             const detailsDiv = document.getElementById('algorithmDetails');
             
             const descriptions = {
-                kmeans: `
-                    <p><strong>K-Means聚类</strong>是一种迭代优化的聚类算法，通过最小化类内平方和来寻找最优聚类。</p>
-                    <p><strong>算法步骤：</strong></p>
-                    <ol>
-                        <li>初始化K个聚类中心</li>
-                        <li>将每个数据点分配到最近的聚类中心</li>
-                        <li>重新计算每个聚类的中心点</li>
-                        <li>重复步骤2-3直到收敛</li>
-                    </ol>
-                    <p><strong>适用场景：</strong>球形分布的数据，需要预先知道聚类数量。</p>
-                `,
-                dbscan: `
-                    <p><strong>DBSCAN</strong>是一种基于密度的聚类算法，能够发现任意形状的聚类并识别噪声点。</p>
-                    <p><strong>核心概念：</strong></p>
-                    <ul>
-                        <li><strong>核心点：</strong>邻域内点数 ≥ MinPts</li>
-                        <li><strong>边界点：</strong>在核心点邻域内但本身不是核心点</li>
-                        <li><strong>噪声点：</strong>既不是核心点也不是边界点</li>
-                    </ul>
-                    <p><strong>适用场景：</strong>任意形状的聚类，自动确定聚类数量，能处理噪声。</p>
-                `,
-                hierarchical: `
-                    <p><strong>层次聚类</strong>通过构建聚类的层次结构来组织数据，可以是自底向上（凝聚）或自顶向下（分裂）。</p>
-                    <p><strong>连接方式：</strong></p>
-                    <ul>
-                        <li><strong>单连接：</strong>两聚类最近点间的距离</li>
-                        <li><strong>全连接：</strong>两聚类最远点间的距离</li>
-                        <li><strong>平均连接：</strong>所有点对距离的平均值</li>
-                        <li><strong>Ward方法：</strong>最小化方差增长</li>
-                    </ul>
-                    <p><strong>适用场景：</strong>需要了解数据的层次结构，聚类数量不确定。</p>
-                `,
-                gmm: `
-                    <p><strong>高斯混合模型 (GMM)</strong>是一种基于概率的聚类算法，假设数据由若干个高斯分布混合而成。</p>
-                    <p><strong>EM算法步骤：</strong></p>
-                    <ol>
-                        <li><strong>初始化：</strong>设置初始的均值、协方差和权重参数</li>
-                        <li><strong>E步：</strong>计算每个数据点属于各分量的后验概率</li>
-                        <li><strong>M步：</strong>根据后验概率更新高斯分量参数</li>
-                        <li><strong>重复：</strong>E步和M步直到收敛</li>
-                    </ol>
-                    <p><strong>协方差类型：</strong></p>
-                    <ul>
-                        <li><strong>完全协方差 (Full)：</strong>每个分量有独立的完整协方差矩阵</li>
-                        <li><strong>对角协方差 (Diagonal)：</strong>协方差矩阵为对角矩阵</li>
-                        <li><strong>绑定协方差 (Tied)：</strong>所有分量共享同一协方差矩阵</li>
-                        <li><strong>球形协方差 (Spherical)：</strong>协方差矩阵为标量倍的单位矩阵</li>
-                    </ul>
-                    <p><strong>适用场景：</strong>椭圆形或球形分布的数据，能提供聚类的概率信息，适合软聚类。</p>
-                `
+                kmeans: '\n                    ' + '<p>' + '<strong>' + VizMLI18n.t('K-Means聚类') + '</strong>' + VizMLI18n.t('是一种迭代优化的聚类算法，通过最小化类内平方和来寻找最优聚类。') + '</p>' + '\n                    ' + '<p>' + '<strong>' + VizMLI18n.t('算法步骤：') + '</strong>' + '</p>' + '\n                    ' + '<ol>' + '\n                        ' + '<li>' + VizMLI18n.t('初始化K个聚类中心') + '</li>' + '\n                        ' + '<li>' + VizMLI18n.t('将每个数据点分配到最近的聚类中心') + '</li>' + '\n                        ' + '<li>' + VizMLI18n.t('重新计算每个聚类的中心点') + '</li>' + '\n                        ' + '<li>' + VizMLI18n.t('重复步骤2-3直到收敛') + '</li>' + '\n                    ' + '</ol>' + '\n                    ' + '<p>' + '<strong>' + VizMLI18n.t('适用场景：') + '</strong>' + VizMLI18n.t('球形分布的数据，需要预先知道聚类数量。') + '</p>' + '\n                ',
+                dbscan: '\n                    ' + '<p>' + '<strong>' + 'DBSCAN' + '</strong>' + VizMLI18n.t('是一种基于密度的聚类算法，能够发现任意形状的聚类并识别噪声点。') + '</p>' + '\n                    ' + '<p>' + '<strong>' + VizMLI18n.t('核心概念：') + '</strong>' + '</p>' + '\n                    ' + '<ul>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('核心点：') + '</strong>' + VizMLI18n.t('邻域内点数 ≥ MinPts') + '</li>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('边界点：') + '</strong>' + VizMLI18n.t('在核心点邻域内但本身不是核心点') + '</li>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('噪声点：') + '</strong>' + VizMLI18n.t('既不是核心点也不是边界点') + '</li>' + '\n                    ' + '</ul>' + '\n                    ' + '<p>' + '<strong>' + VizMLI18n.t('适用场景：') + '</strong>' + VizMLI18n.t('任意形状的聚类，自动确定聚类数量，能处理噪声。') + '</p>' + '\n                ',
+                hierarchical: '\n                    ' + '<p>' + '<strong>' + VizMLI18n.t('层次聚类') + '</strong>' + VizMLI18n.t('通过构建聚类的层次结构来组织数据，可以是自底向上（凝聚）或自顶向下（分裂）。') + '</p>' + '\n                    ' + '<p>' + '<strong>' + VizMLI18n.t('连接方式：') + '</strong>' + '</p>' + '\n                    ' + '<ul>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('单连接：') + '</strong>' + VizMLI18n.t('两聚类最近点间的距离') + '</li>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('全连接：') + '</strong>' + VizMLI18n.t('两聚类最远点间的距离') + '</li>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('平均连接：') + '</strong>' + VizMLI18n.t('所有点对距离的平均值') + '</li>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('Ward方法：') + '</strong>' + VizMLI18n.t('最小化方差增长') + '</li>' + '\n                    ' + '</ul>' + '\n                    ' + '<p>' + '<strong>' + VizMLI18n.t('适用场景：') + '</strong>' + VizMLI18n.t('需要了解数据的层次结构，聚类数量不确定。') + '</p>' + '\n                ',
+                gmm: '\n                    ' + '<p>' + '<strong>' + VizMLI18n.t('高斯混合模型 (GMM)') + '</strong>' + VizMLI18n.t('是一种基于概率的聚类算法，假设数据由若干个高斯分布混合而成。') + '</p>' + '\n                    ' + '<p>' + '<strong>' + VizMLI18n.t('EM算法步骤：') + '</strong>' + '</p>' + '\n                    ' + '<ol>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('初始化：') + '</strong>' + VizMLI18n.t('设置初始的均值、协方差和权重参数') + '</li>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('E步：') + '</strong>' + VizMLI18n.t('计算每个数据点属于各分量的后验概率') + '</li>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('M步：') + '</strong>' + VizMLI18n.t('根据后验概率更新高斯分量参数') + '</li>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('重复：') + '</strong>' + VizMLI18n.t('E步和M步直到收敛') + '</li>' + '\n                    ' + '</ol>' + '\n                    ' + '<p>' + '<strong>' + VizMLI18n.t('协方差类型：') + '</strong>' + '</p>' + '\n                    ' + '<ul>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('完全协方差 (Full)：') + '</strong>' + VizMLI18n.t('每个分量有独立的完整协方差矩阵') + '</li>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('对角协方差 (Diagonal)：') + '</strong>' + VizMLI18n.t('协方差矩阵为对角矩阵') + '</li>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('绑定协方差 (Tied)：') + '</strong>' + VizMLI18n.t('所有分量共享同一协方差矩阵') + '</li>' + '\n                        ' + '<li>' + '<strong>' + VizMLI18n.t('球形协方差 (Spherical)：') + '</strong>' + VizMLI18n.t('协方差矩阵为标量倍的单位矩阵') + '</li>' + '\n                    ' + '</ul>' + '\n                    ' + '<p>' + '<strong>' + VizMLI18n.t('适用场景：') + '</strong>' + VizMLI18n.t('椭圆形或球形分布的数据，能提供聚类的概率信息，适合软聚类。') + '</p>' + '\n                '
             };
             
-            detailsDiv.innerHTML = descriptions[algorithm] || '<p>请选择一个算法查看详细说明。</p>';
+            detailsDiv.innerHTML = descriptions[algorithm] || VizMLI18n.t('<p>请选择一个算法查看详细说明。</p>');
         }
         
         // 更新数据显示
@@ -2668,7 +2625,7 @@
                 const colorDiv = document.createElement('div');
                 colorDiv.className = 'color-indicator';
                 colorDiv.style.backgroundColor = clusterColors[i];
-                colorDiv.setAttribute('data-label', `聚类 ${clusterId + 1}`);
+                colorDiv.setAttribute('data-label', VizMLI18n.t('聚类 ') + (clusterId + 1));
                 colorsDiv.appendChild(colorDiv);
             });
             
@@ -2676,7 +2633,7 @@
                 const noiseDiv = document.createElement('div');
                 noiseDiv.className = 'color-indicator';
                 noiseDiv.style.backgroundColor = '#999999';
-                noiseDiv.setAttribute('data-label', `噪声 (${numNoise})`);
+                noiseDiv.setAttribute('data-label', VizMLI18n.t('噪声 (') + (numNoise) + ')');
                 colorsDiv.appendChild(noiseDiv);
             }
         }
@@ -2691,11 +2648,11 @@
             clearCanvas(clusterCtx, clusterCanvas);
             
             document.getElementById('dataCount').textContent = '0';
-            document.getElementById('dataShapeDisplay').textContent = '未生成';
+            document.getElementById('dataShapeDisplay').textContent = VizMLI18n.t('未生成');
             document.getElementById('numClusters').textContent = '0';
             document.getElementById('clusterColors').innerHTML = '';
             
-            updateStatus('等待执行');
+            updateStatus(VizMLI18n.t('等待执行'));
         }
         
         // 重置步骤控制
@@ -2740,7 +2697,7 @@
             resetDisplay();
             updateDataDisplay();
             resetAlgorithmParameters();
-            updateStatus('已重置，请重新生成数据');
+            updateStatus(VizMLI18n.t('已重置，请重新生成数据'));
             
             // 重新启用数据形状选择和按钮
             const pointsInput = document.getElementById('numPoints');
@@ -2794,11 +2751,11 @@
             
             // 更新状态
             if (mode === 'single') {
-                updateStatus('单算法模式 - 选择一个算法进行分析');
+                updateStatus(VizMLI18n.t('单算法模式 - 选择一个算法进行分析'));
             } else if (mode === 'comparison') {
-                updateStatus('对比模式 - 选择多个算法进行对比分析');
+                updateStatus(VizMLI18n.t('对比模式 - 选择多个算法进行对比分析'));
             } else if (mode === 'debug') {
-                updateStatus('调试模式 - 单步执行算法观察过程');
+                updateStatus(VizMLI18n.t('调试模式 - 单步执行算法观察过程'));
                 resetDebugInterface();
             }
         }
@@ -2848,10 +2805,10 @@
             
             if (selectedAlgorithms.length < 2) {
                 compareBtn.disabled = true;
-                updateStatus('请至少选择2个算法进行对比');
+                updateStatus(VizMLI18n.t('请至少选择2个算法进行对比'));
             } else {
                 compareBtn.disabled = false;
-                updateStatus(`已选择 ${selectedAlgorithms.length} 个算法进行对比`);
+                updateStatus(VizMLI18n.t('已选择 ') + (selectedAlgorithms.length) + VizMLI18n.t(' 个算法进行对比'));
             }
         }
         
@@ -2880,7 +2837,7 @@
             
             // 如果没有选中算法，显示提示
             if (selectedAlgorithms.length === 0) {
-                panelsContainer.innerHTML = '<div style="text-align: center; color: #6B7890; font-size: 0.9em; padding: 10px;">请选择至少两个算法进行对比</div>';
+                panelsContainer.innerHTML = VizMLI18n.t('<div style="text-align: center; color: #6B7890; font-size: 0.9em; padding: 10px;">请选择至少两个算法进行对比</div>');
             }
         }
         
@@ -2893,16 +2850,11 @@
             const algorithmNames = {
                 'kmeans': 'K-Means',
                 'dbscan': 'DBSCAN',
-                'hierarchical': '层次聚类',
-                'gmm': '高斯混合模型'
+                'hierarchical': VizMLI18n.t('层次聚类'),
+                'gmm': VizMLI18n.t('高斯混合模型')
             };
             
-            panel.innerHTML = `
-                <div class="comparison-param-header">${algorithmNames[algorithm]} 参数</div>
-                <div class="comparison-param-grid">
-                    ${generateParamControls(algorithm)}
-                </div>
-            `;
+            panel.innerHTML = '\n                ' + '<div class="comparison-param-header">' + (algorithmNames[algorithm]) + VizMLI18n.t(' 参数') + '</div>' + '\n                ' + '<div class="comparison-param-grid">' + '\n                    ' + (generateParamControls(algorithm)) + '\n                ' + '</div>' + '\n            ';
             
             return panel;
         }
@@ -2913,87 +2865,19 @@
             
             switch (algorithm) {
                 case 'kmeans':
-                    html = `
-                        <div class="comparison-param-group">
-                            <label>聚类数量 (K)</label>
-                            <input type="number" id="compare-kClusters-${algorithm}" value="3" min="1" max="10">
-                        </div>
-                        <div class="comparison-param-group">
-                            <label>最大迭代次数</label>
-                            <input type="number" id="compare-kMaxIter-${algorithm}" value="100" min="10" max="500">
-                        </div>
-                        <div class="comparison-param-group">
-                            <label>初始化方法</label>
-                            <select id="compare-kInit-${algorithm}">
-                                <option value="random">随机初始化</option>
-                                <option value="kmeans++">K-Means++</option>
-                            </select>
-                        </div>
-                    `;
+                    html = '\n                        ' + '<div class="comparison-param-group">' + '\n                            ' + '<label>' + VizMLI18n.t('聚类数量 (K)') + '</label>' + '\n                            <input type="number" id="compare-kClusters-' + (algorithm) + '" value="3" min="1" max="10">\n                        ' + '</div>' + '\n                        ' + '<div class="comparison-param-group">' + '\n                            ' + '<label>' + VizMLI18n.t('最大迭代次数') + '</label>' + '\n                            <input type="number" id="compare-kMaxIter-' + (algorithm) + '" value="100" min="10" max="500">\n                        ' + '</div>' + '\n                        ' + '<div class="comparison-param-group">' + '\n                            ' + '<label>' + VizMLI18n.t('初始化方法') + '</label>' + '\n                            <select id="compare-kInit-' + (algorithm) + '">\n                                ' + '<option value="random">' + VizMLI18n.t('随机初始化') + '</option>' + '\n                                ' + '<option value="kmeans++">' + 'K-Means++' + '</option>' + '\n                            ' + '</select>' + '\n                        ' + '</div>' + '\n                    ';
                     break;
                     
                 case 'dbscan':
-                    html = `
-                        <div class="comparison-param-group">
-                            <label>邻域半径 (ε)</label>
-                            <input type="number" id="compare-dbscanEps-${algorithm}" value="0.05" min="0.01" max="0.5" step="0.01">
-                        </div>
-                        <div class="comparison-param-group">
-                            <label>最小点数</label>
-                            <input type="number" id="compare-dbscanMinPts-${algorithm}" value="5" min="3" max="20">
-                        </div>
-                    `;
+                    html = '\n                        ' + '<div class="comparison-param-group">' + '\n                            ' + '<label>' + VizMLI18n.t('邻域半径 (ε)') + '</label>' + '\n                            <input type="number" id="compare-dbscanEps-' + (algorithm) + '" value="0.05" min="0.01" max="0.5" step="0.01">\n                        ' + '</div>' + '\n                        ' + '<div class="comparison-param-group">' + '\n                            ' + '<label>' + VizMLI18n.t('最小点数') + '</label>' + '\n                            <input type="number" id="compare-dbscanMinPts-' + (algorithm) + '" value="5" min="3" max="20">\n                        ' + '</div>' + '\n                    ';
                     break;
                     
                 case 'hierarchical':
-                    html = `
-                        <div class="comparison-param-group">
-                            <label>目标聚类数</label>
-                            <input type="number" id="compare-hClusters-${algorithm}" value="3" min="1" max="10">
-                        </div>
-                        <div class="comparison-param-group">
-                            <label>连接方式</label>
-                            <select id="compare-linkage-${algorithm}">
-                                <option value="single">单连接</option>
-                                <option value="complete">全连接</option>
-                                <option value="average">平均连接</option>
-                                <option value="ward">Ward方法</option>
-                            </select>
-                        </div>
-                    `;
+                    html = '\n                        ' + '<div class="comparison-param-group">' + '\n                            ' + '<label>' + VizMLI18n.t('目标聚类数') + '</label>' + '\n                            <input type="number" id="compare-hClusters-' + (algorithm) + '" value="3" min="1" max="10">\n                        ' + '</div>' + '\n                        ' + '<div class="comparison-param-group">' + '\n                            ' + '<label>' + VizMLI18n.t('连接方式') + '</label>' + '\n                            <select id="compare-linkage-' + (algorithm) + '">\n                                ' + '<option value="single">' + VizMLI18n.t('单连接') + '</option>' + '\n                                ' + '<option value="complete">' + VizMLI18n.t('全连接') + '</option>' + '\n                                ' + '<option value="average">' + VizMLI18n.t('平均连接') + '</option>' + '\n                                ' + '<option value="ward">' + VizMLI18n.t('Ward方法') + '</option>' + '\n                            ' + '</select>' + '\n                        ' + '</div>' + '\n                    ';
                     break;
                     
                 case 'gmm':
-                    html = `
-                        <div class="comparison-param-group">
-                            <label>混合分量数</label>
-                            <input type="number" id="compare-gmmComponents-${algorithm}" value="3" min="1" max="8">
-                        </div>
-                        <div class="comparison-param-group">
-                            <label>协方差类型</label>
-                            <select id="compare-covarianceType-${algorithm}">
-                                <option value="full">完全协方差</option>
-                                <option value="diag">对角协方差</option>
-                                <option value="tied">绑定协方差</option>
-                                <option value="spherical">球形协方差</option>
-                            </select>
-                        </div>
-                        <div class="comparison-param-group">
-                            <label>初始化方法</label>
-                            <select id="compare-initParams-${algorithm}">
-                                <option value="kmeans">K-means</option>
-                                <option value="random">随机</option>
-                            </select>
-                        </div>
-                        <div class="comparison-param-group">
-                            <label>最大迭代次数</label>
-                            <input type="number" id="compare-gmmMaxIter-${algorithm}" value="100" min="10" max="500">
-                        </div>
-                        <div class="comparison-param-group">
-                            <label>收敛阈值</label>
-                            <input type="number" id="compare-tolerance-${algorithm}" value="0.001" min="0.000001" max="0.01" step="0.000001">
-                        </div>
-                    `;
+                    html = '\n                        ' + '<div class="comparison-param-group">' + '\n                            ' + '<label>' + VizMLI18n.t('混合分量数') + '</label>' + '\n                            <input type="number" id="compare-gmmComponents-' + (algorithm) + '" value="3" min="1" max="8">\n                        ' + '</div>' + '\n                        ' + '<div class="comparison-param-group">' + '\n                            ' + '<label>' + VizMLI18n.t('协方差类型') + '</label>' + '\n                            <select id="compare-covarianceType-' + (algorithm) + '">\n                                ' + '<option value="full">' + VizMLI18n.t('完全协方差') + '</option>' + '\n                                ' + '<option value="diag">' + VizMLI18n.t('对角协方差') + '</option>' + '\n                                ' + '<option value="tied">' + VizMLI18n.t('绑定协方差') + '</option>' + '\n                                ' + '<option value="spherical">' + VizMLI18n.t('球形协方差') + '</option>' + '\n                            ' + '</select>' + '\n                        ' + '</div>' + '\n                        ' + '<div class="comparison-param-group">' + '\n                            ' + '<label>' + VizMLI18n.t('初始化方法') + '</label>' + '\n                            <select id="compare-initParams-' + (algorithm) + '">\n                                ' + '<option value="kmeans">' + 'K-means' + '</option>' + '\n                                ' + '<option value="random">' + VizMLI18n.t('随机') + '</option>' + '\n                            ' + '</select>' + '\n                        ' + '</div>' + '\n                        ' + '<div class="comparison-param-group">' + '\n                            ' + '<label>' + VizMLI18n.t('最大迭代次数') + '</label>' + '\n                            <input type="number" id="compare-gmmMaxIter-' + (algorithm) + '" value="100" min="10" max="500">\n                        ' + '</div>' + '\n                        ' + '<div class="comparison-param-group">' + '\n                            ' + '<label>' + VizMLI18n.t('收敛阈值') + '</label>' + '\n                            <input type="number" id="compare-tolerance-' + (algorithm) + '" value="0.001" min="0.000001" max="0.01" step="0.000001">\n                        ' + '</div>' + '\n                    ';
                     break;
             }
             
@@ -3005,17 +2889,17 @@
             const selectedAlgorithms = getSelectedAlgorithms();
             
             if (selectedAlgorithms.length < 2) {
-                alert('请至少选择2个算法进行对比！');
+                alert(VizMLI18n.t('请至少选择2个算法进行对比！'));
                 return;
             }
             
             if (data.length === 0 || !currentSessionKey) {
-                alert('请先生成数据！');
+                alert(VizMLI18n.t('请先生成数据！'));
                 return;
             }
             
             try {
-                updateStatus('正在执行算法对比...');
+                updateStatus(VizMLI18n.t('正在执行算法对比...'));
                 
                 // 验证对比算法参数
                 for (const algorithm of selectedAlgorithms) {
@@ -3042,14 +2926,14 @@
                 if (result.status === 'success') {
                     comparisonResults = result.results;
                     displayComparisonResults(comparisonResults);
-                    updateStatus('算法对比完成！');
+                    updateStatus(VizMLI18n.t('算法对比完成！'));
                 } else {
                     throw new Error(result.message);
                 }
                 
             } catch (error) {
-                console.error('算法对比失败:', error);
-                updateStatus('算法对比失败: ' + error.message);
+                console.error(VizMLI18n.t('算法对比失败:'), error);
+                updateStatus(VizMLI18n.t('算法对比失败: ') + error.message);
             }
         }
         
@@ -3077,41 +2961,25 @@
             const algorithmNames = {
                 'kmeans': 'K-Means',
                 'dbscan': 'DBSCAN',
-                'hierarchical': '层次聚类',
-                'gmm': '高斯混合模型'
+                'hierarchical': VizMLI18n.t('层次聚类'),
+                'gmm': VizMLI18n.t('高斯混合模型')
             };
             
             let badgeClass = 'algorithm-badge';
-            let badgeText = '普通';
+            let badgeText = VizMLI18n.t('普通');
             
             if (result.error) {
                 badgeClass += ' error-badge';
-                badgeText = '错误';
+                badgeText = VizMLI18n.t('错误');
             } else if (algorithm === bestAlgorithm) {
                 badgeClass += ' best-badge';
-                badgeText = '最佳';
+                badgeText = VizMLI18n.t('最佳');
             }
             
-            panel.innerHTML = `
-                <h4>
-                    ${algorithmNames[algorithm]}
-                    <span class="${badgeClass}">${badgeText}</span>
-                </h4>
-                ${result.error ? 
-                    `<div style="color: #C2415D; font-size: 0.9em;">错误: ${result.error}</div>` :
-                    `<canvas class="comparison-canvas" id="canvas-${algorithm}" width="600" height="400"></canvas>
-                    <div class="comparison-metrics">
-                        <div class="metric-row">
-                            <span>聚类数量:</span>
-                            <span class="metric-value">${result.n_clusters || 0}</span>
-                        </div>
-                        <div class="metric-row">
-                            <span>执行时间:</span>
-                            <span class="metric-value">${(result.execution_time || 0).toFixed(3)}s</span>
-                        </div>
-                    </div>`
-                }
-            `;
+            panel.innerHTML = '\n                ' + '<h4>' + '\n                    ' + (algorithmNames[algorithm]) + '\n                    <span class="' + (badgeClass) + '">' + (badgeText) + '</span>' + '\n                ' + '</h4>' + '\n                ' + (result.error ? 
+                    '<div style="color: #C2415D; font-size: 0.9em;">' + VizMLI18n.t('错误: ') + (result.error) + '</div>' :
+                    '<canvas class="comparison-canvas" id="canvas-' + (algorithm) + '" width="600" height="400">' + '</canvas>' + '\n                    ' + '<div class="comparison-metrics">' + '\n                        ' + '<div class="metric-row">' + '\n                            ' + '<span>' + VizMLI18n.t('聚类数量:') + '</span>' + '\n                            ' + '<span class="metric-value">' + (result.n_clusters || 0) + '</span>' + '\n                        ' + '</div>' + '\n                        ' + '<div class="metric-row">' + '\n                            ' + '<span>' + VizMLI18n.t('执行时间:') + '</span>' + '\n                            ' + '<span class="metric-value">' + ((result.execution_time || 0).toFixed(3)) + 's' + '</span>' + '\n                        ' + '</div>' + '\n                    ' + '</div>'
+                ) + '\n            ';
             
             // 绘制聚类结果
             if (!result.error) {
@@ -3212,27 +3080,27 @@
             const algorithmNames = {
                 'kmeans': 'K-Means',
                 'dbscan': 'DBSCAN',
-                'hierarchical': '层次聚类',
-                'gmm': '高斯混合模型'
+                'hierarchical': VizMLI18n.t('层次聚类'),
+                'gmm': VizMLI18n.t('高斯混合模型')
             };
             
             let summary = `<div style="margin-bottom: 15px;">`;
-            summary += `<strong>参与对比的算法:</strong> ${algorithms.map(a => algorithmNames[a]).join(', ')}<br>`;
+            summary += '<strong>' + VizMLI18n.t('参与对比的算法:') + '</strong>' + ' ' + (algorithms.map(a => algorithmNames[a]).join(', ')) + '<br>';
             
             if (bestAlgorithm) {
-                summary += `<strong>推荐算法:</strong> <span style="color: #0F9D8A; font-weight: bold;">${algorithmNames[bestAlgorithm]}</span><br>`;
+                summary += '<strong>' + VizMLI18n.t('推荐算法:') + '</strong>' + ' ' + '<span style="color: #0F9D8A; font-weight: bold;">' + (algorithmNames[bestAlgorithm]) + '</span>' + '<br>';
             }
             
             // 执行时间对比
             const fastestAlgorithm = Object.entries(executionTimes).reduce((a, b) => 
                 executionTimes[a[0]] < executionTimes[b[0]] ? a : b
             );
-            summary += `<strong>最快算法:</strong> ${algorithmNames[fastestAlgorithm[0]]} (${fastestAlgorithm[1].toFixed(3)}s)`;
+            summary += '<strong>' + VizMLI18n.t('最快算法:') + '</strong>' + ' ' + (algorithmNames[fastestAlgorithm[0]]) + ' (' + (fastestAlgorithm[1].toFixed(3)) + 's)';
             summary += `</div>`;
             
             // 性能指标对比
             if (metrics && Object.keys(metrics).length > 0) {
-                summary += `<div style="margin-bottom: 10px;"><strong>性能指标对比:</strong></div>`;
+                summary += '<div style="margin-bottom: 10px;">' + '<strong>' + VizMLI18n.t('性能指标对比:') + '</strong>' + '</div>';
                 summary += `<div style="font-size: 0.9em; line-height: 1.4;">`;
                 
                 algorithms.forEach(algorithm => {
@@ -3240,11 +3108,11 @@
                     if (algoMetrics) {
                         summary += `<div style="margin-bottom: 8px;">`;
                         summary += `<strong>${algorithmNames[algorithm]}:</strong> `;
-                        summary += `聚类数 ${algoMetrics.n_clusters || 0}个, `;
+                        summary += VizMLI18n.t('聚类数 ') + (algoMetrics.n_clusters || 0) + VizMLI18n.t('个, ');
                         if (algoMetrics.silhouette_score > 0) {
-                            summary += `轮廓系数 ${algoMetrics.silhouette_score.toFixed(3)}`;
+                            summary += VizMLI18n.t('轮廓系数 ') + (algoMetrics.silhouette_score.toFixed(3));
                         } else {
-                            summary += `无效聚类`;
+                            summary += VizMLI18n.t('无效聚类');
                         }
                         summary += `</div>`;
                     }
@@ -3254,11 +3122,11 @@
             
             // 使用建议
             summary += `<div style="margin-top: 15px; padding: 10px; background: #e8f4f8; border-radius: 4px; border-left: 4px solid #2B8AC6;">`;
-            summary += `<strong>💡 使用建议:</strong><br>`;
+            summary += '<strong>' + VizMLI18n.t('💡 使用建议:') + '</strong>' + '<br>';
             if (bestAlgorithm) {
-                summary += `基于当前数据特征，推荐使用 <strong>${algorithmNames[bestAlgorithm]}</strong>。`;
+                summary += VizMLI18n.t('基于当前数据特征，推荐使用 ') + '<strong>' + (algorithmNames[bestAlgorithm]) + '</strong>' + '。';
             } else {
-                summary += `所有算法在当前数据上表现都不理想，建议调整参数或尝试其他数据分布。`;
+                summary += VizMLI18n.t('所有算法在当前数据上表现都不理想，建议调整参数或尝试其他数据分布。');
             }
             summary += `</div>`;
             
@@ -3284,10 +3152,10 @@
             document.getElementById('debugReset').disabled = true;
             
             // 重置显示
-            document.getElementById('debugCurrentStep').textContent = '等待初始化';
+            document.getElementById('debugCurrentStep').textContent = VizMLI18n.t('等待初始化');
             document.getElementById('debugIteration').textContent = '0';
             document.getElementById('debugClusters').textContent = '0';
-            document.getElementById('debugConverged').textContent = '未开始';
+            document.getElementById('debugConverged').textContent = VizMLI18n.t('未开始');
             document.getElementById('debugStepHistory').innerHTML = '';
             document.getElementById('historyCount').textContent = '0';
             
@@ -3309,11 +3177,11 @@
             
             if (panel.classList.contains('collapsed')) {
                 panel.classList.remove('collapsed');
-                toggleBtn.textContent = '⚙️ 隐藏参数';
+                toggleBtn.textContent = VizMLI18n.t('⚙️ 隐藏参数');
                 toggleBtn.classList.add('active');
             } else {
                 panel.classList.add('collapsed');
-                toggleBtn.textContent = '⚙️ 参数设置';
+                toggleBtn.textContent = VizMLI18n.t('⚙️ 参数设置');
                 toggleBtn.classList.remove('active');
             }
         }
@@ -3396,12 +3264,12 @@
         async function initDebug() {
             try {
                 if (!currentSessionKey) {
-                    updateStatus('❌ 请先生成数据！');
+                    updateStatus(VizMLI18n.t('❌ 请先生成数据！'));
                     return;
                 }
                 
                 const algorithm = document.getElementById('debugAlgorithm').value;
-                updateStatus(`🔧 初始化${algorithm.toUpperCase()}调试...`);
+                updateStatus(VizMLI18n.t('🔧 初始化') + (algorithm.toUpperCase()) + VizMLI18n.t('调试...'));
                 
                 let params = {};
                 if (algorithm === 'kmeans') {
@@ -3442,14 +3310,14 @@
                     
                     // 初始化显示
                     updateDebugDisplay();
-                    updateStatus(`✅ ${algorithm.toUpperCase()}调试初始化成功`);
+                    updateStatus('✅ ' + (algorithm.toUpperCase()) + VizMLI18n.t('调试初始化成功'));
                 } else {
                     throw new Error(result.message);
                 }
                 
             } catch (error) {
-                updateStatus('❌ 调试初始化失败: ' + error.message);
-                console.error('调试初始化错误:', error);
+                updateStatus(VizMLI18n.t('❌ 调试初始化失败: ') + error.message);
+                console.error(VizMLI18n.t('调试初始化错误:'), error);
             }
         }
         
@@ -3480,7 +3348,7 @@
                         (algorithm === 'dbscan' && result.finished)) {
                         document.getElementById('debugStep').disabled = true;
                         document.getElementById('debugPlay').disabled = true;
-                        updateStatus('🎯 调试完成！');
+                        updateStatus(VizMLI18n.t('🎯 调试完成！'));
                         
                         if (debugInterval) {
                             clearInterval(debugInterval);
@@ -3492,8 +3360,8 @@
                 }
                 
             } catch (error) {
-                updateStatus('❌ 调试步骤执行失败: ' + error.message);
-                console.error('调试步骤错误:', error);
+                updateStatus(VizMLI18n.t('❌ 调试步骤执行失败: ') + error.message);
+                console.error(VizMLI18n.t('调试步骤错误:'), error);
             }
         }
         
@@ -3503,12 +3371,12 @@
                 // 停止播放
                 clearInterval(debugInterval);
                 debugInterval = null;
-                document.getElementById('debugPlay').textContent = '🎮 自动播放';
+                document.getElementById('debugPlay').textContent = VizMLI18n.t('🎮 自动播放');
                 document.getElementById('debugStep').disabled = false;
             } else {
                 // 开始播放
                 debugInterval = setInterval(debugStep, debugSpeed);
-                document.getElementById('debugPlay').textContent = '⏸️ 暂停';
+                document.getElementById('debugPlay').textContent = VizMLI18n.t('⏸️ 暂停');
                 document.getElementById('debugStep').disabled = true;
             }
         }
@@ -3516,7 +3384,7 @@
         // 重置调试
         function debugReset() {
             resetDebugInterface();
-            updateStatus('🔄 调试已重置，请重新初始化');
+            updateStatus(VizMLI18n.t('🔄 调试已重置，请重新初始化'));
         }
         
         // 更新调试速度
@@ -3561,11 +3429,11 @@
             if (algorithm === 'kmeans') {
                 document.getElementById('debugIteration').textContent = debugState.current_iter || 0;
                 document.getElementById('debugClusters').textContent = debugState.n_clusters || 0;
-                document.getElementById('debugConverged').textContent = debugState.converged ? '是' : '否';
+                document.getElementById('debugConverged').textContent = debugState.converged ? [VizMLI18n.t('是')]: VizMLI18n.t('否');
             } else if (algorithm === 'dbscan') {
                 document.getElementById('debugIteration').textContent = debugState.current_point_idx || 0;
                 document.getElementById('debugClusters').textContent = debugState.current_cluster || 0;
-                document.getElementById('debugConverged').textContent = debugState.finished ? '完成' : '进行中';
+                document.getElementById('debugConverged').textContent = debugState.finished ? [VizMLI18n.t('完成')]: VizMLI18n.t('进行中');
             }
             
             // 更新当前步骤
@@ -3589,10 +3457,7 @@
             debugState.step_info.slice(-5).reverse().forEach((step, index) => {
                 const stepElement = document.createElement('div');
                 stepElement.className = 'step-history-item' + (index === 0 ? ' current' : '');
-                stepElement.innerHTML = `
-                    <div class="step-title">步骤 ${step.step}: ${step.type}</div>
-                    <div class="step-details">${step.description}</div>
-                `;
+                stepElement.innerHTML = '\n                    ' + '<div class="step-title">' + VizMLI18n.t('步骤 ') + (step.step) + ': ' + (step.type) + '</div>' + '\n                    ' + '<div class="step-details">' + (step.description) + '</div>' + '\n                ';
                 historyContainer.appendChild(stepElement);
             });
             

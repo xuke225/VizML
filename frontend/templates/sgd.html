@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <link rel="stylesheet" href="/static/css/i18n.css">
+    <script src="/static/js/i18n.js"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>⚡ SGD优化器可视化学习平台</title>
@@ -1159,7 +1162,7 @@
             }
             
             async initializeComponent() {
-                console.log('🚀 初始化SGD可视化学习平台...');
+                console.log(VizMLI18n.t('🚀 初始化SGD可视化学习平台...'));
                 
                 // 检查后端连接
                 await this.checkBackendConnection();
@@ -1175,7 +1178,7 @@
                 // 初始化画布
                 this.initializeCanvases();
                 
-                console.log('✅ SGD可视化学习平台初始化完成');
+                console.log(VizMLI18n.t('✅ SGD可视化学习平台初始化完成'));
             }
             
             async checkBackendConnection() {
@@ -1185,15 +1188,15 @@
                     const isConnected = await this.apiClient.checkConnection();
                     
                     if (isConnected) {
-                        statusBanner.textContent = '✅ 后端服务已连接 - SGD优化器学习平台就绪';
+                        statusBanner.textContent = VizMLI18n.t('✅ 后端服务已连接 - SGD优化器学习平台就绪');
                         statusBanner.className = 'status-banner connected';
                     } else {
-                        throw new Error('连接失败');
+                        throw new Error(VizMLI18n.t('连接失败'));
                     }
                 } catch (error) {
-                    statusBanner.textContent = '❌ 后端服务未连接 - 请启动Flask服务器 (python start.py)';
+                    statusBanner.textContent = VizMLI18n.t('❌ 后端服务未连接 - 请启动Flask服务器 (python start.py)');
                     statusBanner.className = 'status-banner disconnected';
-                    console.warn('后端服务连接失败:', error);
+                    console.warn(VizMLI18n.t('后端服务连接失败:'), error);
                 }
             }
             
@@ -1206,7 +1209,7 @@
                         this.renderOptimizerSelection(result.optimizers);
                     }
                 } catch (error) {
-                    console.error('加载优化器信息失败:', error);
+                    console.error(VizMLI18n.t('加载优化器信息失败:'), error);
                 }
             }
             
@@ -1220,7 +1223,7 @@
                         this.updateModelParameterConfig();
                     }
                 } catch (error) {
-                    console.error('加载模型信息失败:', error);
+                    console.error(VizMLI18n.t('加载模型信息失败:'), error);
                 }
             }
             
@@ -1234,8 +1237,8 @@
                     if (key === 'sgd') card.classList.add('active');
                     
                     card.innerHTML = `
-                        <div class="name">${info.name}</div>
-                        <div class="description">${info.description}</div>
+                        <div class="name">${VizMLI18n.t(info.name)}</div>
+                        <div class="description">${VizMLI18n.t(info.description)}</div>
                     `;
                     
                     card.addEventListener('click', () => {
@@ -1275,7 +1278,7 @@
                     
                     // 优化器标题
                     const title = document.createElement('h5');
-                    title.textContent = `${optimizer.toUpperCase()} 参数配置`;
+                    title.textContent = (optimizer.toUpperCase()) + VizMLI18n.t(' 参数配置');
                     title.style.cssText = `
                         margin: 0 0 10px 0;
                         color: #172033;
@@ -1331,16 +1334,16 @@
                 const paramConfigs = {
                     'sgd': [], // SGD没有额外参数
                     'momentum': [
-                        { name: 'momentum', displayName: '动量系数', min: 0, max: 1, step: 0.01, default: 0.9 }
+                        { name: 'momentum', displayName: VizMLI18n.t('动量系数'), min: 0, max: 1, step: 0.01, default: 0.9 }
                     ],
                     'nesterov': [
-                        { name: 'momentum', displayName: '动量系数', min: 0, max: 1, step: 0.01, default: 0.9 }
+                        { name: 'momentum', displayName: VizMLI18n.t('动量系数'), min: 0, max: 1, step: 0.01, default: 0.9 }
                     ],
                     'adagrad': [
                         { name: 'epsilon', displayName: 'Epsilon', min: 1e-8, max: 1e-4, step: 1e-8, default: 1e-8 }
                     ],
                     'rmsprop': [
-                        { name: 'decay_rate', displayName: '衰减率', min: 0.1, max: 1, step: 0.01, default: 0.9 },
+                        { name: 'decay_rate', displayName: VizMLI18n.t('衰减率'), min: 0.1, max: 1, step: 0.01, default: 0.9 },
                         { name: 'epsilon', displayName: 'Epsilon', min: 1e-8, max: 1e-4, step: 1e-8, default: 1e-8 }
                     ],
                     'adam': [
@@ -1364,15 +1367,7 @@
                         group.className = 'form-group';
                         
                         if (param === 'polynomial_degree') {
-                            group.innerHTML = `
-                                <label for="polynomialDegree">多项式度数</label>
-                                <select id="polynomialDegree">
-                                    <option value="2">2次</option>
-                                    <option value="3">3次</option>
-                                    <option value="4">4次</option>
-                                    <option value="5">5次</option>
-                                </select>
-                            `;
+                            group.innerHTML = '\n                                ' + '<label for="polynomialDegree">' + VizMLI18n.t('多项式度数') + '</label>' + '\n                                ' + '<select id="polynomialDegree">' + '\n                                    ' + '<option value="2">' + VizMLI18n.t('2次') + '</option>' + '\n                                    ' + '<option value="3">' + VizMLI18n.t('3次') + '</option>' + '\n                                    ' + '<option value="4">' + VizMLI18n.t('4次') + '</option>' + '\n                                    ' + '<option value="5">' + VizMLI18n.t('5次') + '</option>' + '\n                                ' + '</select>' + '\n                            ';
                         }
                         
                         container.appendChild(group);
@@ -1477,7 +1472,7 @@
             
             async generateData() {
                 try {
-                    this.updateStatus('正在生成数据...');
+                    this.updateStatus(VizMLI18n.t('正在生成数据...'));
                     
                     const dataType = document.getElementById('dataType').value;
                     const sampleSize = parseInt(document.getElementById('sampleSize').value);
@@ -1500,14 +1495,14 @@
                         this.visualizeData();
                         this.updateTrainingControlState(this.trainingSession ? this.controlState : 'idle');
                         
-                        this.updateStatus(`✅ 数据生成完成，共 ${this.currentData.n_samples} 个样本`);
+                        this.updateStatus(VizMLI18n.t('✅ 数据生成完成，共 ') + (this.currentData.n_samples) + VizMLI18n.t(' 个样本'));
                     } else {
                         throw new Error(result.message);
                     }
                     
                 } catch (error) {
-                    console.error('数据生成失败:', error);
-                    this.updateStatus('❌ 数据生成失败: ' + error.message);
+                    console.error(VizMLI18n.t('数据生成失败:'), error);
+                    this.updateStatus(VizMLI18n.t('❌ 数据生成失败: ') + error.message);
                 }
             }
             
@@ -1550,22 +1545,12 @@
             
             updateDataLegend() {
                 const legend = document.getElementById('dataLegend');
-                let legendHTML = `
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: #45B7D1"></div>
-                        <span>训练数据</span>
-                    </div>
-                `;
+                let legendHTML = '\n                    ' + '<div class="legend-item">' + '\n                        ' + '<div class="legend-color" style="background: #45B7D1">' + '</div>' + '\n                        ' + '<span>' + VizMLI18n.t('训练数据') + '</span>' + '\n                    ' + '</div>' + '\n                ';
                 
                 // 添加预测曲线图例
                 Object.entries(this.trainingHistory).forEach(([optimizer, _]) => {
                     const color = this.optimizerColors[optimizer];
-                    legendHTML += `
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: ${color}"></div>
-                            <span>${optimizer.toUpperCase()} 拟合</span>
-                        </div>
-                    `;
+                    legendHTML += '\n                        ' + '<div class="legend-item">' + '\n                            <div class="legend-color" style="background: ' + (color) + '">' + '</div>' + '\n                            ' + '<span>' + (optimizer.toUpperCase()) + VizMLI18n.t(' 拟合') + '</span>' + '\n                        ' + '</div>' + '\n                    ';
                 });
                 
                 legend.innerHTML = legendHTML;
@@ -1573,13 +1558,13 @@
             
             async startTraining() {
                 if (!this.currentSessionKey) {
-                    alert('请先生成数据！');
+                    alert(VizMLI18n.t('请先生成数据！'));
                     return;
                 }
                 
                 try {
                     this.updateTrainingControlState('starting');
-                    this.updateStatus('正在启动训练会话...');
+                    this.updateStatus(VizMLI18n.t('正在启动训练会话...'));
                     
                     // 获取模型配置
                     const modelType = document.getElementById('modelType').value;
@@ -1649,7 +1634,7 @@
                         this.isTraining = false;
                         this.isStepPending = false;
                         
-                        this.updateStatus('✅ 训练会话已启动，正在开始训练...');
+                        this.updateStatus(VizMLI18n.t('✅ 训练会话已启动，正在开始训练...'));
                         this.updateTrainingControlState('paused');
                         
                         // 自动开始训练
@@ -1661,9 +1646,9 @@
                     }
                     
                 } catch (error) {
-                    console.error('启动训练会话失败:', error);
+                    console.error(VizMLI18n.t('启动训练会话失败:'), error);
                     this.updateTrainingControlState('idle');
-                    this.updateStatus('❌ 启动训练失败: ' + error.message);
+                    this.updateStatus(VizMLI18n.t('❌ 启动训练失败: ') + error.message);
                 }
             }
             
@@ -1700,14 +1685,14 @@
                 controls.dataset.state = state;
 
                 const statusLabels = {
-                    idle: '待开始',
-                    starting: '准备中',
-                    running: '训练中',
-                    paused: '已暂停',
-                    stepping: '单步执行中',
-                    completed: '训练完成'
+                    idle: VizMLI18n.t('待开始'),
+                    starting: VizMLI18n.t('准备中'),
+                    running: VizMLI18n.t('训练中'),
+                    paused: VizMLI18n.t('已暂停'),
+                    stepping: VizMLI18n.t('单步执行中'),
+                    completed: VizMLI18n.t('训练完成')
                 };
-                document.getElementById('overallStatus').textContent = statusLabels[state] || '待开始';
+                document.getElementById('overallStatus').textContent = statusLabels[state] || VizMLI18n.t('待开始');
 
                 const startButton = document.getElementById('startTrainingBtn');
                 startButton.disabled = !this.currentSessionKey || state !== 'idle';
@@ -1725,7 +1710,7 @@
                 }, interval);
                 
                 this.updateTrainingControlState('running');
-                this.updateStatus('🔄 训练进行中...');
+                this.updateStatus(VizMLI18n.t('🔄 训练进行中...'));
             }
             
             pauseTraining() {
@@ -1738,7 +1723,7 @@
                 }
                 
                 this.updateTrainingControlState('paused');
-                this.updateStatus('⏸ 训练已暂停');
+                this.updateStatus(VizMLI18n.t('⏸ 训练已暂停'));
             }
             
             async stepTraining() {
@@ -1799,14 +1784,14 @@
                     
                 } catch (error) {
                     if (requestRevision !== this.trainingRevision) return;
-                    console.error('训练步骤失败:', error);
+                    console.error(VizMLI18n.t('训练步骤失败:'), error);
                     this.isTraining = false;
                     if (this.trainingTimer) {
                         clearInterval(this.trainingTimer);
                         this.trainingTimer = null;
                     }
                     this.updateTrainingControlState('paused');
-                    this.updateStatus('❌ 训练步骤失败: ' + error.message);
+                    this.updateStatus(VizMLI18n.t('❌ 训练步骤失败: ') + error.message);
                 } finally {
                     if (requestRevision === this.trainingRevision) {
                         this.isStepPending = false;
@@ -1982,8 +1967,8 @@
                 // 添加标签
                 ctx.fillStyle = '#6B7890';
                 ctx.font = '12px Arial';
-                ctx.fillText('权重', margin + 5, margin + 15);
-                ctx.fillText('偏置', margin + 5, margin + height * 0.55 + 15);
+                ctx.fillText(VizMLI18n.t('权重'), margin + 5, margin + 15);
+                ctx.fillText(VizMLI18n.t('偏置'), margin + 5, margin + height * 0.55 + 15);
                 
                 this.updateParameterLegend();
             }
@@ -2084,7 +2069,7 @@
                 // 标题
                 ctx.fillStyle = '#172033';
                 ctx.font = '12px Arial';
-                ctx.fillText('梯度范数随训练轮次的变化', margin + width/2 - 80, margin - 10);
+                ctx.fillText(VizMLI18n.t('梯度范数随训练轮次的变化'), margin + width/2 - 80, margin - 10);
                 
                 this.updateGradientLegend();
             }
@@ -2175,7 +2160,7 @@
                         this.updateDataLegend();
                     }
                 } catch (error) {
-                    console.error('获取训练状态失败:', error);
+                    console.error(VizMLI18n.t('获取训练状态失败:'), error);
                 }
             }
             
@@ -2231,27 +2216,7 @@
                     row.className = 'optimizer-status-row';
                     row.id = `optimizer-row-${optimizer}`;
                     
-                    row.innerHTML = `
-                        <div class="optimizer-name-badge">
-                            <div class="optimizer-color-dot" style="background-color: ${color}"></div>
-                            <span class="optimizer-name">${optimizer}</span>
-                        </div>
-                        <div class="optimizer-metrics">
-                            <div class="status-item">
-                                <span class="status-label">损失:</span>
-                                <span class="status-value loss-value">N/A</span>
-                            </div>
-                            <div class="status-item">
-                                <span class="status-label">R²:</span>
-                                <span class="status-value r2-value">N/A</span>
-                            </div>
-                            <div class="status-item">
-                                <span class="status-label">梯度:</span>
-                                <span class="status-value gradient-value">N/A</span>
-                            </div>
-                            <span class="optimizer-status-badge status-waiting">待开始</span>
-                        </div>
-                    `;
+                    row.innerHTML = '\n                        ' + '<div class="optimizer-name-badge">' + '\n                            <div class="optimizer-color-dot" style="background-color: ' + (color) + '">' + '</div>' + '\n                            ' + '<span class="optimizer-name">' + (optimizer) + '</span>' + '\n                        ' + '</div>' + '\n                        ' + '<div class="optimizer-metrics">' + '\n                            ' + '<div class="status-item">' + '\n                                ' + '<span class="status-label">' + VizMLI18n.t('损失:') + '</span>' + '\n                                ' + '<span class="status-value loss-value">' + 'N/A' + '</span>' + '\n                            ' + '</div>' + '\n                            ' + '<div class="status-item">' + '\n                                ' + '<span class="status-label">' + 'R²:' + '</span>' + '\n                                ' + '<span class="status-value r2-value">' + 'N/A' + '</span>' + '\n                            ' + '</div>' + '\n                            ' + '<div class="status-item">' + '\n                                ' + '<span class="status-label">' + VizMLI18n.t('梯度:') + '</span>' + '\n                                ' + '<span class="status-value gradient-value">' + 'N/A' + '</span>' + '\n                            ' + '</div>' + '\n                            ' + '<span class="optimizer-status-badge status-waiting">' + VizMLI18n.t('待开始') + '</span>' + '\n                        ' + '</div>' + '\n                    ';
                     
                     panel.appendChild(row);
                 });
@@ -2260,11 +2225,11 @@
             analyzeOptimizerConvergence(optimizer) {
                 const history = this.trainingHistory[optimizer];
                 if (!history || history.length === 0) {
-                    return { text: '待开始', class: 'status-waiting' };
+                    return { text: VizMLI18n.t('待开始'), class: 'status-waiting' };
                 }
                 
                 if (history.length < 5) {
-                    return { text: '训练中', class: 'status-training' };
+                    return { text: VizMLI18n.t('训练中'), class: 'status-training' };
                 }
                 
                 // 检查最近几步的损失变化
@@ -2272,11 +2237,11 @@
                 const lossChange = Math.abs(recentLosses[recentLosses.length - 1] - recentLosses[0]);
                 
                 if (lossChange < 1e-6) {
-                    return { text: '已收敛', class: 'status-converged' };
+                    return { text: VizMLI18n.t('已收敛'), class: 'status-converged' };
                 } else if (lossChange < 1e-4) {
-                    return { text: '接近收敛', class: 'status-training' };
+                    return { text: VizMLI18n.t('接近收敛'), class: 'status-training' };
                 } else {
-                    return { text: '优化中', class: 'status-training' };
+                    return { text: VizMLI18n.t('优化中'), class: 'status-training' };
                 }
             }
             
@@ -2284,7 +2249,7 @@
                 const statusElement = document.getElementById('overallStatus');
                 
                 if (Object.keys(this.trainingHistory).length === 0) {
-                    statusElement.textContent = '待开始';
+                    statusElement.textContent = VizMLI18n.t('待开始');
                     return;
                 }
                 
@@ -2301,19 +2266,19 @@
                 });
                 
                 if (convergedCount === this.selectedOptimizers.length) {
-                    statusElement.textContent = '全部收敛';
+                    statusElement.textContent = VizMLI18n.t('全部收敛');
                 } else if (convergedCount > 0) {
-                    statusElement.textContent = `${convergedCount}/${this.selectedOptimizers.length} 已收敛`;
+                    statusElement.textContent = (convergedCount) + '/' + (this.selectedOptimizers.length) + VizMLI18n.t(' 已收敛');
                 } else if (trainingCount > 0) {
-                    statusElement.textContent = '训练中';
+                    statusElement.textContent = VizMLI18n.t('训练中');
                 } else {
-                    statusElement.textContent = '待开始';
+                    statusElement.textContent = VizMLI18n.t('待开始');
                 }
             }
             
             showTrainingCompletedSummary() {
                 // 更新总体状态为完成
-                document.getElementById('overallStatus').textContent = '训练完成';
+                document.getElementById('overallStatus').textContent = VizMLI18n.t('训练完成');
                 
                 // 统计各优化器的最终状态
                 let bestOptimizer = null;
@@ -2347,7 +2312,7 @@
                     if (row) {
                         const statusBadge = row.querySelector('.optimizer-status-badge');
                         if (optimizer === bestOptimizer) {
-                            statusBadge.textContent = '🏆 最佳';
+                            statusBadge.textContent = VizMLI18n.t('🏆 最佳');
                             statusBadge.className = 'optimizer-status-badge status-converged';
                         } else {
                             const convergenceStatus = this.analyzeOptimizerConvergence(optimizer);
@@ -2359,13 +2324,13 @@
                 
                 // 显示训练完成消息
                 const completionMessage = bestOptimizer 
-                    ? `🎉 训练完成！最佳优化器: ${bestOptimizer.toUpperCase()} (R² = ${bestR2.toFixed(4)})`
-                    : '🎉 训练完成！';
+                    ? VizMLI18n.t('🎉 训练完成！最佳优化器: ') + (bestOptimizer.toUpperCase()) + ' (R² = ' + (bestR2.toFixed(4)) + ')'
+                    : VizMLI18n.t('🎉 训练完成！');
                 
                 this.updateStatus(completionMessage);
                 
                 // 可选：显示详细总结（可以添加模态框或者其他UI组件）
-                console.log('训练完成总结:', summary);
+                console.log(VizMLI18n.t('训练完成总结:'), summary);
             }
             
             resetTraining() {
@@ -2391,24 +2356,24 @@
                 // 重置指标
                 document.getElementById('epochProgress').textContent = '0/0';
                 document.getElementById('trainingTime').textContent = '0s';
-                document.getElementById('overallStatus').textContent = '待开始';
+                document.getElementById('overallStatus').textContent = VizMLI18n.t('待开始');
                 
                 // 清空多优化器状态面板
                 const panel = document.getElementById('optimizersStatusPanel');
                 panel.innerHTML = '';
                 
                 this.updateTrainingControlState('idle');
-                this.updateStatus('🔄 训练状态已重置');
+                this.updateStatus(VizMLI18n.t('🔄 训练状态已重置'));
             }
             
             async compareOptimizers() {
                 if (!this.currentSessionKey) {
-                    alert('请先生成数据！');
+                    alert(VizMLI18n.t('请先生成数据！'));
                     return;
                 }
                 
                 try {
-                    this.updateStatus('正在比较优化器性能...');
+                    this.updateStatus(VizMLI18n.t('正在比较优化器性能...'));
                     
                     // 获取模型配置
                     const modelType = document.getElementById('modelType').value;
@@ -2463,14 +2428,14 @@
                     
                     if (result.status === 'success') {
                         this.displayComparisonResults(result.comparison_result);
-                        this.updateStatus('✅ 优化器性能比较完成');
+                        this.updateStatus(VizMLI18n.t('✅ 优化器性能比较完成'));
                     } else {
                         throw new Error(result.message);
                     }
                     
                 } catch (error) {
-                    console.error('优化器比较失败:', error);
-                    this.updateStatus('❌ 优化器比较失败: ' + error.message);
+                    console.error(VizMLI18n.t('优化器比较失败:'), error);
+                    this.updateStatus(VizMLI18n.t('❌ 优化器比较失败: ') + error.message);
                 }
             }
             
@@ -2498,7 +2463,7 @@
                 
                 // 显示最佳优化器
                 if (comparisonResult.best_optimizer) {
-                    this.updateStatus(`🏆 最佳优化器: ${comparisonResult.best_optimizer}`);
+                    this.updateStatus(VizMLI18n.t('🏆 最佳优化器: ') + (comparisonResult.best_optimizer));
                 }
             }
             
@@ -2543,7 +2508,7 @@
             }
             
             updateStatus(message) {
-                console.log('状态:', message);
+                console.log(VizMLI18n.t('状态:'), message);
                 // 可以在这里添加状态显示逻辑
             }
         }

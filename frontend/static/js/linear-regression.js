@@ -22,7 +22,7 @@
         setSourceMode('synthetic');
         updateControlVisibility();
         updateSliderLabels();
-        drawEmptyChart(document.getElementById('regressionCanvas'), '请先准备数据');
+        drawEmptyChart(document.getElementById('regressionCanvas'), VizMLI18n.t('请先准备数据'));
         checkConnection();
     }
 
@@ -117,11 +117,11 @@
         const title = document.getElementById('excelDropzoneTitle');
         const filename = document.getElementById('excelFileName');
         if (state.excelFile) {
-            title.textContent = '已选择文件';
+            title.textContent = VizMLI18n.t('已选择文件');
             filename.textContent = state.excelFile.name;
         } else {
-            title.textContent = '拖入 Excel 文件';
-            filename.textContent = '或点击选择不超过 5 MB 的 .xlsx';
+            title.textContent = VizMLI18n.t('拖入 Excel 文件');
+            filename.textContent = VizMLI18n.t('或点击选择不超过 5 MB 的 .xlsx');
         }
     }
 
@@ -134,7 +134,7 @@
     function cancelExcelMapping() {
         setWorkspaceMode('results');
         if (state.currentData) renderVisualizations();
-        showNotice(state.currentData ? '已保留当前实验数据与结果。' : '已取消 Excel 数据映射。');
+        showNotice(state.currentData ? [VizMLI18n.t('已保留当前实验数据与结果。')]: VizMLI18n.t('已取消 Excel 数据映射。'));
     }
 
     function reopenExcelMapping() {
@@ -150,11 +150,11 @@
     async function checkConnection() {
         const banner = document.getElementById('statusBanner');
         try {
-            if (!await state.client.checkConnection()) throw new Error('连接失败');
-            banner.textContent = '后端服务已连接';
+            if (!await state.client.checkConnection()) throw new Error(VizMLI18n.t('连接失败'));
+            banner.textContent = VizMLI18n.t('后端服务已连接');
             banner.className = 'status-banner connected';
         } catch (error) {
-            banner.textContent = '后端服务未连接，请先启动 Flask 服务';
+            banner.textContent = VizMLI18n.t('后端服务未连接，请先启动 Flask 服务');
             banner.className = 'status-banner disconnected';
         }
     }
@@ -176,7 +176,7 @@
     }
 
     async function generateSyntheticData() {
-        setBusy('generateDataBtn', true, '正在生成...');
+        setBusy('generateDataBtn', true, VizMLI18n.t('正在生成...'));
         try {
             const result = await state.client.generateData({
                 type: 'regression',
@@ -185,19 +185,19 @@
                 noise: Number(document.getElementById('noiseLevel').value),
                 random_state: 42
             });
-            applyDataset(result, '已生成合成数据。');
+            applyDataset(result, VizMLI18n.t('已生成合成数据。'));
         } catch (error) {
-            showNotice(error.message || '生成数据失败', true);
+            showNotice(error.message || VizMLI18n.t('生成数据失败'), true);
         } finally {
             setBusy('generateDataBtn', false);
         }
     }
 
     async function useExampleData() {
-        setBusy('useExampleBtn', true, '正在载入...');
+        setBusy('useExampleBtn', true, VizMLI18n.t('正在载入...'));
         try {
             const response = await fetch('/static/examples/linear_regression_example.xlsx');
-            if (!response.ok) throw new Error('示例文件下载失败');
+            if (!response.ok) throw new Error(VizMLI18n.t('示例文件下载失败'));
             const blob = await response.blob();
             state.excelFile = new File([blob], 'linear_regression_example.xlsx', {
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -206,7 +206,7 @@
             updateExcelDropzone();
             await previewExcel(true);
         } catch (error) {
-            showNotice(error.message || '无法载入示例数据', true);
+            showNotice(error.message || VizMLI18n.t('无法载入示例数据'), true);
         } finally {
             setBusy('useExampleBtn', false);
         }
@@ -214,15 +214,15 @@
 
     async function previewExcel(isExample) {
         if (!state.excelFile.name.toLowerCase().endsWith('.xlsx')) {
-            showNotice('仅支持 .xlsx 格式的 Excel 文件。', true);
+            showNotice(VizMLI18n.t('仅支持 .xlsx 格式的 Excel 文件。'), true);
             return;
         }
         if (state.excelFile.size > 5 * 1024 * 1024) {
-            showNotice('Excel 文件不能超过 5 MB。', true);
+            showNotice(VizMLI18n.t('Excel 文件不能超过 5 MB。'), true);
             return;
         }
 
-        setBusy('previewExcelBtn', true, '正在解析...');
+        setBusy('previewExcelBtn', true, VizMLI18n.t('正在解析...'));
         try {
             state.excelPreview = await state.client.previewLinearRegressionExcel(state.excelFile);
             const sheetSelect = document.getElementById('excelSheet');
@@ -233,13 +233,13 @@
                 return option;
             }));
             document.getElementById('excelFileSummary').textContent =
-                `${state.excelPreview.filename} · ${state.excelPreview.sheets.length} 个工作表`;
+                (state.excelPreview.filename) + ' · ' + (state.excelPreview.sheets.length) + VizMLI18n.t(' 个工作表');
             renderSelectedSheet(isExample);
             setWorkspaceMode('excel');
-            showNotice('文件解析完成，请确认工作表、特征列和目标列。');
+            showNotice(VizMLI18n.t('文件解析完成，请确认工作表、特征列和目标列。'));
             document.getElementById('excelConfigPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
         } catch (error) {
-            showNotice(error.message || 'Excel 预览失败', true);
+            showNotice(error.message || VizMLI18n.t('Excel 预览失败'), true);
         } finally {
             setBusy('previewExcelBtn', false);
         }
@@ -267,9 +267,8 @@
         tableWrap.innerHTML = `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 
         const numericColumns = sheet.numeric_columns || [];
-        const target = preferExampleColumns && numericColumns.includes('房价')
-            ? '房价'
-            : numericColumns[numericColumns.length - 1];
+        const target = preferExampleColumns && numericColumns.includes(VizMLI18n.t('房价'))
+            ? [VizMLI18n.t('房价')]: numericColumns[numericColumns.length - 1];
         const targetSelect = document.getElementById('targetColumn');
         targetSelect.replaceChildren(...numericColumns.map((column) => {
             const option = document.createElement('option');
@@ -289,13 +288,13 @@
             checkbox.checked = column !== target;
             const invalidCount = sheet.invalid_counts && sheet.invalid_counts[column] || 0;
             const text = document.createElement('span');
-            text.textContent = invalidCount ? `${column}（${invalidCount} 个非数值）` : column;
+            text.textContent = invalidCount ? (column) + '（' + (invalidCount) + VizMLI18n.t(' 个非数值）') : column;
             label.append(checkbox, text);
             return label;
         }));
         syncFeatureChoices();
         document.getElementById('excelFileSummary').textContent =
-            `${state.excelPreview.filename} · 工作表“${sheet.name}” · ${sheet.total_rows} 行`;
+            (state.excelPreview.filename) + VizMLI18n.t(' · 工作表“') + (sheet.name) + '” · ' + (sheet.total_rows) + VizMLI18n.t(' 行');
     }
 
     function syncFeatureChoices() {
@@ -312,22 +311,22 @@
         const features = Array.from(document.querySelectorAll('input[name="featureColumn"]:checked'))
             .map((checkbox) => checkbox.value);
         if (!sheet || !target || features.length === 0) {
-            showNotice('请选择至少一个特征列和一个目标列。', true);
+            showNotice(VizMLI18n.t('请选择至少一个特征列和一个目标列。'), true);
             return;
         }
 
-        setBusy('importExcelBtn', true, '正在导入...');
+        setBusy('importExcelBtn', true, VizMLI18n.t('正在导入...'));
         try {
             const result = await state.client.importLinearRegressionExcel(
                 state.excelFile, sheet.name, features, target
             );
             const summary = result.data.import_summary;
             const message = summary.dropped_rows
-                ? `导入 ${summary.valid_rows} 行，已过滤 ${summary.dropped_rows} 行无效数据。`
-                : `已成功导入 ${summary.valid_rows} 行数据。`;
+                ? VizMLI18n.t('导入 ') + (summary.valid_rows) + VizMLI18n.t(' 行，已过滤 ') + (summary.dropped_rows) + VizMLI18n.t(' 行无效数据。')
+                : VizMLI18n.t('已成功导入 ') + (summary.valid_rows) + VizMLI18n.t(' 行数据。');
             applyDataset(result, message);
         } catch (error) {
-            showNotice(error.message || 'Excel 导入失败', true);
+            showNotice(error.message || VizMLI18n.t('Excel 导入失败'), true);
         } finally {
             setBusy('importExcelBtn', false);
         }
@@ -339,7 +338,7 @@
         state.modelKey = null;
         state.results = null;
         document.getElementById('sessionKey').textContent = state.sessionKey;
-        document.getElementById('trainingStatus').textContent = '数据已准备';
+        document.getElementById('trainingStatus').textContent = VizMLI18n.t('数据已准备');
         document.getElementById('trainModelBtn').disabled = false;
         resetResultDisplay();
         updateDataStats();
@@ -361,31 +360,31 @@
         const remapButton = document.getElementById('remapExcelBtn');
         summaryCard.classList.toggle('ready', count > 0);
         if (!state.currentData) {
-            summaryText.textContent = '尚未载入数据';
-            summaryMeta.textContent = '选择一种数据来源开始实验';
+            summaryText.textContent = VizMLI18n.t('尚未载入数据');
+            summaryMeta.textContent = VizMLI18n.t('选择一种数据来源开始实验');
             remapButton.hidden = true;
             return;
         }
         const featureInfo = state.currentData.feature_info;
         const isExcel = featureInfo && featureInfo.source_type === 'excel';
         if (isExcel) {
-            summaryText.textContent = featureInfo.dataset_name || 'Excel 数据';
+            summaryText.textContent = featureInfo.dataset_name || VizMLI18n.t('Excel 数据');
             const imported = state.currentData.import_summary;
             const filtered = imported && imported.dropped_rows
-                ? ` · 已过滤 ${imported.dropped_rows} 行`
+                ? VizMLI18n.t(' · 已过滤 ') + (imported.dropped_rows) + VizMLI18n.t(' 行')
                 : '';
-            summaryMeta.textContent = `${featureInfo.description || 'Excel 数据'}${filtered}`;
+            summaryMeta.textContent = (featureInfo.description || VizMLI18n.t('Excel 数据')) + (filtered);
         } else {
             const select = document.getElementById('dataShape');
             summaryText.textContent = select.options[select.selectedIndex].textContent;
-            summaryMeta.textContent = '合成回归数据';
+            summaryMeta.textContent = VizMLI18n.t('合成回归数据');
         }
         remapButton.hidden = !isExcel;
     }
 
     async function trainModel() {
         if (!state.sessionKey) {
-            showNotice('请先准备数据。', true);
+            showNotice(VizMLI18n.t('请先准备数据。'), true);
             return;
         }
         const algorithm = document.getElementById('algorithmType').value;
@@ -408,8 +407,8 @@
             params.tol = 1e-3;
         }
 
-        setBusy('trainModelBtn', true, '正在训练...');
-        document.getElementById('trainingStatus').textContent = '训练中';
+        setBusy('trainModelBtn', true, VizMLI18n.t('正在训练...'));
+        document.getElementById('trainingStatus').textContent = VizMLI18n.t('训练中');
         try {
             const result = await state.client.trainLinearRegression({
                 session_key: state.sessionKey,
@@ -418,17 +417,17 @@
             });
             state.modelKey = result.model_key;
             state.results = result.results;
-            document.getElementById('trainingStatus').textContent = '训练完成';
+            document.getElementById('trainingStatus').textContent = VizMLI18n.t('训练完成');
             document.getElementById('modelAlgorithm').textContent =
                 `${algorithmName(algorithm)} · ${optimizerName(optimizer)}`;
             document.getElementById('regressionEquation').textContent =
                 result.results.model_equation || 'y = ?';
             renderMetrics(result.results.metrics);
             renderVisualizations();
-            showNotice('模型训练完成。');
+            showNotice(VizMLI18n.t('模型训练完成。'));
         } catch (error) {
-            document.getElementById('trainingStatus').textContent = '训练失败';
-            showNotice(error.message || '模型训练失败', true);
+            document.getElementById('trainingStatus').textContent = VizMLI18n.t('训练失败');
+            showNotice(error.message || VizMLI18n.t('模型训练失败'), true);
         } finally {
             setBusy('trainModelBtn', false);
         }
@@ -436,16 +435,16 @@
 
     function renderMetrics(metrics) {
         const labels = {
-            train_mse: '训练 MSE',
-            test_mse: '测试 MSE',
-            train_rmse: '训练 RMSE',
-            test_rmse: '测试 RMSE',
-            train_mae: '训练 MAE',
-            test_mae: '测试 MAE',
-            train_r2: '训练 R²',
-            test_r2: '测试 R²',
-            train_adjusted_r2: '训练调整 R²',
-            test_adjusted_r2: '测试调整 R²'
+            train_mse: VizMLI18n.t('训练 MSE'),
+            test_mse: VizMLI18n.t('测试 MSE'),
+            train_rmse: VizMLI18n.t('训练 RMSE'),
+            test_rmse: VizMLI18n.t('测试 RMSE'),
+            train_mae: VizMLI18n.t('训练 MAE'),
+            test_mae: VizMLI18n.t('测试 MAE'),
+            train_r2: VizMLI18n.t('训练 R²'),
+            test_r2: VizMLI18n.t('测试 R²'),
+            train_adjusted_r2: VizMLI18n.t('训练调整 R²'),
+            test_adjusted_r2: VizMLI18n.t('测试调整 R²')
         };
         const preferred = Object.keys(labels).filter((key) => key in metrics);
         document.getElementById('metricsDisplay').innerHTML = preferred.map((key) => {
@@ -457,46 +456,46 @@
     function renderVisualizations() {
         const canvas = document.getElementById('regressionCanvas');
         if (!state.currentData || !state.currentData.X.length) {
-            drawEmptyChart(canvas, '请先准备数据');
+            drawEmptyChart(canvas, VizMLI18n.t('请先准备数据'));
             return;
         }
         const featureCount = state.currentData.X[0].length;
-        const targetName = state.currentData.feature_info && state.currentData.feature_info.target || '目标值';
+        const targetName = state.currentData.feature_info && state.currentData.feature_info.target || VizMLI18n.t('目标值');
         const featureName = state.currentData.feature_info &&
             state.currentData.feature_info.features_used &&
-            state.currentData.feature_info.features_used[0] || '特征值';
+            state.currentData.feature_info.features_used[0] || VizMLI18n.t('特征值');
 
         if (!state.results) {
             document.getElementById('diagnosticCharts').hidden = true;
             if (featureCount === 1) {
-                document.getElementById('primaryChartTitle').textContent = '数据分布';
-                document.getElementById('canvasInfo').textContent = `${featureName} 与 ${targetName}`;
+                document.getElementById('primaryChartTitle').textContent = VizMLI18n.t('数据分布');
+                document.getElementById('canvasInfo').textContent = (featureName) + VizMLI18n.t(' 与 ') + (targetName);
                 drawScatter(canvas, state.currentData.X.map((row, index) => ({
                     x: row[0], y: state.currentData.y[index], split: 'data'
                 })), { xLabel: featureName, yLabel: targetName });
             } else {
-                document.getElementById('primaryChartTitle').textContent = '多特征数据已准备';
+                document.getElementById('primaryChartTitle').textContent = VizMLI18n.t('多特征数据已准备');
                 document.getElementById('canvasInfo').textContent =
-                    `已选择 ${featureCount} 个特征，训练后显示预测诊断图。`;
-                drawEmptyChart(canvas, '训练后显示真实值与预测值');
+                    VizMLI18n.t('已选择 ') + (featureCount) + VizMLI18n.t(' 个特征，训练后显示预测诊断图。');
+                drawEmptyChart(canvas, VizMLI18n.t('训练后显示真实值与预测值'));
             }
             return;
         }
 
         const points = state.results.point_results || [];
         if (featureCount === 1) {
-            document.getElementById('primaryChartTitle').textContent = '数据与拟合曲线';
-            document.getElementById('canvasInfo').textContent = '蓝色为观测值，紫色为模型拟合曲线。';
+            document.getElementById('primaryChartTitle').textContent = VizMLI18n.t('数据与拟合曲线');
+            document.getElementById('canvasInfo').textContent = VizMLI18n.t('蓝色为观测值，紫色为模型拟合曲线。');
             drawSingleFeatureFit(canvas, points, state.results.prediction_curve, featureName, targetName);
         } else {
-            document.getElementById('primaryChartTitle').textContent = '真实值与预测值';
+            document.getElementById('primaryChartTitle').textContent = VizMLI18n.t('真实值与预测值');
             document.getElementById('canvasInfo').textContent =
-                '点越接近虚线，预测越接近真实值；颜色区分训练集和测试集。';
+                VizMLI18n.t('点越接近虚线，预测越接近真实值；颜色区分训练集和测试集。');
             drawScatter(canvas, points.map((point) => ({
                 x: point.actual,
                 y: point.predicted,
                 split: point.split
-            })), { xLabel: '真实值', yLabel: '预测值', idealLine: true });
+            })), { xLabel: VizMLI18n.t('真实值'), yLabel: VizMLI18n.t('预测值'), idealLine: true });
         }
 
         document.getElementById('diagnosticCharts').hidden = false;
@@ -504,7 +503,7 @@
             x: point.predicted,
             y: point.residual,
             split: point.split
-        })), { xLabel: '预测值', yLabel: '残差', zeroLine: true });
+        })), { xLabel: VizMLI18n.t('预测值'), yLabel: VizMLI18n.t('残差'), zeroLine: true });
         drawCoefficients(state.results.training_info);
     }
 
@@ -620,7 +619,7 @@
     function drawLegend(ctx, width) {
         ctx.save();
         ctx.font = '12px sans-serif';
-        [['训练集', '#0f9d8a'], ['测试集', '#c2415d']].forEach(([label, color], index) => {
+        [[VizMLI18n.t('训练集'), '#0f9d8a'], [VizMLI18n.t('测试集'), '#c2415d']].forEach(([label, color], index) => {
             const x = width - 150 + index * 70;
             ctx.fillStyle = color;
             ctx.beginPath();
@@ -645,7 +644,7 @@
         const height = canvas.height;
         ctx.clearRect(0, 0, width, height);
         if (!visible.length) {
-            drawEmptyChart(canvas, '没有可展示的系数');
+            drawEmptyChart(canvas, VizMLI18n.t('没有可展示的系数'));
             return;
         }
         const labelWidth = Math.min(210, Math.max(100, ...visible.map((item) => item.name.length * 12)));
@@ -669,8 +668,8 @@
             ctx.fillRect(item.value >= 0 ? zeroX : zeroX - barWidth, y - 8, barWidth, 16);
         });
         document.getElementById('coefficientNote').textContent = ranked.length > 20
-            ? `共 ${ranked.length} 个系数，当前显示绝对值最大的 20 项。系数大小受特征单位影响。`
-            : '系数方向表示正负关系；系数大小受特征单位影响。';
+            ? VizMLI18n.t('共 ') + (ranked.length) + VizMLI18n.t(' 个系数，当前显示绝对值最大的 20 项。系数大小受特征单位影响。')
+            : VizMLI18n.t('系数方向表示正负关系；系数大小受特征单位影响。');
     }
 
     function drawEmptyChart(canvas, message) {
@@ -698,7 +697,7 @@
     function resetModel() {
         state.modelKey = null;
         state.results = null;
-        document.getElementById('trainingStatus').textContent = state.currentData ? '数据已准备' : '未开始';
+        document.getElementById('trainingStatus').textContent = state.currentData ? [VizMLI18n.t('数据已准备')]: VizMLI18n.t('未开始');
         resetResultDisplay();
         renderVisualizations();
     }
@@ -709,31 +708,31 @@
         state.modelKey = null;
         state.results = null;
         document.getElementById('sessionKey').textContent = '-';
-        document.getElementById('trainingStatus').textContent = '未开始';
+        document.getElementById('trainingStatus').textContent = VizMLI18n.t('未开始');
         document.getElementById('trainModelBtn').disabled = true;
         document.getElementById('diagnosticCharts').hidden = true;
         setWorkspaceMode('results');
         resetResultDisplay();
         updateDataStats();
-        drawEmptyChart(document.getElementById('regressionCanvas'), '请先准备数据');
-        showNotice('页面数据已清空。');
+        drawEmptyChart(document.getElementById('regressionCanvas'), VizMLI18n.t('请先准备数据'));
+        showNotice(VizMLI18n.t('页面数据已清空。'));
     }
 
     async function clearSession() {
-        if (!window.confirm('这会清除当前进程中的全部数据和模型会话，确定继续吗？')) return;
+        if (!window.confirm(VizMLI18n.t('这会清除当前进程中的全部数据和模型会话，确定继续吗？'))) return;
         try {
             await state.client.clearSession();
             clearData();
-            showNotice('全部服务端会话已清除。');
+            showNotice(VizMLI18n.t('全部服务端会话已清除。'));
         } catch (error) {
-            showNotice(error.message || '清除会话失败', true);
+            showNotice(error.message || VizMLI18n.t('清除会话失败'), true);
         }
     }
 
     function resetResultDisplay() {
         document.getElementById('regressionEquation').textContent = 'y = ?';
-        document.getElementById('metricsDisplay').innerHTML = '<span class="lr-muted">等待训练...</span>';
-        document.getElementById('modelAlgorithm').textContent = '等待配置';
+        document.getElementById('metricsDisplay').innerHTML = VizMLI18n.t('<span class="lr-muted">等待训练...</span>');
+        document.getElementById('modelAlgorithm').textContent = VizMLI18n.t('等待配置');
     }
 
     function setBusy(buttonId, busy, busyText) {
@@ -757,11 +756,11 @@
     }
 
     function algorithmName(value) {
-        return { linear: '线性回归', ridge: '岭回归', lasso: 'Lasso 回归', polynomial: '多项式回归' }[value] || value;
+        return { linear: VizMLI18n.t('线性回归'), ridge: VizMLI18n.t('岭回归'), lasso: VizMLI18n.t('Lasso 回归'), polynomial: VizMLI18n.t('多项式回归') }[value] || value;
     }
 
     function optimizerName(value) {
-        return { auto: '自动', ols: '普通最小二乘', sgd: '随机梯度下降', normal_equation: '正则方程' }[value] || value;
+        return { auto: VizMLI18n.t('自动'), ols: VizMLI18n.t('普通最小二乘'), sgd: VizMLI18n.t('随机梯度下降'), normal_equation: VizMLI18n.t('正则方程') }[value] || value;
     }
 
     function formatNumber(value) {

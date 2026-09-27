@@ -34,7 +34,7 @@ class MLApiClient {
             
             return data;
         } catch (error) {
-            console.error(`API请求失败 (${endpoint}):`, error);
+            console.error(VizMLI18n.t('API请求失败 (') + (endpoint) + '):', error);
             throw error;
         }
     }
@@ -57,7 +57,7 @@ class MLApiClient {
                 throw new Error(result.message);
             }
         } catch (error) {
-            console.error('数据生成失败:', error);
+            console.error(VizMLI18n.t('数据生成失败:'), error);
             throw error;
         }
     }
@@ -74,7 +74,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('聚类训练失败:', error);
+            console.error(VizMLI18n.t('聚类训练失败:'), error);
             throw error;
         }
     }
@@ -91,7 +91,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('聚类算法对比失败:', error);
+            console.error(VizMLI18n.t('聚类算法对比失败:'), error);
             throw error;
         }
     }
@@ -111,7 +111,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('SVM训练失败:', error);
+            console.error(VizMLI18n.t('SVM训练失败:'), error);
             throw error;
         }
     }
@@ -128,7 +128,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('SVM预测失败:', error);
+            console.error(VizMLI18n.t('SVM预测失败:'), error);
             throw error;
         }
     }
@@ -145,7 +145,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('决策树训练失败:', error);
+            console.error(VizMLI18n.t('决策树训练失败:'), error);
             throw error;
         }
     }
@@ -162,7 +162,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('决策树预测失败:', error);
+            console.error(VizMLI18n.t('决策树预测失败:'), error);
             throw error;
         }
     }
@@ -178,7 +178,7 @@ class MLApiClient {
             });
             return result;
         } catch (error) {
-            console.error('获取决策路径失败:', error);
+            console.error(VizMLI18n.t('获取决策路径失败:'), error);
             throw error;
         }
     }
@@ -194,7 +194,7 @@ class MLApiClient {
             });
             return result;
         } catch (error) {
-            console.error('生成完整维度数据失败:', error);
+            console.error(VizMLI18n.t('生成完整维度数据失败:'), error);
             throw error;
         }
     }
@@ -211,7 +211,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('KNN训练失败:', error);
+            console.error(VizMLI18n.t('KNN训练失败:'), error);
             throw error;
         }
     }
@@ -228,7 +228,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('KNN预测失败:', error);
+            console.error(VizMLI18n.t('KNN预测失败:'), error);
             throw error;
         }
     }
@@ -245,7 +245,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('朴素贝叶斯训练失败:', error);
+            console.error(VizMLI18n.t('朴素贝叶斯训练失败:'), error);
             throw error;
         }
     }
@@ -262,7 +262,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('朴素贝叶斯预测失败:', error);
+            console.error(VizMLI18n.t('朴素贝叶斯预测失败:'), error);
             throw error;
         }
     }
@@ -279,7 +279,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('获取贝叶斯概率失败:', error);
+            console.error(VizMLI18n.t('获取贝叶斯概率失败:'), error);
             throw error;
         }
     }
@@ -330,7 +330,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('线性回归训练失败:', error);
+            console.error(VizMLI18n.t('线性回归训练失败:'), error);
             throw error;
         }
     }
@@ -347,7 +347,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('线性回归预测失败:', error);
+            console.error(VizMLI18n.t('线性回归预测失败:'), error);
             throw error;
         }
     }
@@ -364,7 +364,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('SGD训练失败:', error);
+            console.error(VizMLI18n.t('SGD训练失败:'), error);
             throw error;
         }
     }
@@ -381,7 +381,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('SGD预测失败:', error);
+            console.error(VizMLI18n.t('SGD预测失败:'), error);
             throw error;
         }
     }
@@ -398,7 +398,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('神经网络训练失败:', error);
+            console.error(VizMLI18n.t('神经网络训练失败:'), error);
             throw error;
         }
     }
@@ -415,7 +415,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('获取决策边界失败:', error);
+            console.error(VizMLI18n.t('获取决策边界失败:'), error);
             throw error;
         }
     }
@@ -432,7 +432,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('分步训练失败:', error);
+            console.error(VizMLI18n.t('分步训练失败:'), error);
             throw error;
         }
     }
@@ -449,7 +449,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('集成学习训练失败:', error);
+            console.error(VizMLI18n.t('集成学习训练失败:'), error);
             throw error;
         }
     }
@@ -466,7 +466,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('获取集成决策边界失败:', error);
+            console.error(VizMLI18n.t('获取集成决策边界失败:'), error);
             throw error;
         }
     }
@@ -479,7 +479,7 @@ class MLApiClient {
             const result = await this.request('/api/dimensionality_reduction/datasets');
             return result;
         } catch (error) {
-            console.error('获取降维数据集失败:', error);
+            console.error(VizMLI18n.t('获取降维数据集失败:'), error);
             throw error;
         }
     }
@@ -495,7 +495,7 @@ class MLApiClient {
             });
             return result;
         } catch (error) {
-            console.error('加载降维数据失败:', error);
+            console.error(VizMLI18n.t('加载降维数据失败:'), error);
             throw error;
         }
     }
@@ -511,7 +511,7 @@ class MLApiClient {
             });
             return result;
         } catch (error) {
-            console.error('应用降维算法失败:', error);
+            console.error(VizMLI18n.t('应用降维算法失败:'), error);
             throw error;
         }
     }
@@ -527,7 +527,7 @@ class MLApiClient {
             });
             return result;
         } catch (error) {
-            console.error('比较降维算法失败:', error);
+            console.error(VizMLI18n.t('比较降维算法失败:'), error);
             throw error;
         }
     }
@@ -540,7 +540,7 @@ class MLApiClient {
             const result = await this.request(`/api/dimensionality_reduction/info/${resultKey}`);
             return result;
         } catch (error) {
-            console.error('获取降维结果信息失败:', error);
+            console.error(VizMLI18n.t('获取降维结果信息失败:'), error);
             throw error;
         }
     }
@@ -553,7 +553,7 @@ class MLApiClient {
             const result = await this.request(`/api/model_info/${modelKey}`);
             return result;
         } catch (error) {
-            console.error('获取模型信息失败:', error);
+            console.error(VizMLI18n.t('获取模型信息失败:'), error);
             throw error;
         }
     }
@@ -572,7 +572,7 @@ class MLApiClient {
             
             return result;
         } catch (error) {
-            console.error('清除会话失败:', error);
+            console.error(VizMLI18n.t('清除会话失败:'), error);
             throw error;
         }
     }
@@ -594,7 +594,7 @@ class MLApiClient {
             // 只要能获得响应就认为连接成功（不管是HTML还是JSON）
             return response.ok;
         } catch (error) {
-            console.warn('后端服务连接失败，可能需要启动Flask服务器');
+            console.warn(VizMLI18n.t('后端服务连接失败，可能需要启动Flask服务器'));
             return false;
         }
     }
@@ -690,7 +690,7 @@ class MLVisualizer {
      */
     drawRegressionLine(coefficients, intercept, color = '#4F46E5') {
         if (coefficients.length !== 1) {
-            console.warn('只支持单变量线性回归的可视化');
+            console.warn(VizMLI18n.t('只支持单变量线性回归的可视化'));
             return;
         }
         
@@ -771,7 +771,7 @@ class MLUtils {
     /**
      * 显示加载状态
      */
-    static showLoading(elementId, message = '处理中...') {
+    static showLoading(elementId, message = VizMLI18n.t('处理中...')) {
         const element = document.getElementById(elementId);
         if (element) {
             element.innerHTML = `
@@ -799,11 +799,7 @@ class MLUtils {
     static showError(elementId, error) {
         const element = document.getElementById(elementId);
         if (element) {
-            element.innerHTML = `
-                <div class="error-message">
-                    <strong>错误:</strong> ${error.message || error}
-                </div>
-            `;
+            element.innerHTML = '\n                ' + '<div class="error-message">' + '\n                    ' + '<strong>' + VizMLI18n.t('错误:') + '</strong>' + ' ' + (error.message || error) + '\n                ' + '</div>' + '\n            ';
         }
     }
 
@@ -834,18 +830,18 @@ class MLUtils {
      */
     static getMetricDisplayName(metricKey) {
         const displayNames = {
-            'train_accuracy': '训练准确率',
-            'test_accuracy': '测试准确率',
-            'train_rmse': '训练RMSE',
-            'test_rmse': '测试RMSE',
-            'train_r2': '训练R²',
-            'test_r2': '测试R²',
-            'silhouette_score': '轮廓系数',
-            'n_clusters': '聚类数量',
-            'inertia': '惯性',
+            'train_accuracy': VizMLI18n.t('训练准确率'),
+            'test_accuracy': VizMLI18n.t('测试准确率'),
+            'train_rmse': VizMLI18n.t('训练RMSE'),
+            'test_rmse': VizMLI18n.t('测试RMSE'),
+            'train_r2': VizMLI18n.t('训练R²'),
+            'test_r2': VizMLI18n.t('测试R²'),
+            'silhouette_score': VizMLI18n.t('轮廓系数'),
+            'n_clusters': VizMLI18n.t('聚类数量'),
+            'inertia': VizMLI18n.t('惯性'),
             'mse': 'MSE',
             'mae': 'MAE',
-            'r2': 'R²分数'
+            'r2': VizMLI18n.t('R²分数')
         };
         
         return displayNames[metricKey] || metricKey;
