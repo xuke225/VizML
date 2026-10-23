@@ -4,7 +4,7 @@
 基于Flask + scikit-learn实现稳定的算法逻辑
 """
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, render_template
 from flask_cors import CORS
 import numpy as np
 import pandas as pd
@@ -35,6 +35,7 @@ from backend.algorithms.bayesian_classification import BayesianClassificationAlg
 from backend.algorithms.linear_regression import LinearRegressionAlgorithm
 from backend.algorithms.sgd import SGDAlgorithm
 from backend.algorithms.reinforcement_learning import ReinforcementLearningAlgorithm, build_environment
+from backend.arena.api import blueprint as arena_blueprint
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -45,6 +46,7 @@ app = Flask(__name__,
             template_folder='frontend/templates',
             static_folder='frontend/static')
 CORS(app)  # 启用CORS支持前后端分离
+app.register_blueprint(arena_blueprint)
 
 # 全局变量存储当前会话的模型和数据
 session_data = {
@@ -77,12 +79,14 @@ rl_alg = ReinforcementLearningAlgorithm()
 @app.route('/')
 def index():
     """提供主页面"""
-    return send_from_directory('frontend/templates', 'index.html')
+    return render_template('index.html')
 
 
 @app.route('/html/<path:filename>')
 def serve_html(filename):
     """提供HTML文件"""
+    if filename == 'index.html':
+        return render_template('index.html')
     return send_from_directory('frontend/templates', filename)
 
 

@@ -1,0 +1,86 @@
+<section id="ml-arena" class="ml-arena section-shell" aria-labelledby="arena-title">
+    <header class="arena-heading"><div><span class="arena-eyebrow">ML ARENA / 同一份数据，六种答案</span><h2 id="arena-title">机器学习模型竞技场<span class="arena-live">LOCAL LAB</span></h2><p>拖动几个训练样本，重新对决。观察同一个变化，如何让六种决策边界作出不同响应。</p></div><button id="arena-focus" type="button">专注模式 ↗</button></header>
+    <div class="arena-workbench">
+        <div class="arena-topline"><span><i class="arena-dot"></i>共享数据实验场</span><span id="arena-version">数据 v0 · 未训练</span><button id="arena-run" class="arena-primary" type="button">开始六模型对决 →</button></div>
+        <fieldset class="arena-participants"><legend>参赛算法 <span id="arena-participant-count">6 / 6 · 至少选 2 个</span></legend><div>
+            <label><input type="checkbox" data-arena-participant="svm" checked>SVM</label><label><input type="checkbox" data-arena-participant="knn" checked>KNN</label><label><input type="checkbox" data-arena-participant="tree" checked>决策树</label><label><input type="checkbox" data-arena-participant="forest" checked>随机森林</label><label><input type="checkbox" data-arena-participant="mlp" checked>神经网络</label><label><input type="checkbox" data-arena-participant="bayes" checked>高斯贝叶斯</label><button id="arena-participants-all" type="button">全部参赛</button>
+        </div><p>选几个模型，就显示几个画布；只训练参赛算法，使用同一份训练 / 测试划分。</p></fieldset>
+        <div class="arena-studio">
+            <aside class="arena-controls" aria-label="数据与绘制工具">
+                <h3>01 / 创造分类问题</h3>
+                <label>数据分布<select id="arena-preset"><option value="moons">交错月牙</option><option value="circles">内外圆环</option><option value="xor">XOR 四象限</option><option value="free">自由绘制</option></select></label>
+                <div class="arena-input-pair"><label>样本数<input id="arena-count" type="number" min="24" max="600" step="12" value="180"></label><label>种子<input id="arena-seed" type="number" min="0" max="1000000" value="42"></label></div>
+                <label>生成噪声 <output id="arena-noise-value">0.13</output><input id="arena-noise" type="range" min="0" max="0.5" step="0.01" value="0.13"></label>
+                <button id="arena-generate" type="button">重新生成数据 ↻</button>
+                <div class="arena-tools" role="group" aria-label="画布工具">
+                    <button data-tool="move" aria-pressed="true" title="拖动样本；点击测试点检查预测" type="button">↔ 拖动</button><button data-tool="inspect" aria-pressed="false" type="button">◎ 检查</button>
+                    <button data-tool="a" aria-pressed="false" type="button"><i class="arena-swatch a"></i>画 A</button><button data-tool="b" aria-pressed="false" type="button"><i class="arena-swatch b"></i>画 B</button>
+                    <button data-tool="erase" aria-pressed="false" type="button">− 删除</button><button data-tool="flip" aria-pressed="false" type="button">⇄ 换类</button>
+                </div>
+                <div class="arena-input-pair"><button id="arena-undo" type="button" disabled>撤销</button><button id="arena-clear" type="button">清空</button></div>
+            </aside>
+            <div class="arena-data-panel">
+                <div class="arena-plot-heading"><strong>共享样本 · X₁ × X₂</strong><span id="arena-split">等待数据</span></div>
+                <div class="arena-canvas-wrap arena-main-wrap"><canvas id="arena-data" tabindex="0" aria-label="共享数据画布。选择拖动、画 A、画 B、删除或换类工具，再操作样本。"></canvas><span class="arena-axis-label">X₁ →</span><div id="arena-tooltip" class="arena-tooltip" hidden></div></div>
+                <div class="arena-legend"><span><i class="arena-swatch a"></i>类别 A</span><span><i class="arena-swatch b"></i>类别 B</span><span>● 训练</span><span>○ 测试</span><span class="arena-error-key">× 测试误判</span><span>◇ 标签污染</span></div>
+                <p id="arena-hint">拖动实心训练点，再点击重新对决；悬停可联动六个模型。</p>
+            </div>
+            <aside class="arena-params" aria-label="模型参数">
+                <h3>02 / 相同条件，独立学习</h3>
+                <div id="arena-model-parameters" class="arena-parameter-host"><p>正在加载对齐原实验选项的完整参数…</p></div>
+                <p class="arena-parameter-note">支持任选 2～6 个算法对决。未参赛算法保留参数，但不训练；无关参数按条件禁用。</p>
+                <label>独立测试集<select id="arena-test-size"><option value="0.1">10% · 分层留出</option><option value="0.15">15% · 分层留出</option><option value="0.2">20% · 分层留出</option><option value="0.25" selected>25% · 分层留出</option><option value="0.3">30% · 分层留出</option><option value="0.35">35% · 分层留出</option><option value="0.4">40% · 分层留出</option><option value="0.45">45% · 分层留出</option><option value="0.5">50% · 分层留出</option></select></label>
+                <p class="arena-fairness">同一划分 · 仅训练集拟合标准化<br>排名依据测试集 Macro F1，Accuracy 破同分；完全相同则并列。</p>
+            </aside>
+        </div>
+        <section class="arena-stepper" aria-labelledby="arena-step-title">
+            <div class="arena-step-intro"><h3 id="arena-step-title">逐步观察学习过程</h3><span id="arena-step-mode">选择一个步数，查看六种机制的真实阶段</span></div>
+            <div class="arena-step-actions" role="group" aria-label="训练过程步进">
+                <button type="button" data-observe-step="1">第 1 步</button><button type="button" data-observe-step="10">第 10 步</button><button type="button" data-observe-step="50">第 50 步</button>
+                <button id="arena-step-next" type="button">前进 1 步</button><button id="arena-step-ten" type="button">前进 10 步</button>
+                <label>目标步数<input id="arena-step-value" type="number" min="1" max="10000" step="1" value="1"></label><button id="arena-step-go" type="button">观察此步 →</button>
+                <label>回看快照<select id="arena-step-history" disabled><option value="">尚无快照</option></select></label><button id="arena-step-final" type="button" disabled>返回完整对决</button>
+            </div>
+            <p>神经网络看轮次 · SVM / L-BFGS 看独立优化预算 · 森林看树数 · 决策树看结构展开 · KNN 看邻居投票 · 贝叶斯看累积数据。单位不同，过程快照不排名。</p>
+            <div class="arena-playback" aria-label="按真实耗时连续演示">
+                <div class="arena-play-actions">
+                    <strong>按真实耗时连续演示</strong>
+                    <label>本次最多步数<input id="arena-play-steps" type="number" min="1" max="1000" value="50" step="1" aria-describedby="arena-record-estimate"></label>
+                    <button id="arena-play-record" type="button">记录并播放 ▶</button>
+                    <button id="arena-play-pause" type="button" disabled>暂停 Ⅱ</button>
+                    <button id="arena-play-restart" type="button" disabled>从头播放 ↺</button>
+                    <button id="arena-play-cancel" type="button" hidden>取消记录</button>
+                    <label>实时速度倍率<input id="arena-play-speed" type="number" min="0.00001" max="10" step="any" value="0.001"></label>
+                    <input id="arena-play-speed-slider" class="arena-speed-slider" aria-label="对数速度倍率滑块" type="range" min="-5" max="1" step="0.05" value="-3">
+                    <span id="arena-play-speed-note">0.001× · 耗时放慢 1000 倍</span>
+                </div>
+                <details class="arena-record-estimate" id="arena-record-estimate"><summary id="arena-record-estimate-summary" role="status" aria-live="polite">预计记录等待：正在加载参数…</summary><div id="arena-record-estimate-models"></div><p id="arena-record-estimate-note">包含训练、边界预测与快照整理，不含动画播放时间。输入时不会发起训练。</p></details>
+                <div class="arena-play-time"><span id="arena-play-state" role="status" aria-live="polite">尚未记录 · 参赛模型按各自耗时独立推进</span><label>实测时间轴<input id="arena-play-seek" type="range" min="0" max="1" step="any" value="0" disabled></label><output id="arena-play-time">0.000 / 0.000 ms</output></div>
+                <p>先记录，再按实测耗时回放：演示时长 = 实测耗时 ÷ 倍率（1× 为原速）。准备耗时单列；不计预测网格、指标、网络和绘图。SVM / L-BFGS 计时为独立预算求解；树与 KNN 是解释步骤，不是训练迭代。极短步骤可能跨帧，降低倍率可放慢。每段最多 1000 步，不表示全部收敛；步数越多，记录等待时间与内存占用越大。</p>
+            </div>
+        </section>
+        <div class="arena-observe-heading"><div><span class="arena-eyebrow">03 / OBSERVE THE DIFFERENCE</span><h3>同一坐标，六种决策方式</h3></div><span id="arena-status" role="status" aria-live="polite">准备数据后，开始第一次对决。</span></div>
+        <div id="arena-viewbar" class="arena-viewbar" aria-label="模型画布布局与数据折叠">
+            <span id="arena-data-fold-state">详细数据默认收起 · 六画布总览</span>
+            <div role="group" aria-label="实验数据折叠控制"><button id="arena-data-expand" type="button">全部展开数据</button><button id="arena-data-collapse" type="button">全部收起数据</button><button id="arena-fit-canvases" type="button">六画布同屏 ↗</button></div>
+        </div>
+        <div class="arena-models">
+            <article class="arena-model" data-model="svm"><header><div><span class="arena-model-number">01</span><strong>SVM</strong><small>支持向量机</small></div><span class="arena-rank" id="arena-rank-svm">待对决</span></header><div class="arena-model-plot"><canvas id="arena-plot-svm" tabindex="0" aria-label="支持向量机真实决策区域，点击测试点可查看预测"></canvas><span class="arena-stale-tag">等待训练</span></div><div class="arena-model-score" id="arena-score-svm"><strong>—<small>TEST MACRO F1</small></strong><span>Accuracy —<br>训练 Accuracy —</span></div><div class="arena-explanation" id="arena-explain-svm">计算完成后显示真实边界，不模拟训练迭代。</div><details class="arena-effective-params"><summary>本轮实际生效参数</summary><pre id="arena-effective-svm">训练后显示实际模型参数与预处理信息。</pre></details></article>
+            <article class="arena-model" data-model="knn"><header><div><span class="arena-model-number">02</span><strong>KNN</strong><small>K 近邻</small></div><span class="arena-rank" id="arena-rank-knn">待对决</span></header><div class="arena-model-plot"><canvas id="arena-plot-knn" tabindex="0" aria-label="K 近邻真实决策区域，点击测试点可查看预测"></canvas><span class="arena-stale-tag">等待训练</span></div><div class="arena-model-score" id="arena-score-knn"><strong>—<small>TEST MACRO F1</small></strong><span>Accuracy —<br>训练 Accuracy —</span></div><div class="arena-explanation" id="arena-explain-knn">计算完成后显示真实边界，不模拟训练迭代。</div><details class="arena-effective-params"><summary>本轮实际生效参数</summary><pre id="arena-effective-knn">训练后显示实际模型参数与预处理信息。</pre></details></article>
+            <article class="arena-model" data-model="tree"><header><div><span class="arena-model-number">03</span><strong>DECISION TREE</strong><small>决策树</small></div><span class="arena-rank" id="arena-rank-tree">待对决</span></header><div class="arena-model-plot"><canvas id="arena-plot-tree" tabindex="0" aria-label="决策树真实决策区域，点击测试点可查看预测"></canvas><span class="arena-stale-tag">等待训练</span></div><div class="arena-model-score" id="arena-score-tree"><strong>—<small>TEST MACRO F1</small></strong><span>Accuracy —<br>训练 Accuracy —</span></div><div class="arena-explanation" id="arena-explain-tree">计算完成后显示真实边界，不模拟训练迭代。</div><details class="arena-effective-params"><summary>本轮实际生效参数</summary><pre id="arena-effective-tree">训练后显示实际模型参数与预处理信息。</pre></details></article>
+            <article class="arena-model" data-model="forest"><header><div><span class="arena-model-number">04</span><strong>RANDOM FOREST</strong><small>随机森林</small></div><span class="arena-rank" id="arena-rank-forest">待对决</span></header><div class="arena-model-plot"><canvas id="arena-plot-forest" tabindex="0" aria-label="随机森林真实决策区域，点击测试点可查看预测"></canvas><span class="arena-stale-tag">等待真实训练</span></div><div class="arena-model-score" id="arena-score-forest"><strong>—<small>TEST MACRO F1</small></strong><span>Accuracy —<br>训练 Accuracy —</span></div><div class="arena-explanation" id="arena-explain-forest">计算完成后显示真实边界，不模拟训练迭代。</div><details class="arena-effective-params"><summary>本轮实际生效参数</summary><pre id="arena-effective-forest">训练后显示实际模型参数与预处理信息。</pre></details></article>
+            <article class="arena-model" data-model="mlp"><header><div><span class="arena-model-number">05</span><strong>MLP</strong><small>神经网络</small></div><span class="arena-rank" id="arena-rank-mlp">待对决</span></header><div class="arena-model-plot"><canvas id="arena-plot-mlp" tabindex="0" aria-label="神经网络真实决策区域，点击测试点可查看预测"></canvas><span class="arena-stale-tag">等待真实训练</span></div><div class="arena-model-score" id="arena-score-mlp"><strong>—<small>TEST MACRO F1</small></strong><span>Accuracy —<br>训练 Accuracy —</span></div><div class="arena-explanation" id="arena-explain-mlp">计算完成后显示真实边界，不模拟训练迭代。</div><details class="arena-effective-params"><summary>本轮实际生效参数</summary><pre id="arena-effective-mlp">训练后显示实际模型参数与预处理信息。</pre></details></article>
+            <article class="arena-model" data-model="bayes"><header><div><span class="arena-model-number">06</span><strong>GAUSSIAN NB</strong><small>高斯朴素贝叶斯</small></div><span class="arena-rank" id="arena-rank-bayes">待对决</span></header><div class="arena-model-plot"><canvas id="arena-plot-bayes" tabindex="0" aria-label="高斯朴素贝叶斯真实决策区域，点击测试点可查看预测"></canvas><span class="arena-stale-tag">等待真实训练</span></div><div class="arena-model-score" id="arena-score-bayes"><strong>—<small>TEST MACRO F1</small></strong><span>Accuracy —<br>训练 Accuracy —</span></div><div class="arena-explanation" id="arena-explain-bayes">计算完成后显示真实边界，不模拟训练迭代。</div><details class="arena-effective-params"><summary>本轮实际生效参数</summary><pre id="arena-effective-bayes">训练后显示实际模型参数与预处理信息。</pre></details></article>
+        </div>
+        <div class="arena-inspect-bar"><strong id="arena-inspect-title">◎ 点击一个空心测试点，比较六个模型的预测</strong><label><input id="arena-errors-only" type="checkbox">只突出误判样本</label><label><input id="arena-show-links" type="checkbox" checked>显示真实邻居连线</label></div>
+        <div class="arena-challenges">
+            <div><span class="arena-eyebrow">04 / STRESS TEST</span><h3>固定测试集，改变训练条件</h3><p>第一轮结果自动作为基线。挑战只改变训练样本。</p></div>
+            <label>坐标噪声 σ <output id="arena-challenge-noise-value">0.00</output><input id="arena-challenge-noise" type="range" min="0" max="0.5" step="0.05" value="0"></label>
+            <label>错误标签 <output id="arena-corruption-value">0%</output><input id="arena-corruption" type="range" min="0" max="0.4" step="0.05" value="0"></label>
+            <div class="arena-challenge-actions"><button id="arena-reset-challenge" type="button">重置挑战</button><button id="arena-baseline" type="button" disabled>当前结果设为基线</button></div>
+        </div>
+        <div class="arena-compare" id="arena-compare" hidden><label><input id="arena-compare-enabled" type="checkbox">边界对比：基线 ← → 本轮</label><label class="arena-compare-slider">共同分割线<input id="arena-divider" type="range" min="0" max="100" value="50"></label><span id="arena-compare-note"></span></div>
+        <details class="arena-metrics"><summary>完整真实指标 / 训练与测试分开评估</summary><div class="arena-table-scroll"><table><thead><tr><th>模型</th><th>训练 Acc</th><th>测试 Acc</th><th>Precision 宏平均</th><th>Recall 宏平均</th><th>Macro F1</th><th>训练耗时</th><th>F1 对比基线</th></tr></thead><tbody id="arena-metrics-body"><tr><td colspan="8">尚未训练</td></tr></tbody></table></div></details>
+        <footer class="arena-footer"><span>120 × 120 真实 predict 网格 · 统一坐标 [-3, 3]² · 无模型跨浏览器共享</span><span>结果只代表当前数据与参数，不代表算法绝对优劣。</span></footer>
+    </div>
+</section>

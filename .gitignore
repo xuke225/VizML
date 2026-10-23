@@ -17,6 +17,7 @@ dist/
 .ruff_cache/
 .coverage
 htmlcov/
+.arena-qa/
 
 # Local configuration and secrets
 .env
