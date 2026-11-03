@@ -48,12 +48,16 @@ class ClusteringAlgorithms:
         centers = None
         
         if algorithm == 'kmeans':
-            model = self._train_kmeans(X, **kwargs)
+            if kwargs.get('record_history'):
+                model, history = self._train_kmeans_history(X, **kwargs)
+            else:
+                model = self._train_kmeans(X, **kwargs)
             labels = model.labels_
             centers = model.cluster_centers_
             training_info = {
                 'n_iter': model.n_iter_,
-                'inertia': model.inertia_
+                'inertia': model.inertia_,
+                'history': history if kwargs.get('record_history') else []
             }
             
         elif algorithm == 'dbscan':
@@ -89,6 +93,13 @@ class ClusteringAlgorithms:
         else:
             raise ValueError(f"不支持的聚类算法: {algorithm}")
         
+        if kwargs.get('record_history') and algorithm == 'dbscan':
+            training_info['history'] = self._dbscan_history(X, model)
+        elif kwargs.get('record_history') and algorithm == 'hierarchical':
+            training_info['history'] = self._hierarchical_history(X, model)
+        elif kwargs.get('record_history') and algorithm == 'gmm':
+            training_info['history'] = model.visual_history_
+
         # 计算聚类评估指标
         if len(set(labels)) > 1:  # 至少有两个聚类
             try:
@@ -118,6 +129,54 @@ class ClusteringAlgorithms:
         model.fit(X)
         return model
     
+    def _train_kmeans_history(self, X, n_clusters=3, max_iter=100,
+                              init='k-means++', **kwargs):
+        """Record the winning Lloyd run, including assignment and update phases."""
+        from sklearn.cluster import kmeans_plusplus
+        rng = np.random.RandomState(42)
+        best = None
+        for run in range(10):
+            if init == 'k-means++':
+                centers, _ = kmeans_plusplus(X, n_clusters, random_state=rng)
+            elif init == 'random':
+                centers = X[rng.choice(len(X), n_clusters, replace=False)].copy()
+            else:
+                raise ValueError('Unsupported initialization')
+            frames = []
+            def snapshot(title, description, labels, centers, iteration):
+                frames.append(dict(title=title, description=description,
+                    labels=labels.tolist(), centers=centers.tolist(), iteration=iteration,
+                    metric=float(np.sum((X - centers[labels]) ** 2))))
+            labels = np.argmin(euclidean_distances(X, centers), axis=1)
+            snapshot('初始化', '选择初始质心；叉号表示质心，颜色表示所属簇。', labels, centers, 0)
+            converged = False
+            for iteration in range(1, max_iter + 1):
+                labels = np.argmin(euclidean_distances(X, centers), axis=1)
+                snapshot('分配数据点', '计算到各质心的距离，将每个点分配给最近的质心。', labels, centers, iteration)
+                updated = np.array([X[labels == k].mean(axis=0) if np.any(labels == k)
+                                    else centers[k] for k in range(n_clusters)])
+                shift = float(np.linalg.norm(updated - centers))
+                snapshot('更新质心', f'将质心移到簇内均值位置；本轮总位移 {shift:.6f}。空簇保留原质心。', labels, updated, iteration)
+                centers = updated
+                if shift < 1e-6:
+                    converged = True
+                    break
+            # Persist the recorded state without silently performing another update.
+            final_labels = np.argmin(euclidean_distances(X, centers), axis=1)
+            model = KMeans(n_clusters=n_clusters, init=init, n_init=10,
+                           max_iter=max_iter, random_state=42)
+            model.cluster_centers_ = centers.copy()
+            model.labels_ = final_labels
+            model.inertia_ = float(np.sum((X - centers[final_labels]) ** 2))
+            model.n_features_in_ = X.shape[1]
+            model._n_threads = 1
+            snapshot('完成', '质心已稳定，算法收敛。' if converged else '达到迭代上限；保留当前质心，并按最近距离确定最终归属，尚未保证收敛。',
+                     model.labels_, model.cluster_centers_, iteration)
+            model.n_iter_ = iteration
+            if best is None or model.inertia_ < best[0]:
+                best = (model.inertia_, model, frames)
+        return best[1], best[2]
+
     def _train_dbscan(self, X, eps=0.05, min_samples=5, **kwargs):
         """训练DBSCAN模型"""
         model = DBSCAN(
@@ -139,7 +198,7 @@ class ClusteringAlgorithms:
     def _train_gmm(self, X, n_components=3, covariance_type='full', init_params='kmeans', 
                    max_iter=100, tol=1e-3, **kwargs):
         """训练高斯混合模型"""
-        model = GaussianMixture(
+        model = (RecordedGaussianMixture if kwargs.get('record_history') else GaussianMixture)(
             n_components=n_components,
             covariance_type=covariance_type,
             init_params=init_params,
@@ -150,6 +209,75 @@ class ClusteringAlgorithms:
         model.fit(X)
         return model
     
+    def _dbscan_history(self, X, model):
+        """Replay sklearn's depth-first expansion using its exact core-point mask."""
+        from sklearn.neighbors import NearestNeighbors
+        neighbors = NearestNeighbors(radius=model.eps).fit(X).radius_neighbors(X, return_distance=False)
+        core = np.zeros(len(X), dtype=bool)
+        core[model.core_sample_indices_] = True
+        labels = np.full(len(X), -2, dtype=int)  # -2 unvisited; -1 noise
+        frames = []
+        def record(title, text, focus=None):
+            frames.append(dict(title=title, description=text, labels=labels.tolist(), centers=[],
+                iteration=len(frames), metric=int(np.sum(labels >= 0)),
+                metric_name='已归簇点数', metric_hint='随密度扩展增加；灰色为噪声，浅灰色为尚未访问。',
+                algorithm='dbscan', focus=focus, eps=float(model.eps),
+                neighbors=neighbors[focus].tolist() if focus is not None else [],
+                core_points=model.core_sample_indices_.tolist()))
+        record('初始化', '从未访问的数据点开始，检查 ε 邻域中的点数。')
+        cluster = 0
+        for i in range(len(X)):
+            if labels[i] >= 0:
+                continue
+            if not core[i]:
+                labels[i] = -1
+                record('标记噪声', f'点 {i + 1} 邻域内有 {len(neighbors[i])} 个点（含自身），少于 min_samples={model.min_samples}，暂记噪声；后续可能成为边界点。', i)
+                continue
+            stack = [i]
+            while stack:
+                j = stack.pop()
+                if labels[j] >= 0:
+                    continue
+                labels[j] = cluster
+                if core[j]:
+                    stack.extend(int(k) for k in neighbors[j] if labels[k] < 0)
+                record('扩展密度簇' if core[j] else '吸收边界点',
+                       f'点 {j + 1} 是'+('核心点，继续扩展其邻域。' if core[j] else '边界点，加入当前簇但不继续扩展。'), j)
+            cluster += 1
+        if not np.array_equal(labels, model.labels_):
+            raise RuntimeError('DBSCAN replay differs from fitted labels')
+        record('完成', f'密度扩展完成：{cluster} 个簇，{int(np.sum(labels == -1))} 个噪声点。')
+        return frames
+
+    def _hierarchical_history(self, X, model):
+        """Reconstruct actual merges from the fitted sklearn linkage tree."""
+        n = len(X)
+        members = {i: [i] for i in range(n)}
+        active = set(range(n))
+        frames = []
+        def record(title, text, merged=()):
+            labels = np.empty(n, dtype=int)
+            for node in active:
+                labels[members[node]] = node
+            frames.append(dict(title=title, description=text, labels=labels.tolist(), centers=[],
+                iteration=len(frames), metric=len(active), algorithm='hierarchical',
+                metric_name='当前簇数', metric_hint='每次合并两个簇，直到达到设定的簇数。',
+                highlight=list(merged)))
+        record('每点一簇', f'开始时 {n} 个数据点各自构成一个簇。')
+        for step, (a, b) in enumerate(model.children_[:n - model.n_clusters_]):
+            a, b = int(a), int(b)
+            merged = members.pop(a) + members.pop(b)
+            active.remove(a); active.remove(b)
+            members[n + step] = merged; active.add(n + step)
+            record('合并最近的簇', f'按 {model.linkage} 准则合并两个簇，新簇包含 {len(merged)} 个点；剩余 {len(active)} 个簇。', merged)
+        record('完成', f'达到目标簇数 {model.n_clusters_}，停止合并。')
+        # Reserve final root colors so stopping the replay does not recolor every point.
+        root_labels = {node: int(model.labels_[members[node][0]]) for node in active}
+        for frame in frames:
+            frame['labels'] = [root_labels.get(label, label + model.n_clusters_) for label in frame['labels']]
+        frames[-1]['labels'] = model.labels_.tolist()
+        return frames
+
     def compare_algorithms(self, X, algorithms=['kmeans', 'dbscan', 'hierarchical', 'gmm'], **algorithm_params):
         """
         对比多个聚类算法的性能
@@ -693,3 +821,42 @@ class ClusteringAlgorithms:
             'noise_points': noise_points,
             'final_labels': labels
         }
+
+class RecordedGaussianMixture(GaussianMixture):
+    """Observe sklearn EM hooks without changing the fitted optimization."""
+    def _record(self, X, title, description):
+        probabilities = self.predict_proba(X)
+        cov = self.covariances_
+        if self.covariance_type == 'tied':
+            cov = np.repeat(cov[None, :, :], self.n_components, axis=0)
+        elif self.covariance_type == 'diag':
+            cov = np.array([np.diag(c) for c in cov])
+        elif self.covariance_type == 'spherical':
+            cov = np.array([np.eye(X.shape[1]) * c for c in cov])
+        self.visual_history_.append(dict(title=title, description=description,
+            labels=probabilities.argmax(axis=1).tolist(), centers=self.means_.tolist(),
+            confidence=probabilities.max(axis=1).tolist(), covariances=cov.tolist(),
+            weights=self.weights_.tolist(), iteration=self.visual_round_, metric=float(self.score(X)),
+            algorithm='gmm', metric_name='平均对数似然',
+            metric_hint='通常随 EM 迭代上升；颜色表示最可能的分量，越浅表示归属越不确定。'))
+
+    def _initialize_parameters(self, X, random_state):
+        self.visual_history_ = []
+        self.visual_round_ = 0
+        super()._initialize_parameters(X, random_state)
+        self._record(X, '初始化分布', '初始化各高斯分量的均值、协方差与混合权重；椭圆展示约 2σ 范围。')
+
+    def _e_step(self, X):
+        result = super()._e_step(X)
+        self._record(X, 'E 步：概率分配', '根据当前高斯分布，计算每个点属于各分量的后验概率（软分配）。')
+        return result
+
+    def _m_step(self, X, log_resp):
+        super()._m_step(X, log_resp)
+        self.visual_round_ += 1
+        self._record(X, 'M 步：更新分布', '按后验概率加权更新均值、协方差和混合权重，观察椭圆位置与形状变化。')
+
+    def fit(self, X, y=None):
+        super().fit(X, y)
+        self._record(X, '完成', '对数似然变化已满足容差，EM 收敛。' if self.converged_ else '达到最大迭代次数，尚未满足收敛容差。')
+        return self

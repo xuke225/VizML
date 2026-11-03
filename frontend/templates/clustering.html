@@ -1012,6 +1012,23 @@
                 min-width: 100%;
             }
         }
+        .content-area { min-width: 0; }
+        .iteration-panel { margin: 0 0 20px; padding: 22px; }
+        .iteration-heading,.iteration-toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+        .iteration-heading { justify-content:space-between; }
+        .iteration-heading h3 { text-align:left; margin:0; }
+        .iteration-heading p,.iteration-hint { color:#6B7890; font-size:13px; line-height:1.7; }
+        #iterationBadge { background:#EEF2FF; color:#4F46E5; padding:7px 12px; border-radius:20px; font-size:12px; }
+        .iteration-toolbar { margin:16px 0; }
+        #iterationSeek { flex:1; min-width:100px; accent-color:#4F46E5; }
+        .iteration-grid { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(0,1fr); gap:22px; }
+        .iteration-grid canvas { width:100%; height:auto; box-sizing:border-box; border-radius:10px; }
+        .iteration-explanation { min-width:0; background:#F7F9FD; padding:16px; border-radius:12px; }
+        .iteration-explanation p { line-height:1.8; font-size:14px; }
+        .iteration-explanation h4 { margin:10px 0; font-size:19px; }
+        #iterationRound { font-size:12px; color:#4F46E5; }
+        #iterationChart { margin-top:16px; }
+        @media(max-width:1000px) { .iteration-grid { grid-template-columns:1fr; } }
     </style>
     <link rel="stylesheet" href="/static/css/design-system.css">
     <script defer src="/static/js/visualization-theme.js"></script>
@@ -1322,6 +1339,20 @@
                     </div>
                 </div>
                 
+                <section id="iterationPanel" class="panel iteration-panel">
+                    <div class="iteration-heading"><div><h3>聚类是如何形成的？</h3><p>沿着算法轨迹，观察密度扩展、簇合并与分布更新。</p></div><span id="iterationBadge">等待执行</span></div>
+                    <div class="iteration-toolbar">
+                        <button id="iterationPlay" disabled>播放过程</button>
+                        <button id="iterationPrev" disabled>上一步</button><button id="iterationNext" disabled>下一步</button>
+                        <label>速度 <select id="iterationSpeed"><option value="1400">慢速</option><option value="700" selected>正常</option><option value="250">快速</option></select></label>
+                        <input id="iterationSeek" type="range" min="0" max="0" value="0" aria-label="训练步骤" disabled>
+                        <span id="iterationCount">0 / 0</span>
+                    </div>
+                    <div class="iteration-grid">
+                        <div><canvas id="iterationCanvas" width="600" height="320" aria-label="当前步骤聚类分布"></canvas><p class="iteration-hint" id="iterationLegend">● 数据点　⊕ 质心 C1…　浅线：所属质心　深线：移动轨迹</p></div>
+                        <div class="iteration-explanation"><span id="iterationRound">训练过程</span><h4 id="iterationTitle">从结果走进过程</h4><p id="iterationDescription">生成数据并执行聚类后，可以在这里逐步回放算法过程。上方保留最终结果，方便对照。</p><p id="iterationMotion" class="iteration-hint">播放后观察质心移动与数据归属变化</p><strong id="iterationMetric">簇内平方和 SSE：—</strong><canvas id="iterationChart" width="320" height="150" aria-label="簇内平方和变化曲线"></canvas><p class="iteration-hint" id="iterationMetricHint">SSE 越低，簇内越紧凑；不代表簇数一定最优。</p></div>
+                    </div>
+                </section>
                 <!-- 单步调试区域 -->
                 <div id="debugArea" style="display: none;">
                     <div class="debug-header">
@@ -1481,6 +1512,169 @@
     <script src="/static/js/api-client.js"></script>
 
     <script>
+        let iterationFrames = [], iterationIndex = 0, iterationTimer = null;
+        let iterationAnimation = null, iterationPlaying = false, iterationRevision = 0, datasetRevision = 0;
+        function animateIteration(from, done) {
+            const start = performance.now(), duration = Number(document.getElementById('iterationSpeed').value) * .8;
+            const tick = now => {
+                const t = Math.min(1, (now - start) / duration);
+                renderIteration(from, t * t * (3 - 2 * t));
+                if (t < 1) iterationAnimation = requestAnimationFrame(tick);
+                else { iterationAnimation = null; if (done) done(); }
+            };
+            renderIteration(from, 0);
+            iterationAnimation = requestAnimationFrame(tick);
+        }
+        function moveIteration(index) {
+            const from = iterationIndex;
+            pauseIterations();
+            iterationIndex = Math.max(0, Math.min(iterationFrames.length - 1, index));
+            animateIteration(from);
+        }
+        function pauseIterations() {
+            clearTimeout(iterationTimer); iterationTimer = null;
+            cancelAnimationFrame(iterationAnimation); iterationAnimation = null;
+            iterationPlaying = false;
+            if (iterationFrames.length) renderIteration();
+            document.getElementById('iterationPlay').textContent = '播放过程';
+        }
+        function clearIterationHistory() {
+            iterationRevision++;
+            iterationFrames = [];
+            pauseIterations(); iterationIndex = 0;
+            ['iterationPlay','iterationPrev','iterationNext','iterationSeek'].forEach(id => document.getElementById(id).disabled = true);
+            document.getElementById('iterationCount').textContent = '0 / 0';
+            document.getElementById('iterationSeek').value = 0;
+            document.getElementById('iterationSeek').max = 0;
+            document.getElementById('iterationBadge').textContent = '等待执行';
+            document.getElementById('iterationTitle').textContent = '从结果走进过程';
+            document.getElementById('iterationDescription').textContent = '支持全部四种算法：K-Means 质心更新、DBSCAN 密度扩展、层次聚类逐步合并、GMM 概率分配与分布更新。';
+            document.getElementById('iterationMetric').textContent = '过程指标：—';
+            document.getElementById('iterationLegend').textContent = '执行聚类后显示对应算法的图例';
+            document.getElementById('iterationMetricHint').textContent = '曲线会按算法展示对应的过程指标。';
+            document.getElementById('iterationRound').textContent = '训练过程';
+            document.getElementById('iterationMotion').textContent = '播放后观察质心移动与数据归属变化';
+            ['iterationCanvas','iterationChart'].forEach(id => {const c=document.getElementById(id); c.getContext('2d').clearRect(0,0,c.width,c.height);});
+        }
+        function loadIterationHistory(frames, algorithm) {
+            pauseIterations(); iterationFrames = frames; iterationIndex = 0;
+            if (!frames.length) {
+                document.getElementById('iterationBadge').textContent = '最终结果';
+                document.getElementById('iterationDescription').textContent = '未收到过程数据，请重启后端服务后重新执行聚类。';
+                return;
+            }
+            document.getElementById('iterationSeek').max = frames.length-1;
+            document.getElementById('iterationPlay').disabled = false;
+            document.getElementById('iterationSeek').disabled = false;
+            renderIteration();
+        }
+        function renderIteration(fromIndex = Math.max(0, iterationIndex - 1), progress = 1) {
+            const f = iterationFrames[iterationIndex]; if (!f) return;
+            const c = document.getElementById('iterationCanvas'), ctx = c.getContext('2d');
+            clearCanvas(ctx,c);
+            const project = center => CoordinateUtils.normalizePoint(center,window.dataRange);
+            const previous = iterationFrames[fromIndex] || f;
+            const centers = f.centers.map((center,k) => center.map((v,d) => (previous.centers[k] || center)[d] + (v-(previous.centers[k] || center)[d])*progress));
+            const changed = f.labels.reduce((n,label,i) => n + (label !== previous.labels[i] ? 1 : 0),0);
+            const shift = Math.sqrt(f.centers.reduce((sum,center,k) => sum + center.reduce((n,v,d) => n + (v-(previous.centers[k] || center)[d])**2,0),0));
+            // Show assignment lines so the relationship to each moving centroid is visible.
+            ctx.save(); ctx.globalAlpha = .13; ctx.lineWidth = 1;
+            data.forEach((point,i) => {
+                const k=f.labels[i]; if (!centers[k]) return;
+                const center=project(centers[k]);
+                ctx.strokeStyle=clusterColors[k%clusterColors.length];ctx.beginPath();
+                ctx.moveTo(point.x*c.width,point.y*c.height);ctx.lineTo(center.x*c.width,center.y*c.height);ctx.stroke();
+            });
+            ctx.restore();
+            // Use the same coordinates and cluster IDs throughout the replay.
+            for (let j=1;j<=iterationIndex;j++) {
+                const a=iterationFrames[j-1].centers,b=iterationFrames[j].centers;
+                b.forEach((center,k) => {if (!a[k]) return; const p=project(a[k]),q=project(center);ctx.beginPath();ctx.strokeStyle=clusterColors[k%clusterColors.length];ctx.globalAlpha=.45;ctx.moveTo(p.x*c.width,p.y*c.height);ctx.lineTo(q.x*c.width,q.y*c.height);ctx.stroke();});
+            }
+            ctx.globalAlpha=1;
+            // Gaussian covariance contours are projected with the same scale as the points.
+            if (f.covariances && window.dataRange) {
+                const range=window.dataRange, sx=c.width/(range.xMax-range.xMin||1), sy=c.height/(range.yMax-range.yMin||1);
+                f.covariances.forEach((cov,k)=>{
+                    const old=previous.covariances ? previous.covariances[k] : cov;
+                    const blend=(a,b)=>(a+(b-a)*progress);
+                    const a=blend(old[0][0],cov[0][0])*sx*sx, b=blend(old[0][1],cov[0][1])*sx*sy, d=blend(old[1][1],cov[1][1])*sy*sy;
+                    const disc=Math.sqrt((a-d)**2+4*b*b), angle=.5*Math.atan2(2*b,a-d), p=project(centers[k]);
+                    ctx.save();ctx.strokeStyle=clusterColors[k%clusterColors.length];ctx.globalAlpha=.5;ctx.lineWidth=2;
+                    ctx.beginPath();ctx.ellipse(p.x*c.width,p.y*c.height,2*Math.sqrt(Math.max(0,(a+d+disc)/2)),2*Math.sqrt(Math.max(0,(a+d-disc)/2)),angle,0,Math.PI*2);ctx.stroke();ctx.restore();
+                });
+            }
+            data.forEach((p,i)=>{
+                const label=f.labels[i], color=label===-2?'#CBD5E1':label===-1?'#64748B':clusterColors[label%clusterColors.length];
+                ctx.save();ctx.globalAlpha=f.confidence ? .25+.75*f.confidence[i] : 1;
+                drawDataPointOnCanvas(ctx,p.x,p.y,color,c.width,c.height);ctx.restore();
+            });
+            if (f.highlight && f.highlight.length) {
+                const points=f.highlight.map(i=>data[i]);
+                const mean={x:points.reduce((n,p)=>n+p.x,0)/points.length,y:points.reduce((n,p)=>n+p.y,0)/points.length};
+                ctx.save();ctx.strokeStyle='#172033';ctx.globalAlpha=.3;
+                points.forEach(p=>{ctx.beginPath();ctx.moveTo(p.x*c.width,p.y*c.height);ctx.lineTo(mean.x*c.width,mean.y*c.height);ctx.stroke();});ctx.restore();
+            }
+            if (f.focus != null && data[f.focus] && window.dataRange) {
+                const p=data[f.focus], range=window.dataRange;
+                ctx.save();ctx.strokeStyle='#172033';ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.beginPath();
+                ctx.ellipse(p.x*c.width,p.y*c.height,f.eps/(range.xMax-range.xMin||1)*c.width,f.eps/(range.yMax-range.yMin||1)*c.height,0,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+                [f.focus,...(f.neighbors||[])].forEach(i=>{const q=data[i];ctx.beginPath();ctx.arc(q.x*c.width,q.y*c.height,i===f.focus?9:6,0,Math.PI*2);ctx.stroke();});ctx.restore();
+            }
+            centers.forEach((center,k)=>{
+                const p=project(center), x=p.x*c.width, y=p.y*c.height, color=clusterColors[k%clusterColors.length];
+                ctx.save();ctx.beginPath();ctx.arc(x,y,15,0,Math.PI*2);ctx.fillStyle='white';ctx.fill();ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();
+                ctx.beginPath();ctx.moveTo(x-9,y);ctx.lineTo(x+9,y);ctx.moveTo(x,y-9);ctx.lineTo(x,y+9);ctx.lineWidth=3;ctx.stroke();
+                ctx.fillStyle='#172033';ctx.font='bold 13px sans-serif';ctx.fillText('C'+(k+1),x+18,y-12);ctx.restore();
+            });
+            document.getElementById('iterationBadge').textContent = f.title;
+            document.getElementById('iterationRound').textContent = '第 '+f.iteration+(f.algorithm === 'dbscan' || f.algorithm === 'hierarchical' ? ' 步' : ' 轮');
+            document.getElementById('iterationTitle').textContent = f.title;
+            document.getElementById('iterationDescription').textContent = f.description;
+            document.getElementById('iterationMotion').textContent = f.algorithm === 'dbscan' ? '已访问 '+f.labels.filter(x=>x!==-2).length+' / '+data.length+' 个点 · 暂记噪声 '+f.labels.filter(x=>x===-1).length+' 个' : f.algorithm === 'hierarchical' ? '当前 '+f.metric+' 个簇 · 本步合并涉及 '+(f.highlight||[]).length+' 个点' : '本步归属变化 '+changed+' 个点 · '+(f.algorithm==='gmm'?'均值':'质心')+'位移 '+shift.toFixed(4);
+            document.getElementById('iterationLegend').textContent = f.algorithm === 'dbscan' ? '虚线：ε 邻域　圈选：当前点及邻居　浅灰：未访问　深灰：噪声' : f.algorithm === 'hierarchical' ? '颜色：当前簇（超过色板数量时循环使用）　连线：本步合并的簇成员' : f.algorithm === 'gmm' ? '⊕ 分量均值　椭圆：约 2σ 范围　点越浅表示归属越不确定' : '● 数据点　⊕ 质心　浅线：所属质心　深线：移动轨迹';
+            document.getElementById('iterationMetricHint').textContent = f.metric_hint || 'SSE 越低，簇内越紧凑；不代表簇数一定最优。';
+            document.getElementById('iterationMetric').textContent = (f.metric_name || '簇内平方和 SSE')+'：'+f.metric.toFixed(4);
+            document.getElementById('iterationSeek').value = iterationIndex;
+            document.getElementById('iterationCount').textContent = (iterationIndex+1)+' / '+iterationFrames.length;
+            document.getElementById('iterationPrev').disabled = iterationIndex===0;
+            document.getElementById('iterationNext').disabled = iterationIndex===iterationFrames.length-1;
+            const chart=document.getElementById('iterationChart'), g=chart.getContext('2d');
+            g.clearRect(0,0,chart.width,chart.height);
+            const values=iterationFrames.map(x=>x.metric), lo=Math.min(...values),hi=Math.max(...values);
+            const span=Math.max(hi-lo,Math.max(1,Math.abs(hi))*1e-8);
+            const x=i=>55+i/(values.length-1||1)*245, y=v=>120-(v-lo)/span*90;
+            g.strokeStyle='#CBD5E1';g.beginPath();g.moveTo(30,15);g.lineTo(30,120);g.lineTo(305,120);g.stroke();
+            g.fillStyle='#6B7890';g.font='10px sans-serif';g.fillText(Number(hi.toPrecision(6)).toString(),0,18);g.fillText(Number(lo.toPrecision(6)).toString(),0,120);g.fillText('训练步骤 →',240,142);
+            g.strokeStyle='#CBD5E1';g.beginPath();values.forEach((v,i)=>i?g.lineTo(x(i),y(v)):g.moveTo(x(i),y(v)));g.stroke();
+            g.strokeStyle='#4F46E5';g.beginPath();values.slice(0,iterationIndex+1).forEach((v,i)=>i?g.lineTo(x(i),y(v)):g.moveTo(x(i),y(v)));g.stroke();
+            g.fillStyle='#4F46E5';g.beginPath();g.arc(x(iterationIndex),y(f.metric),4,0,2*Math.PI);g.fill();
+        }
+        document.addEventListener('DOMContentLoaded',()=>{
+            document.getElementById('algorithm').addEventListener('change', clearIterationHistory);
+            document.getElementById('iterationPrev').onclick=()=>moveIteration(iterationIndex-1);
+            document.getElementById('iterationNext').onclick=()=>moveIteration(iterationIndex+1);
+            document.getElementById('iterationSeek').oninput=e=>{const target=Number(e.target.value);pauseIterations();iterationIndex=target;renderIteration();};
+            document.getElementById('iterationPlay').onclick=()=>{
+                if(iterationPlaying){pauseIterations();return;}
+                cancelAnimationFrame(iterationAnimation);
+                if(iterationIndex===iterationFrames.length-1) iterationIndex=0;
+                iterationPlaying=true;
+                document.getElementById('iterationPlay').textContent='暂停';
+                renderIteration();
+                const tick=()=>{
+                    if (!iterationPlaying) return;
+                    if (iterationIndex>=iterationFrames.length-1) {pauseIterations();return;}
+                    const from=iterationIndex++;
+                    animateIteration(from,()=>{
+                        if (iterationIndex>=iterationFrames.length-1) {pauseIterations();return;}
+                        iterationTimer=setTimeout(tick,Number(document.getElementById('iterationSpeed').value)*.35);
+                    });
+                };
+                iterationTimer=setTimeout(tick,Number(document.getElementById('iterationSpeed').value)*.5);
+            };
+        });
+
         // 全局变量
         let dataCanvas, dataCtx, clusterCanvas, clusterCtx;
         let data = [];
@@ -1508,8 +1702,8 @@
             normalizePoint: function(point, dataRange) {
                 if (!dataRange) return {x: point[0], y: point[1]};
                 return {
-                    x: (point[0] - dataRange.xMin) / (dataRange.xMax - dataRange.xMin),
-                    y: (point[1] - dataRange.yMin) / (dataRange.yMax - dataRange.yMin)
+                    x: (point[0] - dataRange.xMin) / (dataRange.xMax - dataRange.xMin || 1),
+                    y: (point[1] - dataRange.yMin) / (dataRange.yMax - dataRange.yMin || 1)
                 };
             },
             
@@ -1539,14 +1733,13 @@
             // 初始化API客户端
             apiClient = new MLApiClient();
             
-            // 检查后端连接
-            await checkBackendConnection();
             
             initializeCanvases();
             setupEventListeners();
             updateAlgorithmDescription();
             updateParameterVisibility();
             resetDisplay();
+            await checkBackendConnection();
         });
         
         // 检查后端连接
@@ -1696,6 +1889,13 @@
         
         // 处理数据形状变化
         function handleDataShapeChange() {
+            datasetRevision++;
+            clearIterationHistory();
+            currentSessionKey = null;
+            clusterResults = null;
+            clearCanvas(clusterCtx, clusterCanvas);
+            document.getElementById('numClusters').textContent = '0';
+            document.getElementById('clusterColors').innerHTML = '';
             const shape = document.getElementById('dataShape').value;
             const pointsInput = document.getElementById('numPoints');
             const noiseInput = document.getElementById('noise');
@@ -1703,6 +1903,10 @@
             const finishBtn = document.getElementById('finishDrawingBtn');
             
             if (shape === 'custom') {
+                data = [];
+                window.dataRange = {xMin:0,xMax:1,yMin:0,yMax:1};
+                clearCanvas(dataCtx, dataCanvas);
+                updateDataDisplay();
                 pointsInput.disabled = true;
                 noiseInput.disabled = true;
                 dataCanvas.style.cursor = 'crosshair';
@@ -1728,7 +1932,8 @@
                 'anisotropic': '椭圆形簇',
                 'varied': '不同密度簇',
                 'smiley': '笑脸状分布',
-                'petals': '花瓣状分布'
+                'petals': '花瓣状分布',
+                'custom': '手绘数据'
             };
             return shapeNames[shape] || '未知';
         }
@@ -1757,6 +1962,13 @@
         
         // 生成数据
         async function generateData() {
+            const dataRequest = ++datasetRevision;
+            clearIterationHistory();
+            currentSessionKey = null;
+            clusterResults = null;
+            clearCanvas(clusterCtx, clusterCanvas);
+            document.getElementById('numClusters').textContent = '0';
+            document.getElementById('clusterColors').innerHTML = '';
             try {
                 const shape = document.getElementById('dataShape').value;
                 const numPoints = parseInt(document.getElementById('numPoints').value);
@@ -1785,6 +1997,7 @@
                     };
                     
                     const result = await apiClient.generateData(config);
+                    if (dataRequest !== datasetRevision) return;
                     
                     if (result.status === 'success') {
                         currentSessionKey = result.session_key;
@@ -1851,10 +2064,12 @@
         // 添加自定义数据点
         function addCustomDataPoint(event) {
             const rect = dataCanvas.getBoundingClientRect();
-            const x = (event.clientX - rect.left) / dataCanvas.width;
-            const y = (event.clientY - rect.top) / dataCanvas.height;
+            const x = (event.clientX - rect.left) / rect.width;
+            const y = (event.clientY - rect.top) / rect.height;
             
             if (x >= 0 && x <= 1 && y >= 0 && y <= 1) {
+                clearIterationHistory();
+                currentSessionKey = null;
                 data.push({ x, y });
                 drawDataPoint(dataCtx, x, y, '#4FACFE');
                 updateDataDisplay();
@@ -1885,7 +2100,9 @@
                 };
                 
                 // 调用后端API上传手绘数据
+                const revision = iterationRevision;
                 const result = await apiClient.generateData(config);
+                if (revision !== iterationRevision) return;
                 
                 if (result.status === 'success') {
                     currentSessionKey = result.session_key;
@@ -1971,6 +2188,7 @@
         
         // 查看最终聚类结果
         async function showFinalResults() {
+            let requestRevision;
             if (data.length === 0 || !currentSessionKey) {
                 alert('请先生成数据！');
                 return;
@@ -1987,12 +2205,16 @@
                 };
                 updateStatus('正在执行 ' + (algorithmNames[algorithm] || '未知') + ' 算法...');
                 
-                // 直接获取最终聚类结果，不生成步骤信息
-                await getFinalClusteringResults(algorithm);
+                clearIterationHistory();
+                requestRevision = iterationRevision;
+                // 获取结果与真实训练轨迹
+                const completed = await getFinalClusteringResults(algorithm);
+                if (!completed) return;
                 
                 updateStatus('聚类完成！查看右侧聚类结果');
                 
             } catch (error) {
+                if (requestRevision !== undefined && requestRevision !== iterationRevision) return;
                 console.error('聚类执行失败:', error);
                 updateStatus('聚类执行失败: ' + error.message);
             }
@@ -2010,12 +2232,14 @@
             const config = {
                 session_key: currentSessionKey,
                 algorithm: algorithmMapping[algorithm],
-                params: getAlgorithmParams(algorithm)
+                params: {...getAlgorithmParams(algorithm), record_history: true}
             };
             
+            const revision = iterationRevision;
             // 执行聚类获取最终结果
             const result = await apiClient.trainClustering(config);
             
+            if (revision !== iterationRevision || config.session_key !== currentSessionKey) return false;
             if (result.status === 'success') {
                 currentModelKey = result.model_key;
                 clusterResults = {
@@ -2024,8 +2248,10 @@
                     algorithm: algorithm
                 };
                 
-                // 直接显示最终结果
+                loadIterationHistory(result.results.training_info.history || [], algorithm);
+                // 显示最终结果
                 displayFinalResults(clusterResults.assignments, clusterResults.centers);
+                return true;
             } else {
                 throw new Error(result.message);
             }
@@ -2169,7 +2395,7 @@
         function displayFinalResults(assignments, centers = null) {
             clearCanvas(clusterCtx, clusterCanvas);
             
-            const uniqueClusters = [...new Set(assignments)].filter(c => c !== -1);
+            const uniqueClusters = [...new Set(assignments)].filter(c => c >= 0).sort((a,b)=>a-b);
             const numClusters = uniqueClusters.length;
             
             // 绘制聚类结果
@@ -2178,8 +2404,8 @@
                 if (clusterId === -1) {
                     drawDataPoint(clusterCtx, point.x, point.y, '#999999'); // 噪声点
                 } else {
-                    const colorIndex = uniqueClusters.indexOf(clusterId);
-                    drawDataPoint(clusterCtx, point.x, point.y, clusterColors[colorIndex]);
+                    const colorIndex = clusterId;
+                    drawDataPoint(clusterCtx, point.x, point.y, clusterColors[colorIndex % clusterColors.length]);
                 }
             });
             
@@ -2189,9 +2415,9 @@
                     if (Array.isArray(center) && center.length >= 2) {
                         // 使用统一的坐标转换工具函数
                         const normalizedCenter = CoordinateUtils.normalizePoint(center, window.dataRange);
-                        drawCentroid(clusterCtx, normalizedCenter.x, normalizedCenter.y, clusterColors[i]);
+                        drawCentroid(clusterCtx, normalizedCenter.x, normalizedCenter.y, clusterColors[i % clusterColors.length]);
                     } else if (center.x !== undefined && center.y !== undefined) {
-                        drawCentroid(clusterCtx, center.x, center.y, clusterColors[i]);
+                        drawCentroid(clusterCtx, center.x, center.y, clusterColors[i % clusterColors.length]);
                     }
                 });
             }
@@ -2654,7 +2880,7 @@
         }
         
         function updateClusterDisplay(assignments) {
-            const uniqueClusters = [...new Set(assignments)].filter(c => c !== -1);
+            const uniqueClusters = [...new Set(assignments)].filter(c => c >= 0).sort((a,b)=>a-b);
             const numClusters = uniqueClusters.length;
             const numNoise = assignments.filter(a => a === -1).length;
             
@@ -2667,7 +2893,7 @@
             uniqueClusters.forEach((clusterId, i) => {
                 const colorDiv = document.createElement('div');
                 colorDiv.className = 'color-indicator';
-                colorDiv.style.backgroundColor = clusterColors[i];
+                colorDiv.style.backgroundColor = clusterColors[clusterId % clusterColors.length];
                 colorDiv.setAttribute('data-label', `聚类 ${clusterId + 1}`);
                 colorsDiv.appendChild(colorDiv);
             });
@@ -2687,6 +2913,7 @@
         
         // 重置显示
         function resetDisplay() {
+            clearIterationHistory();
             clearCanvas(dataCtx, dataCanvas);
             clearCanvas(clusterCtx, clusterCanvas);
             
@@ -2705,7 +2932,7 @@
             
             // 重置模型相关变量
             currentModelKey = null;
-            window.dataRange = null;
+
         }
 
         // 重置算法参数到默认值
@@ -2733,7 +2960,9 @@
 
         // 重置所有
         function resetAll() {
+            datasetRevision++;
             data = [];
+            window.dataRange = null;
             clusterResults = null;
             currentSessionKey = null;
             resetStepControls();
@@ -2776,6 +3005,8 @@
         
         // 切换模式
         function switchMode(mode) {
+            pauseIterations();
+            document.getElementById('iterationPanel').hidden = mode !== 'single';
             currentMode = mode;
             
             // 更新按钮状态
@@ -3144,7 +3375,7 @@
                 let color = '#999999'; // 噪声点颜色
                 
                 if (clusterId !== -1) {
-                    const colorIndex = uniqueClusters.indexOf(clusterId);
+                    const colorIndex = clusterId;
                     color = clusterColors[colorIndex % clusterColors.length];
                 }
                 
@@ -3157,7 +3388,7 @@
                     if (Array.isArray(center) && center.length >= 2) {
                         // 使用统一的坐标转换工具函数
                         const normalizedCenter = CoordinateUtils.normalizePoint(center, window.dataRange);
-                        drawCentroidOnCanvas(ctx, normalizedCenter.x, normalizedCenter.y, clusterColors[i], canvas.width, canvas.height);
+                        drawCentroidOnCanvas(ctx, normalizedCenter.x, normalizedCenter.y, clusterColors[i % clusterColors.length], canvas.width, canvas.height);
                     }
                 });
             }
