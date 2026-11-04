@@ -1,0 +1,60 @@
+const assert = require('node:assert/strict');
+const {chromium} = require('playwright');
+
+(async()=>{
+    const browser = await chromium.launch({headless:true,executablePath:process.env.ARENA_BROWSER_EXE || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
+    const page = await browser.newPage({viewport:{width:1440,height:1100}});
+    const errors=[];page.on('pageerror',error=>errors.push(error.message));
+    const snap=()=>page.evaluate(()=>window.VizMLArena.snapshot());
+    try {
+        await page.goto((process.env.ARENA_URL || 'http://localhost:5432')+'/#ml-arena');
+        await page.waitForFunction(()=>window.VizMLArena?.snapshot().split);
+        const before=await snap();
+        assert.ok(before.recordingEstimate.high>0);
+        assert.equal(before.recordingEstimate.calibrated,0);
+        await page.locator('#arena-play-steps').fill('1000');
+        const longer=await snap();
+        assert.ok(longer.recordingEstimate.high>before.recordingEstimate.high);
+        assert.equal(longer.requestCount,before.requestCount,'typing must not issue training requests');
+        assert.ok((await page.locator('#arena-record-estimate-summary').innerText()).includes('首次粗估'));
+        await page.locator('#arena-record-estimate-summary').click();
+        assert.equal(await page.locator('#arena-record-estimate-models span').count(),6);
+        await page.locator('#arena-play-steps').fill('');
+        assert.equal((await snap()).recordingEstimate,null);
+        await page.locator('#arena-play-steps').fill('1001');
+        assert.equal((await snap()).recordingEstimate,null);
+        await page.locator('#arena-play-steps').fill('3');
+        const short=await snap();
+        await page.locator('#arena-play-speed').fill('0.00001');
+        assert.deepEqual((await snap()).recordingEstimate,short.recordingEstimate,'playback speed cannot affect training estimate');
+        await page.locator('#arena-play-record').click();
+        await page.waitForFunction(()=>window.VizMLArena.snapshot().playback?.active && !window.VizMLArena.snapshot().busy);
+        const measured=await snap();
+        assert.equal(measured.recordingEstimate.calibrated,6);
+        await page.locator('#arena-play-pause').click();
+        await page.locator('#arena-play-steps').fill('10');
+        assert.equal((await snap()).recordingEstimate.calibrated,6);
+        await page.locator('#arena-mlp-iterations').evaluate(input=>{
+            input.value='600';input.dispatchEvent(new Event('input',{bubbles:true}));
+        });
+        assert.equal((await snap()).recordingEstimate.calibrated,5,'changed model configuration invalidates its calibration');
+        const allTen=await snap();
+        for(const key of ['svm','tree','forest','mlp'])await page.locator('[data-arena-participant="'+key+'"]').uncheck();
+        const pair=await snap();
+        assert.deepEqual(pair.recordingEstimate.tracks.map(t=>t.key),['knn','bayes']);
+        assert.equal(pair.recordingEstimate.calibrated,2);
+        assert.ok(pair.recordingEstimate.high<allTen.recordingEstimate.high);
+        const calls=pair.requestCount;
+        await page.locator('#arena-play-steps').fill('1000');
+        assert.equal((await snap()).requestCount,calls);
+        await page.locator('#arena-participants-all').click();
+        await page.locator('#arena-play-steps').fill('100');
+        await page.locator('.arena-stepper').screenshot({path:'.arena-qa/arena-recording-estimate.png'});
+        await page.setViewportSize({width:390,height:844});
+        assert.ok(await page.locator('#arena-record-estimate-summary').isVisible());
+        const fits=await page.locator('#arena-record-estimate').evaluate(el=>el.scrollWidth<=el.clientWidth+1);
+        assert.ok(fits,'estimate must wrap on mobile');
+        assert.deepEqual(errors,[]);
+        console.log('PASS live recording estimates: input, no training requests, invalid values, speed independence, calibration, invalidation, selection, mobile');
+    } finally {await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});

@@ -7,7 +7,10 @@
     <title>VizML · 让机器学习算法看得见</title>
     <link rel="stylesheet" href="/static/css/design-system.css">
     <link rel="stylesheet" href="/static/css/home.css">
+    <link rel="stylesheet" href="/static/css/ml-arena.css">
     <script defer src="/static/js/home.js"></script>
+    <script defer src="/static/js/arena-timeline-clock.js"></script>
+    <script defer src="/static/js/ml-arena.js"></script>
 </head>
 <body class="viz-home-page">
     <a class="skip-link" href="#main-content">跳到主要内容</a>
@@ -37,7 +40,7 @@
         <div class="nav-shell">
             <a class="home-brand" href="#top" aria-label="VizML 首页"><span class="home-brand__mark"><svg><use href="#icon-brand"></use></svg></span><span class="home-brand__text"><strong>VizML</strong><small>Machine Learning Lab</small></span></a>
             <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav"><span></span><span></span><span></span><span class="sr-only">打开导航</span></button>
-            <nav class="primary-nav" id="primary-nav" aria-label="主导航"><a href="#features">平台特色</a><a href="#learning-path">如何学习</a><a href="#algorithms">算法实验</a><a class="nav-cta" href="/html/linear_regression.html">开始探索<svg><use href="#icon-arrow"></use></svg></a></nav>
+            <nav class="primary-nav" id="primary-nav" aria-label="主导航"><a href="#features">平台特色</a><a href="#learning-path">如何学习</a><a href="#algorithms">算法实验</a><a href="#ml-arena">模型竞技场</a><a class="nav-cta" href="/html/linear_regression.html">开始探索<svg><use href="#icon-arrow"></use></svg></a></nav>
         </div>
     </header>
 
@@ -111,6 +114,8 @@
         </div></section>
 
         <section class="final-cta section-shell" aria-labelledby="cta-title"><div class="final-cta__visual" aria-hidden="true"><i></i><i></i><i></i><i></i><span></span></div><div><span class="section-kicker">READY TO EXPERIMENT?</span><h2 id="cta-title">选择一个算法，让理解从第一次调参开始</h2><p>无需登录，也无需准备数据。打开工作台即可开始一次完整的机器学习实验。</p></div><a class="button button--light" href="/html/linear_regression.html">进入第一个实验<svg><use href="#icon-arrow"></use></svg></a></section>
+        {% include 'partials/ml-arena.html' %}
+
     </main>
 
     <footer class="home-footer"><div class="section-shell home-footer__inner"><a class="home-brand home-brand--footer" href="#top"><span class="home-brand__mark"><svg><use href="#icon-brand"></use></svg></span><span class="home-brand__text"><strong>VizML</strong><small>让机器学习看得见</small></span></a><p>基于 Flask、scikit-learn 与原生 Web 技术构建的本地可视化实验平台。</p><a href="#top">回到顶部 ↑</a></div></footer>
