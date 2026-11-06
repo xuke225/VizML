@@ -788,6 +788,7 @@
         }
     </style>
     <link rel="stylesheet" href="/static/css/design-system.css">
+    <link rel="stylesheet" href="/static/css/decision-tree-pruning.css">
     <script defer src="/static/js/visualization-theme.js"></script>
     <script defer src="/static/js/ui-shell.js"></script>
 </head>
@@ -898,6 +899,67 @@
             </div>
             
         </div>
+
+        <section class="pruning-lab" aria-labelledby="pruningLabTitle">
+            <div class="pruning-lab__header">
+                <div>
+                    <h3 id="pruningLabTitle">✂️ 决策树剪枝实验台</h3>
+                    <p>在同一数据划分上比较树的复杂度、训练表现和泛化能力，观察剪枝如何缓解过拟合。</p>
+                </div>
+                <span class="pruning-badge">新增实验</span>
+            </div>
+
+            <div class="pruning-strategies" role="radiogroup" aria-label="剪枝策略">
+                <label class="pruning-strategy">
+                    <input type="radio" name="pruningMethod" value="none">
+                    <span class="pruning-strategy__title"><span>🌳</span><span>未剪枝</span></span>
+                    <span class="pruning-strategy__desc">让树充分生长，作为高复杂度与过拟合观察基线。</span>
+                </label>
+                <label class="pruning-strategy is-active">
+                    <input type="radio" name="pruningMethod" value="pre" checked>
+                    <span class="pruning-strategy__title"><span>🛑</span><span>预剪枝</span></span>
+                    <span class="pruning-strategy__desc">在训练过程中限制深度、样本量和叶节点数量。</span>
+                </label>
+                <label class="pruning-strategy">
+                    <input type="radio" name="pruningMethod" value="post_auto">
+                    <span class="pruning-strategy__title"><span>✨</span><span>自动后剪枝</span></span>
+                    <span class="pruning-strategy__desc">交叉验证搜索 ccp_alpha，并选择更简单的候选树。</span>
+                </label>
+                <label class="pruning-strategy">
+                    <input type="radio" name="pruningMethod" value="post_manual">
+                    <span class="pruning-strategy__title"><span>🎛️</span><span>手动后剪枝</span></span>
+                    <span class="pruning-strategy__desc">自行设置代价复杂度系数，观察树结构连续收缩。</span>
+                </label>
+            </div>
+
+            <div class="pruning-options">
+                <div class="pruning-option" data-visible-for="pre">
+                    <label for="maxLeafNodes">最大叶节点数</label>
+                    <input type="number" id="maxLeafNodes" value="24" min="2" max="200" step="1">
+                    <small>留空代表不限制，数值越小模型越简单。</small>
+                </div>
+                <div class="pruning-option" data-visible-for="pre">
+                    <label for="minImpurityDecrease">最小不纯度下降</label>
+                    <input type="number" id="minImpurityDecrease" value="0" min="0" max="1" step="0.001">
+                    <small>分裂收益低于该阈值时停止生长。</small>
+                </div>
+                <div class="pruning-option" data-visible-for="post_auto">
+                    <label for="pruningCvFolds">交叉验证折数</label>
+                    <select id="pruningCvFolds">
+                        <option value="3">3 折（更快）</option>
+                        <option value="5" selected>5 折（推荐）</option>
+                        <option value="10">10 折（更稳定）</option>
+                    </select>
+                    <small>只使用训练集选择 alpha，测试集不参与调参。</small>
+                </div>
+                <div class="pruning-option" data-visible-for="post_manual">
+                    <label for="ccpAlpha">代价复杂度系数 <span id="ccpAlphaValue" class="pruning-alpha-value">0.0100</span></label>
+                    <input type="number" id="ccpAlpha" value="0.01" min="0" max="1" step="0.0001">
+                    <small>0 表示不剪枝；系数越大，删除的弱分支越多。</small>
+                </div>
+            </div>
+            <div id="pruningModeHint" class="pruning-note"></div>
+        </section>
         
         <div class="control-buttons">
             <button id="generateDataBtn" style="background: linear-gradient(135deg, #4F46E5, #21CBF3); padding: 12px 24px; border-radius: 8px; font-weight: 600;">📊 生成数据</button>
@@ -959,6 +1021,45 @@
                 </div>
             </div>
         </div>
+
+        <section id="pruningResults" class="pruning-results" aria-live="polite">
+            <div class="pruning-results__header">
+                <div>
+                    <h3>🔬 剪枝效果分析</h3>
+                    <p>复杂度下降不等于效果下降；重点观察测试准确率和训练/测试差距。</p>
+                </div>
+                <span id="pruningResultBadge" class="pruning-badge">等待训练</span>
+            </div>
+            <div id="pruningSummary" class="pruning-summary"></div>
+            <div class="pruning-result-grid">
+                <div class="pruning-card">
+                    <h4>三种策略公平对比</h4>
+                    <div class="pruning-table-wrap">
+                        <table class="pruning-table">
+                            <thead>
+                                <tr>
+                                    <th>策略</th>
+                                    <th>训练准确率</th>
+                                    <th>测试准确率</th>
+                                    <th>泛化差距</th>
+                                    <th>深度</th>
+                                    <th>叶节点</th>
+                                    <th>总节点</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pruningComparisonBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="pruningExplanation" class="pruning-note"></div>
+                </div>
+                <div class="pruning-card">
+                    <h4>代价复杂度剪枝路径</h4>
+                    <div class="pruning-chart-wrap">
+                        <canvas id="pruningPathCanvas" aria-label="ccp alpha 与准确率关系曲线"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
         
         <div class="visualization">
             <div class="data-panel">
@@ -1063,6 +1164,7 @@
 
     <!-- API客户端 -->
     <script src="/static/js/api-client.js"></script>
+    <script src="/static/js/decision-tree-pruning.js"></script>
     
     <script>
         // 全局变量
@@ -1072,6 +1174,8 @@
         let currentData = null;
         let trainingData = [];
         let decisionTree = null;
+        let datasetRevision = 0;
+        let trainingRequestId = 0;
         
         // 数据集配置
         const datasetConfig = {
@@ -1111,6 +1215,7 @@
             // 更新特征说明和维度显示
             updateFeatureControls();
             updateDimensionDisplay();
+            window.DecisionTreePruningUI.init();
             
             // 初始化树可视化器
             treeVisualizer = new DecisionTreeVisualizer('treeCanvas', 'nodeInfo');
@@ -1140,8 +1245,14 @@
         
         // 设置事件监听器
         function setupEventListeners() {
-            document.getElementById('dataType').addEventListener('change', updateFeatureControls);
-            document.getElementById('useFullFeatures').addEventListener('change', updateDimensionDisplay);
+            document.getElementById('dataType').addEventListener('change', () => {
+                clearAll();
+                updateFeatureControls();
+            });
+            document.getElementById('useFullFeatures').addEventListener('change', () => {
+                clearAll();
+                updateDimensionDisplay();
+            });
             document.getElementById('generateDataBtn').addEventListener('click', generateData);
             document.getElementById('buildTreeBtn').addEventListener('click', buildTree);
             document.getElementById('testSampleBtn').addEventListener('click', testSample);
@@ -1237,6 +1348,8 @@
         
         // 生成数据
         async function generateData() {
+            clearAll();
+            const requestRevision = datasetRevision;
             try {
                 updateStatus('正在生成数据...');
                 
@@ -1266,6 +1379,7 @@
                     result = await apiClient.generateData(config);
                 }
                 
+                if (requestRevision !== datasetRevision) return;
                 if (result.status === 'success') {
                     currentSessionKey = result.session_key;
                     currentData = result.data;
@@ -1286,6 +1400,7 @@
                 }
                 
             } catch (error) {
+                if (requestRevision !== datasetRevision) return;
                 console.error('数据生成失败:', error);
                 updateStatus('数据生成失败: ' + error.message);
             }
@@ -1459,11 +1574,18 @@
                 return;
             }
             
+            const buildButton = document.getElementById('buildTreeBtn');
+            if (buildButton.disabled) return;
+            buildButton.disabled = true;
+            const datasetKey = currentSessionKey;
+            const requestRevision = datasetRevision;
+            const requestId = ++trainingRequestId;
             try {
                 updateStatus('正在构建决策树...');
                 
                 const maxFeaturesValue = document.getElementById('maxFeatures').value;
                 const maxFeatures = maxFeaturesValue === 'None' ? null : maxFeaturesValue;
+                const pruningParams = window.DecisionTreePruningUI.getParams();
                 
                 const config = {
                     session_key: currentSessionKey,
@@ -1476,11 +1598,14 @@
                         criterion: document.getElementById('criterion').value,
                         use_full_features: document.getElementById('useFullFeatures').checked,
                         test_size: 0.2,
-                        random_state: 42
+                        random_state: 42,
+                        ...pruningParams
                     }
                 };
                 
                 const result = await apiClient.trainDecisionTree(config);
+                if (currentSessionKey !== datasetKey || requestRevision !== datasetRevision
+                    || requestId !== trainingRequestId) return;
                 
                 if (result.status === 'success') {
                     currentModelKey = result.model_key;
@@ -1491,6 +1616,9 @@
                     
                     // 更新性能指标
                     updatePerformanceMetrics(result.results.metrics);
+
+                    // 更新剪枝对比与代价复杂度路径
+                    window.DecisionTreePruningUI.render(result.results.pruning_info);
                     
                     // 可视化决策树
                     visualizeDecisionTree();
@@ -1504,8 +1632,11 @@
                 }
                 
             } catch (error) {
+                if (requestRevision !== datasetRevision || requestId !== trainingRequestId) return;
                 console.error('决策树构建失败:', error);
                 updateStatus('决策树构建失败: ' + error.message);
+            } finally {
+                if (requestId === trainingRequestId) buildButton.disabled = !currentSessionKey;
             }
         }
         
@@ -2411,6 +2542,7 @@
             // 使用真实的树结构数据
             if (decisionTree && decisionTree.results && decisionTree.results.algorithm_params && decisionTree.results.algorithm_params.tree_structure) {
                 console.log('使用真实树结构数据:', decisionTree.results.algorithm_params.tree_structure);
+                featureNames = decisionTree.results.algorithm_params.feature_names || featureNames;
                 treeVisualizer.setTreeData(decisionTree.results.algorithm_params.tree_structure, targetNames, featureNames);
             } else {
                 console.warn('未找到树结构数据，使用示例树');
@@ -2629,11 +2761,16 @@
         
         // 清空所有
         function clearAll() {
+            datasetRevision += 1;
+            trainingRequestId += 1;
             currentSessionKey = null;
             currentModelKey = null;
             currentData = null;
             trainingData = [];
             decisionTree = null;
+            window.trainData = [];
+            window.testData = [];
+            window.fullDataWithLabels = [];
             
             document.getElementById('dataDisplay').innerHTML = '暂无数据，请先生成训练数据';
             
@@ -2644,6 +2781,8 @@
             
             document.getElementById('performanceMetrics').innerHTML = '<div class="metric-item"><span class="metric-label">等待训练...</span></div>';
             document.getElementById('testResult').style.display = 'none';
+            document.getElementById('performanceComparison').style.display = 'none';
+            window.DecisionTreePruningUI.reset();
             
             document.getElementById('buildTreeBtn').disabled = true;
             document.getElementById('testSampleBtn').disabled = true;
@@ -2654,7 +2793,15 @@
         // 更新状态
         function updateStatus(message) {
             console.log('状态:', message);
-            // 可以在这里添加状态显示逻辑
+            let status = document.getElementById('decisionTreeRuntimeStatus');
+            if (!status) {
+                status = document.createElement('div');
+                status.id = 'decisionTreeRuntimeStatus';
+                status.className = 'pruning-note';
+                status.setAttribute('role', 'status');
+                document.querySelector('.control-buttons').after(status);
+            }
+            status.textContent = message;
         }
     </script>
 </body>

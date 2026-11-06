@@ -657,6 +657,7 @@ def train_decision_tree():
                 'predictions': result['predictions'],
                 'full_data_with_labels': result['full_data_with_labels'],
                 'training_info': result['training_info'],
+                'pruning_info': result['pruning_info'],
                 'algorithm_params': result['algorithm_params'],
                 'decision_boundary': result['decision_boundary'],
                 'confusion_matrices': result['confusion_matrices'],
