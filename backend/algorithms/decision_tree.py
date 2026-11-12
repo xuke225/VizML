@@ -4,10 +4,10 @@
 """
 
 import numpy as np
-from sklearn.tree import DecisionTreeClassifier
 import logging
 
 from .base import BaseClassificationAlgorithm
+from .decision_tree_pruning import DecisionTreePruningEngine, PruningConfig
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +18,11 @@ class DecisionTreeAlgorithm(BaseClassificationAlgorithm):
     def __init__(self):
         super().__init__()
     
-    def train_model(self, X, y, max_depth=None, min_samples_split=2, min_samples_leaf=1, 
-                   max_features=None, criterion='gini', scale_features=False, use_full_features=False, **kwargs):
+    def train_model(self, X, y, max_depth=None, min_samples_split=2, min_samples_leaf=1,
+                   max_features=None, criterion='gini', scale_features=False,
+                   use_full_features=False, max_leaf_nodes=None,
+                   min_impurity_decrease=0.0, pruning_method='pre', ccp_alpha=0.0,
+                   cv_folds=5, **kwargs):
         """
         训练决策树模型
         
@@ -38,7 +41,12 @@ class DecisionTreeAlgorithm(BaseClassificationAlgorithm):
         Returns:
             result: 训练结果字典
         """
-        logger.info(f"训练决策树模型: max_depth={max_depth}, criterion={criterion}")
+        logger.info(
+            "训练决策树模型: max_depth=%s, criterion=%s, pruning_method=%s",
+            max_depth,
+            criterion,
+            pruning_method,
+        )
         
         # 数据分割
         test_size = kwargs.get('test_size', 0.2)
@@ -50,16 +58,25 @@ class DecisionTreeAlgorithm(BaseClassificationAlgorithm):
         if scale_features:
             X_train, X_test = self.scale_features(X_train, X_test)
         
-        # 创建并训练模型
-        model = DecisionTreeClassifier(
+        # 通过独立剪枝引擎训练三组可比模型，并返回用户选中的最终模型。
+        pruning_engine = DecisionTreePruningEngine(
+            criterion=criterion,
+            max_features=max_features,
+            random_state=kwargs.get('random_state', 42),
+        )
+        pruning_config = PruningConfig(
+            method=pruning_method,
             max_depth=max_depth,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
-            max_features=max_features,
-            criterion=criterion,
-            random_state=42
+            max_leaf_nodes=max_leaf_nodes,
+            min_impurity_decrease=min_impurity_decrease,
+            ccp_alpha=ccp_alpha,
+            cv_folds=cv_folds,
         )
-        model.fit(X_train, y_train)
+        model, pruning_info = pruning_engine.fit(
+            X_train, y_train, X_test, y_test, pruning_config
+        )
         
         # 预测和评估
         y_pred_train = model.predict(X_train)
@@ -81,10 +98,13 @@ class DecisionTreeAlgorithm(BaseClassificationAlgorithm):
         training_info = {
             'max_depth': int(model.get_depth()),
             'n_leaves': int(model.get_n_leaves()),
+            'node_count': int(model.tree_.node_count),
             'feature_importances': model.feature_importances_.tolist(),
             'feature_names': feature_names,
             'n_features': X.shape[1],
-            'tree_structure': self._get_tree_structure(model, feature_names=feature_names)
+            'tree_structure': self._get_tree_structure(model, feature_names=feature_names),
+            'pruning_method': pruning_method,
+            'selected_ccp_alpha': pruning_info['selected_alpha'],
         }
         
         # 获取模型参数和决策边界（用于可视化）
@@ -113,6 +133,7 @@ class DecisionTreeAlgorithm(BaseClassificationAlgorithm):
             },
             'full_data_with_labels': full_data_with_labels,
             'training_info': training_info,
+            'pruning_info': pruning_info,
             'algorithm_params': model_params,
             'decision_boundary': decision_boundary,
             'confusion_matrices': {
