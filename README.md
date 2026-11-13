@@ -172,6 +172,12 @@ python app.py
 - 聚类数据：`blobs`、`circles`、`moons`、`anisotropic`、`varied`、`smiley`、`petals`，也支持前端手绘点；
 - 高维数据：Iris、Wine、Breast Cancer、Digits，以及可配置的合成高维分类数据。
 
+## ML Arena — 机器学习模型竞技场
+
+新增独立的多模型对比模块：任选 2～6 个算法，观察真实决策边界、逐步学习过程及可暂停变速的耗时回放。打开 `http://localhost:5432/#ml-arena` 使用；原算法实验室保持不变。
+
+详细功能、参数与验证方法见 [ML Arena 使用说明](docs/ml-arena.md)。
+
 ## 项目结构
 
 ```text
